@@ -1,0 +1,630 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dashboard — LantaWires Overhead Wire Hazard Detection{% endblock %}
+
+{% block content %}
+<div style="min-height: 100vh; background: #020617; padding-bottom: 5rem;">
+
+  <!-- Sticky Application Bar -->
+  <header class="app-header">
+    <div class="container-7xl app-nav">
+      <!-- App Brand -->
+      <div style="display: flex; align-items: center; gap: 0.85rem;">
+        <div style="width: 42px; height: 42px; border-radius: 0.85rem; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); display: flex; align-items: center; justify-content: center; color: #fbbf24;">
+          <i data-lucide="shield-alert" style="width: 22px; height: 22px;"></i>
+        </div>
+        <div>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span style="font-size: 1.25rem; font-weight: 800; color: #ffffff; letter-spacing: -0.02em;">
+              LantaWires
+            </span>
+            <span class="badge-pill badge-amber" style="font-size: 0.65rem; padding: 0.15rem 0.5rem;">
+              Cebu City
+            </span>
+          </div>
+          <p style="font-size: 0.72rem; color: #94a3b8; margin-top: 0.1rem;">
+            Overhead Wire Hazard Detection System
+          </p>
+        </div>
+      </div>
+
+      <!-- User Badge & Logout -->
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div style="text-align: right; display: none;" class="desktop-user-meta">
+            <p style="font-size: 0.82rem; font-weight: 700; color: #f8fafc; line-height: 1.2;" id="current-user-name">
+              {{ current_user.name }}
+            </p>
+            <p style="font-size: 0.72rem; color: #fbbf24; font-weight: 600;">
+              Brgy. {{ current_user.barangay }}
+            </p>
+          </div>
+          <div style="width: 38px; height: 38px; border-radius: 9999px; background: linear-gradient(135deg, #f59e0b, #d97706); color: #020617; font-weight: 800; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);">
+            {{ current_user.avatar|default:"LW" }}
+          </div>
+        </div>
+
+        <a
+          id="home-sign-out-btn"
+          href="{% url 'home:logout' %}"
+          style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.85rem; background: #0f172a; border: 1px solid #1e293b; border-radius: 0.6rem; color: #cbd5e1; font-size: 0.78rem; font-weight: 600; text-decoration: none; transition: all 0.2s;"
+          title="Sign out from your account"
+        >
+          <i data-lucide="log-out" style="width: 15px; height: 15px; color: #f43f5e;"></i>
+          <span>Sign Out</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <div class="container-7xl" style="margin-top: 1.75rem; display: flex; flex-direction: column; gap: 1.5rem;">
+
+    <!-- Hero & Quick Action Banner -->
+    <div style="position: relative; overflow: hidden; background: linear-gradient(135deg, #0b1120 0%, #0f172a 50%, #172136 100%); border: 1px solid #1e293b; border-radius: 1.25rem; padding: 2rem 2.25rem; box-shadow: 0 20px 35px -10px rgba(0,0,0,0.5);">
+      <!-- Glow ambient -->
+      <div style="position: absolute; top: -50px; right: -50px; width: 300px; height: 300px; background: rgba(245, 158, 11, 0.12); border-radius: 9999px; filter: blur(60px); pointer-events: none;"></div>
+
+      <div style="position: relative; z-index: 10; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.5rem;">
+        <div style="max-width: 680px;">
+          <div class="badge-pill badge-amber" style="margin-bottom: 0.75rem;">
+            <i data-lucide="shield-alert" style="width: 14px; height: 14px;"></i>
+            <span>Cebu City Community Hazard Eradication</span>
+          </div>
+          <h1 style="font-size: 1.85rem; font-weight: 800; color: #ffffff; letter-spacing: -0.02em; line-height: 1.2;">
+            Wire Hazard Detection & Reporting
+          </h1>
+          <p style="font-size: 0.88rem; color: #cbd5e1; margin-top: 0.5rem; line-height: 1.55;">
+            Empowering Cebu City residents to detect sagging utility wires, verify hazard clearance via AI computer vision, and catalog structured incident reports for neighborhood safety.
+          </p>
+        </div>
+
+        <div>
+          <button
+            type="button"
+            id="report-hazard-hero-btn"
+            class="btn-primary"
+            style="width: auto; padding: 0.85rem 1.6rem; font-size: 0.95rem;"
+          >
+            <i data-lucide="camera" style="width: 18px; height: 18px;"></i>
+            <span>Report Overhead Hazard</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Real-time Triage Metric Cards -->
+    <div class="metrics-grid">
+      <!-- Total Verified -->
+      <div class="metric-card">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+          <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em;">
+            Total Verified
+          </span>
+          <div style="padding: 0.4rem; border-radius: 0.55rem; background: rgba(245, 158, 11, 0.12); color: #fbbf24;">
+            <i data-lucide="check-circle-2" style="width: 16px; height: 16px;"></i>
+          </div>
+        </div>
+        <div style="display: flex; align-items: baseline; gap: 0.5rem;">
+          <span style="font-size: 1.85rem; font-weight: 800; color: #ffffff;" id="stat-total">
+            {{ stats.total }}
+          </span>
+          <span style="font-size: 0.75rem; font-weight: 600; color: #34d399;">
+            94.8% AI Match
+          </span>
+        </div>
+        <p style="font-size: 0.72rem; color: #64748b; margin-top: 0.25rem;">Cebu City coverage</p>
+      </div>
+
+      <!-- Active Dispatches -->
+      <div class="metric-card">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+          <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em;">
+            Active Dispatches
+          </span>
+          <div style="padding: 0.4rem; border-radius: 0.55rem; background: rgba(245, 158, 11, 0.12); color: #fbbf24;">
+            <i data-lucide="send" style="width: 16px; height: 16px;"></i>
+          </div>
+        </div>
+        <div style="display: flex; align-items: baseline; gap: 0.5rem;">
+          <span style="font-size: 1.85rem; font-weight: 800; color: #fbbf24;" id="stat-dispatched">
+            {{ stats.dispatched }}
+          </span>
+          <span style="font-size: 0.75rem; font-weight: 600; color: #94a3b8;">
+            Under 3 min SLA
+          </span>
+        </div>
+        <p style="font-size: 0.72rem; color: #64748b; margin-top: 0.25rem;">Sent to TIC & VECO desks</p>
+      </div>
+
+      <!-- Critical Hazards -->
+      <div class="metric-card">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+          <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em;">
+            Critical Hazards
+          </span>
+          <div style="padding: 0.4rem; border-radius: 0.55rem; background: rgba(244, 63, 94, 0.12); color: #f43f5e;">
+            <i data-lucide="alert-triangle" style="width: 16px; height: 16px;"></i>
+          </div>
+        </div>
+        <div style="display: flex; align-items: baseline; gap: 0.5rem;">
+          <span style="font-size: 1.85rem; font-weight: 800; color: #f43f5e;" id="stat-critical">
+            {{ stats.critical }}
+          </span>
+          <span style="font-size: 0.75rem; font-weight: 600; color: #f43f5e;">
+            Sub-3.5m clearance
+          </span>
+        </div>
+        <p style="font-size: 0.72rem; color: #64748b; margin-top: 0.25rem;">Immediate vehicular danger</p>
+      </div>
+
+      <!-- Resolved Bundles -->
+      <div class="metric-card">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+          <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em;">
+            Resolved Bundles
+          </span>
+          <div style="padding: 0.4rem; border-radius: 0.55rem; background: rgba(16, 185, 129, 0.12); color: #10b981;">
+            <i data-lucide="zap" style="width: 16px; height: 16px;"></i>
+          </div>
+        </div>
+        <div style="display: flex; align-items: baseline; gap: 0.5rem;">
+          <span style="font-size: 1.85rem; font-weight: 800; color: #34d399;" id="stat-resolved">
+            {{ stats.resolved }}
+          </span>
+          <span style="font-size: 0.75rem; font-weight: 600; color: #94a3b8;">
+            Elevated & Safe
+          </span>
+        </div>
+        <p style="font-size: 0.72rem; color: #64748b; margin-top: 0.25rem;">Street cables cleared and bundled</p>
+      </div>
+    </div>
+
+    <!-- Search & Filter Controls -->
+    <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem;">
+      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; flex: 1; min-width: 280px;">
+        <!-- Search Input -->
+        <div style="position: relative; flex: 1; min-width: 220px;">
+          <i data-lucide="search" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #64748b; pointer-events: none;"></i>
+          <input
+            id="search-incidents-input"
+            type="text"
+            placeholder="Search ticket, street, or hazard..."
+            style="width: 100%; padding: 0.65rem 0.85rem 0.65rem 2.5rem; background: #0f172a; border: 1px solid #1e293b; border-radius: 0.75rem; color: #f8fafc; font-size: 0.8rem; outline: none;"
+          />
+        </div>
+
+        <!-- Barangay Filter -->
+        <select
+          id="filter-barangay-select"
+          style="padding: 0.65rem 1.25rem 0.65rem 0.85rem; background: #0f172a; border: 1px solid #1e293b; border-radius: 0.75rem; color: #cbd5e1; font-size: 0.8rem; outline: none; cursor: pointer;"
+        >
+          <option value="all">All Cebu City Barangays</option>
+          {% for b in barangays %}
+            <option value="{{ b }}">Brgy. {{ b }}</option>
+          {% endfor %}
+        </select>
+
+        <!-- Severity Filter -->
+        <select
+          id="filter-severity-select"
+          style="padding: 0.65rem 1.25rem 0.65rem 0.85rem; background: #0f172a; border: 1px solid #1e293b; border-radius: 0.75rem; color: #cbd5e1; font-size: 0.8rem; outline: none; cursor: pointer;"
+        >
+          <option value="all">All Severities</option>
+          <option value="critical">Critical Only</option>
+          <option value="high">High Only</option>
+          <option value="medium">Medium Only</option>
+          <option value="low">Low Only</option>
+        </select>
+      </div>
+
+      <!-- View Switcher Tabs -->
+      <div style="display: flex; align-items: center; background: #0f172a; padding: 0.3rem; border-radius: 0.75rem; border: 1px solid #1e293b;">
+        <button
+          type="button"
+          id="view-map-btn"
+          style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.85rem; border-radius: 0.55rem; font-size: 0.78rem; font-weight: 700; border: none; cursor: pointer; background: #f59e0b; color: #020617; transition: all 0.2s;"
+        >
+          <i data-lucide="map-pin" style="width: 14px; height: 14px;"></i>
+          <span>Cebu Hotspot Map</span>
+        </button>
+        <button
+          type="button"
+          id="view-list-btn"
+          style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.85rem; border-radius: 0.55rem; font-size: 0.78rem; font-weight: 600; border: none; cursor: pointer; background: transparent; color: #94a3b8; transition: all 0.2s;"
+        >
+          <i data-lucide="layers" style="width: 14px; height: 14px;"></i>
+          <span>Incident Feed (<span id="feed-count">{{ reports|length }}</span>)</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- MAP VIEW CONTAINER -->
+    <div id="map-view-section" style="display: flex; flex-direction: column; gap: 1rem;">
+      <div class="map-container">
+        <!-- Top Map Header Overlay -->
+        <div style="position: absolute; top: 0.85rem; left: 0.85rem; right: 0.85rem; z-index: 20; display: flex; align-items: center; justify-content: space-between; pointer-events: none;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.85rem; border-radius: 0.65rem; background: rgba(15, 23, 42, 0.92); border: 1px solid #1e293b; backdrop-filter: blur(8px); pointer-events: auto; font-size: 0.75rem; font-weight: 600; color: #cbd5e1;">
+            <i data-lucide="navigation" style="width: 14px; height: 14px; color: #fbbf24;"></i>
+            <span>Cebu City Overhead Grid: 10.3157° N, 123.8854° E</span>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.75rem; border-radius: 0.65rem; background: rgba(15, 23, 42, 0.92); border: 1px solid #1e293b; backdrop-filter: blur(8px); pointer-events: auto; font-size: 0.72rem; color: #94a3b8;">
+            <span style="width: 7px; height: 7px; border-radius: 9999px; background: #10b981; display: inline-block; box-shadow: 0 0 6px #10b981;"></span>
+            <span>Live TIC Radar Active</span>
+          </div>
+        </div>
+
+        <!-- Stylized Vector Grid of Cebu City -->
+        <svg
+          style="width: 100%; height: 100%; object-fit: cover;"
+          viewBox="0 0 800 480"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <defs>
+            <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.8" stroke-opacity="0.4" />
+            </pattern>
+            <radialGradient id="coastGlow" cx="70%" cy="50%" r="60%">
+              <stop offset="0%" stop-color="#0284c7" stop-opacity="0.12" />
+              <stop offset="100%" stop-color="#0284c7" stop-opacity="0" />
+            </radialGradient>
+          </defs>
+
+          <!-- Background Grid -->
+          <rect width="800" height="480" fill="#090d16" />
+          <rect width="800" height="480" fill="url(#grid)" />
+
+          <!-- Cebu Mactan Channel Coastline Simulation -->
+          <path
+            d="M 680,0 C 650,80 630,160 610,240 C 590,320 620,400 660,480 L 800,480 L 800,0 Z"
+            fill="url(#coastGlow)"
+            stroke="#0369a1"
+            stroke-width="1.5"
+            stroke-dasharray="4 4"
+            stroke-opacity="0.4"
+          />
+
+          <!-- Arterial Roads (N. Bacalso, V. Rama, Gorordo, Colon) -->
+          <path d="M 120,480 C 180,380 260,310 360,250 C 440,200 520,130 580,0" stroke="#334155" stroke-width="3.5" stroke-linecap="round" stroke-opacity="0.6" />
+          <path d="M 140,160 C 220,190 310,220 400,245 C 470,265 540,280 630,300" stroke="#334155" stroke-width="2.5" stroke-linecap="round" stroke-opacity="0.5" />
+          <path d="M 360,250 C 420,180 470,120 540,70" stroke="#334155" stroke-width="2.5" stroke-linecap="round" stroke-opacity="0.5" />
+          <path d="M 430,280 L 530,310" stroke="#f59e0b" stroke-width="2" stroke-opacity="0.4" stroke-dasharray="3 3" />
+
+          <!-- Barangay Zoning Boundary Labels -->
+          <g opacity="0.45" font-family="'JetBrains Mono', monospace" font-size="11" fill="#94a3b8" style="user-select: none;">
+            <text x="210" y="380">BRGY. TISA</text>
+            <text x="130" y="320">BRGY. BUHISAN</text>
+            <text x="470" y="110">BRGY. LAHUG</text>
+            <text x="230" y="190">BRGY. GUADALUPE</text>
+            <text x="480" y="325">COLON / DOWNTOWN</text>
+            <text x="560" y="210">BRGY. MABOLO</text>
+            <text x="660" y="230" fill="#38bdf8" opacity="0.7">MACTAN CHANNEL</text>
+          </g>
+        </svg>
+
+        <!-- Dynamic Map Pins Layer injected via JS -->
+        <div id="map-pins-container"></div>
+
+        <!-- Bottom Map Legend -->
+        <div style="position: absolute; bottom: 0.85rem; left: 0.85rem; z-index: 20; display: flex; flex-wrap: wrap; align-items: center; gap: 0.85rem; padding: 0.4rem 0.85rem; border-radius: 0.65rem; background: rgba(15, 23, 42, 0.92); border: 1px solid #1e293b; backdrop-filter: blur(8px); font-size: 0.72rem; color: #cbd5e1;">
+          <span style="color: #64748b; font-weight: 700; text-transform: uppercase;">Legend:</span>
+          <div style="display: flex; align-items: center; gap: 0.35rem;">
+            <span style="width: 9px; height: 9px; border-radius: 9999px; background: #f43f5e;"></span>
+            <span>Critical (&lt;3.5m)</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.35rem;">
+            <span style="width: 9px; height: 9px; border-radius: 9999px; background: #f59e0b;"></span>
+            <span>High Density</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.35rem;">
+            <span style="width: 9px; height: 9px; border-radius: 9999px; background: #eab308;"></span>
+            <span>Medium Clearance</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.35rem;">
+            <span style="width: 9px; height: 9px; border-radius: 9999px; background: #10b981;"></span>
+            <span>Resolved by TIC</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Selected Hotspot Quick Card -->
+      <div id="selected-hotspot-preview" style="display: none; padding: 1rem 1.25rem; background: #0f172a; border: 1px solid #1e293b; border-radius: 1rem; align-items: center; justify-content: space-between; gap: 1rem;">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <div style="width: 54px; height: 54px; border-radius: 0.65rem; overflow: hidden; background: #020617; border: 1px solid #1e293b; flex-shrink: 0;">
+            <img id="preview-image" src="" alt="Hazard preview" style="width: 100%; height: 100%; object-fit: cover;" />
+          </div>
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.2rem;">
+              <span id="preview-ticket" style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #fbbf24;"></span>
+              <span id="preview-severity-badge" class="badge-pill" style="font-size: 0.65rem; padding: 0.1rem 0.45rem;"></span>
+              <span id="preview-barangay" style="font-size: 0.72rem; color: #94a3b8;"></span>
+            </div>
+            <p id="preview-title" style="font-size: 0.85rem; font-weight: 700; color: #ffffff;"></p>
+            <p id="preview-address" style="font-size: 0.75rem; color: #64748b; margin-top: 0.1rem;"></p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          id="preview-inspect-btn"
+          style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.55rem 1rem; border-radius: 0.65rem; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap;"
+        >
+          <span>Inspect AI Telemetry & Dispatch Proof</span>
+          <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- INCIDENT CARDS FEED SECTION -->
+    <div id="feed-view-section" style="display: flex; flex-direction: column; gap: 1rem;">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <h2 style="font-size: 0.88rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #f8fafc; display: flex; align-items: center; gap: 0.6rem;">
+          <span>Verified Wire Hazards & Dispatches</span>
+          <span style="font-size: 0.72rem; padding: 0.15rem 0.5rem; border-radius: 9999px; background: #1e293b; color: #94a3b8;" id="cards-count-pill">
+            {{ reports|length }} incidents
+          </span>
+        </h2>
+        <span style="font-size: 0.75rem; color: #64748b;">
+          Live updates from Cebu City TIC and citizen reporters
+        </span>
+      </div>
+
+      <!-- Cards Grid -->
+      <div id="incident-cards-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 1rem;">
+        <!-- Injected and managed by home.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- REPORT HAZARD MODAL -->
+  <div id="report-hazard-modal" class="modal-overlay">
+    <div class="modal-dialog">
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 0.65rem;">
+          <div style="width: 34px; height: 34px; border-radius: 0.55rem; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); display: flex; align-items: center; justify-content: center; color: #fbbf24;">
+            <i data-lucide="camera" style="width: 18px; height: 18px;"></i>
+          </div>
+          <div>
+            <h3 style="font-size: 1.1rem; font-weight: 700; color: #ffffff;">Report Overhead Wire Hazard</h3>
+            <p style="font-size: 0.72rem; color: #94a3b8;">Computer Vision Analysis & Automated TIC/VECO Dispatch</p>
+          </div>
+        </div>
+        <button type="button" id="close-report-modal-btn" style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 0.25rem;">
+          <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+        </button>
+      </div>
+
+      <!-- Step 1: Hazard Input & Preset -->
+      <div id="report-step-input" class="modal-body" style="display: flex; flex-direction: column; gap: 1.25rem;">
+        <!-- Preset Fast Selector -->
+        <div>
+          <label class="form-label">Select Sample Hazard Scenario or Upload Custom Photo</label>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem;">
+            {% for p in presets %}
+              <button
+                type="button"
+                class="preset-card-btn {% if forloop.first %}selected-preset{% endif %}"
+                data-preset-index="{{ forloop.counter0 }}"
+                style="padding: 0.65rem; background: #0b1120; border: 1px solid {% if forloop.first %}#f59e0b{% else %}#1e293b{% endif %}; border-radius: 0.65rem; text-align: left; cursor: pointer; transition: all 0.2s;"
+              >
+                <span style="display: block; font-size: 0.72rem; font-weight: 700; color: #f8fafc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                  {{ p.title|truncatechars:28 }}
+                </span>
+                <span style="font-size: 0.68rem; color: #fbbf24;">Brgy. {{ p.barangay }}</span>
+              </button>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Photo Preview Box -->
+        <div style="position: relative; height: 190px; border-radius: 0.85rem; overflow: hidden; border: 1px solid #1e293b; background: #020617;">
+          <img id="wizard-photo-preview" src="{{ presets.0.imageUrl }}" alt="Hazard candidate" style="width: 100%; height: 100%; object-fit: cover;" />
+          <div style="position: absolute; bottom: 0.6rem; left: 0.6rem; right: 0.6rem; display: flex; justify-content: space-between; align-items: center;">
+            <span class="badge-pill badge-amber" style="background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(6px);">
+              <i data-lucide="map-pin" style="width: 12px; height: 12px;"></i>
+              <span id="wizard-photo-badge">Brgy. {{ presets.0.barangay }}</span>
+            </span>
+            <label style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.35rem 0.65rem; border-radius: 0.45rem; background: rgba(15, 23, 42, 0.85); border: 1px solid #334155; color: #cbd5e1; font-size: 0.72rem; cursor: pointer;">
+              <i data-lucide="upload" style="width: 12px; height: 12px;"></i>
+              <span>Upload Custom Photo</span>
+              <input type="file" id="wizard-custom-file" accept="image/*" style="display: none;" />
+            </label>
+          </div>
+        </div>
+
+        <!-- Details Form -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem;">
+          <div class="form-group">
+            <label class="form-label">Incident Title</label>
+            <input type="text" id="wizard-title-input" class="input-field" value="{{ presets.0.title }}" style="padding-left: 0.9rem;" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Cebu City Barangay</label>
+            <select id="wizard-barangay-select" class="input-field" style="padding-left: 0.9rem;">
+              {% for b in barangays %}
+                <option value="{{ b }}" {% if b == presets.0.barangay %}selected{% endif %}>
+                  Brgy. {{ b }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Street Address / Landmark</label>
+          <input type="text" id="wizard-address-input" class="input-field" value="{{ presets.0.address }}" style="padding-left: 0.9rem;" />
+        </div>
+      </div>
+
+      <!-- Step 2: Simulated AI Inference Loading -->
+      <div id="report-step-loading" class="modal-body" style="display: none; text-align: center; padding: 3rem 1.5rem;">
+        <div style="width: 60px; height: 60px; border-radius: 1rem; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); display: flex; align-items: center; justify-content: center; color: #fbbf24; margin: 0 auto 1.5rem; animation: spin 2s linear infinite;">
+          <i data-lucide="cpu" style="width: 32px; height: 32px;"></i>
+        </div>
+        <h4 style="font-size: 1.25rem; font-weight: 700; color: #ffffff;">AI Vision Model Processing</h4>
+        <p style="font-size: 0.82rem; color: #94a3b8; margin-top: 0.4rem;" id="ai-loading-subtext">
+          Scanning cable sag clearance and wire entanglement density...
+        </p>
+        <div style="width: 100%; max-width: 360px; height: 6px; background: #1e293b; border-radius: 9999px; margin: 1.5rem auto 0; overflow: hidden;">
+          <div id="ai-progress-bar" style="width: 15%; height: 100%; background: linear-gradient(90deg, #f59e0b, #fbbf24); transition: width 0.3s ease;"></div>
+        </div>
+      </div>
+
+      <!-- Step 3: AI Telemetry & Dispatch Confirmation -->
+      <div id="report-step-result" class="modal-body" style="display: none; flex-direction: column; gap: 1rem;">
+        <div style="display: flex; align-items: center; gap: 0.65rem; padding: 0.85rem; border-radius: 0.75rem; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); color: #a7f3d0; font-size: 0.82rem;">
+          <i data-lucide="check-circle-2" style="width: 18px; height: 18px; color: #34d399; flex-shrink: 0;"></i>
+          <span><strong>AI Verification Passed:</strong> Verified overhead wire hazard. Automated dispatch notice ready.</span>
+        </div>
+
+        <!-- Telemetry Details -->
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem;">
+          <div style="padding: 0.75rem; background: #0b1120; border: 1px solid #1e293b; border-radius: 0.65rem;">
+            <span style="font-size: 0.72rem; color: #94a3b8; text-transform: uppercase;">Confidence</span>
+            <p id="res-confidence" style="font-size: 1.15rem; font-weight: 800; color: #34d399; font-family: var(--font-mono);">97.2%</p>
+          </div>
+          <div style="padding: 0.75rem; background: #0b1120; border: 1px solid #1e293b; border-radius: 0.65rem;">
+            <span style="font-size: 0.72rem; color: #94a3b8; text-transform: uppercase;">Clearance Sag</span>
+            <p id="res-sag" style="font-size: 0.85rem; font-weight: 700; color: #f43f5e; margin-top: 0.2rem;">2.9m above roadway</p>
+          </div>
+        </div>
+
+        <!-- Automated Dispatch Desks -->
+        <div style="padding: 0.85rem; background: #0b1120; border: 1px solid #1e293b; border-radius: 0.65rem; font-size: 0.78rem;">
+          <span style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: #94a3b8;">Automated Routing Inboxes</span>
+          <div style="margin-top: 0.4rem; display: flex; flex-direction: column; gap: 0.35rem; color: #cbd5e1;">
+            <div style="display: flex; justify-content: space-between;">
+              <span>Cebu City TIC Desk</span>
+              <span style="color: #34d399; font-weight: 600;">tic-dispatch@cebucity.gov.ph</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span>Visayan Electric (VECO)</span>
+              <span style="color: #34d399; font-weight: 600;">emergency.hotline@veco.com.ph</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer">
+        <button type="button" id="cancel-report-btn" style="padding: 0.6rem 1rem; border-radius: 0.65rem; background: transparent; border: 1px solid #334155; color: #94a3b8; font-size: 0.8rem; font-weight: 600; cursor: pointer;">
+          Cancel
+        </button>
+        <button type="button" id="start-ai-analysis-btn" class="btn-primary" style="width: auto; padding: 0.6rem 1.25rem; font-size: 0.82rem;">
+          <i data-lucide="cpu" style="width: 15px; height: 15px;"></i>
+          <span>Run AI Computer Vision & Dispatch</span>
+        </button>
+        <button type="button" id="confirm-dispatch-btn" class="btn-primary" style="width: auto; padding: 0.6rem 1.25rem; font-size: 0.82rem; display: none;">
+          <i data-lucide="send" style="width: 15px; height: 15px;"></i>
+          <span>Submit & Dispatch Report</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- INCIDENT DETAIL MODAL -->
+  <div id="incident-detail-modal" class="modal-overlay">
+    <div class="modal-dialog" style="max-width: 780px;">
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div style="width: 38px; height: 38px; border-radius: 0.65rem; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); display: flex; align-items: center; justify-content: center; color: #fbbf24;">
+            <i data-lucide="shield-alert" style="width: 20px; height: 20px;"></i>
+          </div>
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span id="detail-ticket" style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #fbbf24;"></span>
+              <span id="detail-severity-badge" class="badge-pill" style="font-size: 0.65rem; padding: 0.1rem 0.45rem;"></span>
+              <span id="detail-status-badge" class="badge-pill" style="font-size: 0.65rem; padding: 0.1rem 0.45rem;"></span>
+            </div>
+            <h3 id="detail-title" style="font-size: 1.15rem; font-weight: 700; color: #ffffff; margin-top: 0.2rem;"></h3>
+          </div>
+        </div>
+        <button type="button" id="close-detail-modal-btn" style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 0.25rem;">
+          <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 1.25rem;">
+        <!-- Image with Simulated Bounding Box Overlay -->
+        <div style="position: relative; height: 240px; border-radius: 0.85rem; overflow: hidden; border: 1px solid #1e293b; background: #020617;">
+          <img id="detail-image" src="" alt="Incident telemetry" style="width: 100%; height: 100%; object-fit: cover;" />
+          <!-- Simulated CV Bounding Box -->
+          <div style="position: absolute; top: 25%; left: 30%; width: 45%; height: 50%; border: 2px dashed #f43f5e; border-radius: 0.4rem; background: rgba(244, 63, 94, 0.1); pointer-events: none; display: flex; align-items: flex-start; padding: 0.35rem;">
+            <span style="font-family: var(--font-mono); font-size: 0.65rem; background: #f43f5e; color: #ffffff; font-weight: 700; padding: 0.1rem 0.35rem; border-radius: 0.2rem;">
+              DEFLECTION DETECTED
+            </span>
+          </div>
+        </div>
+
+        <!-- Telemetry Breakdown -->
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;">
+          <div style="padding: 0.75rem; background: #0b1120; border: 1px solid #1e293b; border-radius: 0.65rem;">
+            <span style="font-size: 0.72rem; color: #94a3b8; text-transform: uppercase;">Clearance Sag</span>
+            <p id="detail-sag" style="font-size: 0.85rem; font-weight: 700; color: #f43f5e; margin-top: 0.25rem;"></p>
+          </div>
+          <div style="padding: 0.75rem; background: #0b1120; border: 1px solid #1e293b; border-radius: 0.65rem;">
+            <span style="font-size: 0.72rem; color: #94a3b8; text-transform: uppercase;">Wire Density</span>
+            <p id="detail-density" style="font-size: 0.85rem; font-weight: 700; color: #fbbf24; margin-top: 0.25rem;"></p>
+          </div>
+          <div style="padding: 0.75rem; background: #0b1120; border: 1px solid #1e293b; border-radius: 0.65rem;">
+            <span style="font-size: 0.72rem; color: #94a3b8; text-transform: uppercase;">AI Confidence</span>
+            <p id="detail-confidence" style="font-size: 0.85rem; font-weight: 800; color: #34d399; margin-top: 0.25rem; font-family: var(--font-mono);"></p>
+          </div>
+        </div>
+
+        <!-- Safety Warning and Recommended Action -->
+        <div style="padding: 0.85rem; background: rgba(244, 63, 94, 0.1); border: 1px solid rgba(244, 63, 94, 0.25); border-radius: 0.65rem; color: #fecdd3; font-size: 0.78rem;">
+          <p><strong>Safety Alert:</strong> <span id="detail-warning"></span></p>
+          <p style="margin-top: 0.35rem; color: #cbd5e1;"><strong>Recommended Action:</strong> <span id="detail-action"></span></p>
+        </div>
+
+        <!-- Multi-Agency Automated Dispatch Timeline -->
+        <div style="padding: 0.85rem; background: #0b1120; border: 1px solid #1e293b; border-radius: 0.65rem;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.6rem;">
+            <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #94a3b8;">
+              Automated Dispatch Receipts
+            </span>
+            <span style="font-size: 0.72rem; color: #34d399; font-weight: 600;" id="detail-turnaround">
+              Turnaround: 38s
+            </span>
+          </div>
+          <div id="detail-recipients-list" style="display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.75rem;"></div>
+        </div>
+      </div>
+
+      <!-- Modal Footer with Status Toggle -->
+      <div class="modal-footer">
+        <button
+          type="button"
+          id="toggle-incident-status-btn"
+          style="padding: 0.6rem 1.25rem; border-radius: 0.65rem; background: #1e293b; border: 1px solid #334155; color: #f8fafc; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;"
+        >
+          <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
+          <span>Toggle Resolved / Dispatched Status</span>
+        </button>
+        <button type="button" id="close-detail-footer-btn" class="btn-primary" style="width: auto; padding: 0.6rem 1.25rem; font-size: 0.8rem;">
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Serialized Django Context Data for Map & Search Script -->
+<script id="reports-data" type="application/json">
+  {{ reports_json|safe }}
+</script>
+<script id="presets-data" type="application/json">
+  {{ presets_json|safe }}
+</script>
+<script src="{% static 'js/home.js' %}"></script>
+{% endblock %}

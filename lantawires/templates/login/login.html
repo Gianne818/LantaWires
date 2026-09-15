@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Login — LantaWires Overhead Wire Hazard Detection{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <!-- Left Column: Branding, Context & Feature Highlights -->
+  <div class="auth-hero-col">
+    <!-- Ambient Glow -->
+    <div style="position: absolute; top: -100px; left: -100px; width: 380px; height: 380px; background: rgba(245, 158, 11, 0.12); border-radius: 9999px; filter: blur(80px); pointer-events: none;"></div>
+    <div style="position: absolute; bottom: -100px; right: -100px; width: 380px; height: 380px; background: rgba(217, 119, 6, 0.1); border-radius: 9999px; filter: blur(80px); pointer-events: none;"></div>
+
+    <div style="position: relative; z-index: 10; max-width: 580px;">
+      <!-- Platform Tag -->
+      <div class="badge-pill badge-amber" style="margin-bottom: 1.5rem;">
+        <span style="width: 8px; height: 8px; border-radius: 9999px; background: #fbbf24; display: inline-block; box-shadow: 0 0 8px #fbbf24;"></span>
+        <span>Cebu City Civic Safety Platform</span>
+      </div>
+
+      <!-- App Title & Logo -->
+      <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.75rem;">
+        <div style="width: 52px; height: 52px; border-radius: 1rem; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); display: flex; align-items: center; justify-content: center; color: #fbbf24; box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);">
+          <i data-lucide="shield-alert" style="width: 28px; height: 28px;"></i>
+        </div>
+        <div>
+          <h1 style="font-size: 2.25rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; color: #ffffff;">
+            LantaWires
+          </h1>
+          <p style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: #fbbf24; font-weight: 700; margin-top: 0.25rem;">
+            Overhead Wire Hazard Detection System
+          </p>
+        </div>
+      </div>
+
+      <!-- Context Narrative -->
+      <div style="color: #cbd5e1; font-size: 0.95rem; line-height: 1.6; display: flex; flex-direction: column; gap: 0.9rem; margin-bottom: 2rem;">
+        <p style="font-size: 1.05rem; font-weight: 600; color: #f8fafc;">
+          Empowering Cebu City residents to identify, analyze, and report dangerous sagging cables and tangled spaghetti wire clusters.
+        </p>
+        <p style="color: #94a3b8; font-size: 0.88rem;">
+          In dense urban corridors and interior barangay roads across Cebu City—from Katipunan in Tisa to V. Rama in Guadalupe—low-hanging, overgrown wire bundles cause traffic entanglements, road blockages, and severe fire hazards.
+        </p>
+        <p style="color: #94a3b8; font-size: 0.88rem;">
+          LantaWires provides an independent civic tool where community members can photograph hazardous wires, obtain instant computer-vision clearance estimations, and track resolution progress across all Cebu City neighborhoods.
+        </p>
+      </div>
+
+      <!-- Feature Grid -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.85rem; padding-top: 0.5rem;">
+        <div style="padding: 1rem; background: rgba(15, 23, 42, 0.85); border: 1px solid #1e293b; border-radius: 0.85rem;">
+          <div style="width: 32px; height: 32px; border-radius: 0.55rem; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.25); display: flex; align-items: center; justify-content: center; color: #fbbf24; margin-bottom: 0.6rem;">
+            <i data-lucide="cpu" style="width: 16px; height: 16px;"></i>
+          </div>
+          <h4 style="font-size: 0.82rem; font-weight: 700; color: #f1f5f9;">AI Hazard Triage</h4>
+          <p style="font-size: 0.72rem; color: #94a3b8; margin-top: 0.25rem; line-height: 1.4;">
+            Calculates cable sag height and bundle density from uploaded photos.
+          </p>
+        </div>
+
+        <div style="padding: 1rem; background: rgba(15, 23, 42, 0.85); border: 1px solid #1e293b; border-radius: 0.85rem;">
+          <div style="width: 32px; height: 32px; border-radius: 0.55rem; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.25); display: flex; align-items: center; justify-content: center; color: #fbbf24; margin-bottom: 0.6rem;">
+            <i data-lucide="map-pin" style="width: 16px; height: 16px;"></i>
+          </div>
+          <h4 style="font-size: 0.82rem; font-weight: 700; color: #f1f5f9;">GPS Barangay Map</h4>
+          <p style="font-size: 0.72rem; color: #94a3b8; margin-top: 0.25rem; line-height: 1.4;">
+            Maps verified wire hazards across all 80 Cebu City barangays.
+          </p>
+        </div>
+
+        <div style="padding: 1rem; background: rgba(15, 23, 42, 0.85); border: 1px solid #1e293b; border-radius: 0.85rem;">
+          <div style="width: 32px; height: 32px; border-radius: 0.55rem; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.25); display: flex; align-items: center; justify-content: center; color: #fbbf24; margin-bottom: 0.6rem;">
+            <i data-lucide="activity" style="width: 16px; height: 16px;"></i>
+          </div>
+          <h4 style="font-size: 0.82rem; font-weight: 700; color: #f1f5f9;">Ticket Tracking</h4>
+          <p style="font-size: 0.72rem; color: #94a3b8; margin-top: 0.25rem; line-height: 1.4;">
+            Follow reports from submission to inspection and bundle clearing.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Note -->
+    <div style="position: relative; z-index: 10; padding-top: 1.5rem; margin-top: 2rem; border-top: 1px solid rgba(30, 41, 59, 0.8); font-size: 0.75rem; color: #64748b; display: flex; justify-content: space-between; align-items: center;">
+      <span>Dedicated to safer Cebu City streets & communities</span>
+      <span>Cebu City, Philippines</span>
+    </div>
+  </div>
+
+  <!-- Right Column: Login Form -->
+  <div class="auth-form-col">
+    <div class="auth-card">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #1e293b;">
+        <div>
+          <h2 style="font-size: 1.5rem; font-weight: 700; color: #ffffff; letter-spacing: -0.02em;">
+            Login
+          </h2>
+          <p style="font-size: 0.78rem; color: #94a3b8; margin-top: 0.25rem;">
+            Enter your credentials to access the hazard reporting dashboard.
+          </p>
+        </div>
+
+        <button type="button" id="login-autofill-btn" class="btn-autofill" title="Populate demo credentials">
+          <i data-lucide="sparkles" style="width: 14px; height: 14px; color: #fbbf24;"></i>
+          <span>Autofill Sample</span>
+        </button>
+      </div>
+
+      {% if registered_notice %}
+        <div style="margin-bottom: 1.25rem; padding: 0.85rem 1rem; border-radius: 0.75rem; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); color: #a7f3d0; font-size: 0.8rem; display: flex; align-items: center; gap: 0.55rem; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);">
+          <i data-lucide="check-circle-2" style="width: 18px; height: 18px; color: #34d399; flex-shrink: 0;"></i>
+          <span>{{ registered_notice }}</span>
+        </div>
+      {% endif %}
+
+      <form id="login-form" action="{% url 'login:index' %}" method="POST">
+        {% csrf_token %}
+
+        <!-- Email -->
+        <div class="form-group">
+          <label class="form-label" for="login-email-input">Email Address</label>
+          <div class="input-container">
+            <i data-lucide="mail" class="input-icon-left"></i>
+            <input
+              id="login-email-input"
+              name="email"
+              type="email"
+              value="{{ email|default:'' }}"
+              placeholder="you@example.com"
+              required
+              class="input-field"
+            />
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.4rem;">
+            <label class="form-label" for="login-password-input" style="margin-bottom: 0;">Password</label>
+          </div>
+          <div class="input-container">
+            <i data-lucide="lock" class="input-icon-left"></i>
+            <input
+              id="login-password-input"
+              name="password"
+              type="password"
+              placeholder="••••••••••••"
+              required
+              class="input-field"
+              style="padding-right: 2.6rem;"
+            />
+            <button
+              type="button"
+              id="toggle-password-btn"
+              class="input-toggle-right"
+              title="Toggle password visibility"
+            >
+              <i data-lucide="eye" id="password-eye-icon" style="width: 16px; height: 16px;"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Remember Me Checkbox -->
+        <div style="display: flex; align-items: center; justify-content: space-between; margin: 0.75rem 0 1.25rem;">
+          <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; color: #94a3b8; cursor: pointer;">
+            <input
+              id="login-remember-checkbox"
+              name="remember_me"
+              type="checkbox"
+              checked
+              style="accent-color: #f59e0b; width: 15px; height: 15px; border-radius: 4px;"
+            />
+            <span>Remember this device</span>
+          </label>
+        </div>
+
+        <!-- Submit Button -->
+        <button id="login-submit-btn" type="submit" class="btn-primary">
+          <span>Login</span>
+          <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i>
+        </button>
+      </form>
+
+      <!-- Navigation to Register Screen -->
+      <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid #1e293b; text-align: center;">
+        <p style="font-size: 0.78rem; color: #94a3b8;">
+          Don't have an account yet?
+          <a
+            id="login-to-register-link"
+            href="{% url 'register:index' %}"
+            style="color: #fbbf24; font-weight: 600; text-decoration: none; margin-left: 0.25rem;"
+          >
+            Create an account
+          </a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/login.js' %}"></script>
+{% endblock %}

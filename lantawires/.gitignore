@@ -1,0 +1,22 @@
+# Python virtual environments (per assignment instructions: DO NOT INCLUDE .venv / venv)
+.venv/
+venv/
+ENV/
+env/
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Databases (per assignment instructions: DO NOT INCLUDE .db / database files)
+*.sqlite3
+*.db
+
+# Byte-compiled / optimized files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# OS artifacts
+.DS_Store
+Thumbs.db

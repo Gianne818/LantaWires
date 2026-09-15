@@ -1,0 +1,71 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <title>{% block title %}LantaWires — Overhead Wire Hazard Detection System{% endblock %}</title>
+  
+  <!-- Modern Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Core Design System -->
+  <link rel="stylesheet" href="{% static 'css/lantawires.css' %}">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+  <!-- Flash Messages Toast System -->
+  {% if messages %}
+    <div class="flash-messages-container" id="toast-container">
+      {% for message in messages %}
+        <div class="toast-message {{ message.tags }}">
+          {% if message.tags == 'success' %}
+            <i data-lucide="check-circle-2" style="width: 18px; height: 18px; color: #34d399; flex-shrink: 0;"></i>
+          {% elif message.tags == 'error' %}
+            <i data-lucide="alert-circle" style="width: 18px; height: 18px; color: #f87171; flex-shrink: 0;"></i>
+          {% else %}
+            <i data-lucide="info" style="width: 18px; height: 18px; color: #fbbf24; flex-shrink: 0;"></i>
+          {% endif %}
+          <span style="flex: 1;">{{ message }}</span>
+          <button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;color:inherit;cursor:pointer;opacity:0.7;">✕</button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Main Content Hook -->
+  {% block content %}{% endblock %}
+
+  <script>
+    // Initialize Lucide icons on document load
+    document.addEventListener("DOMContentLoaded", () => {
+      if (window.lucide) {
+        window.lucide.createIcons();
+      }
+      
+      // Auto-dismiss toast messages after 4 seconds
+      const toasts = document.querySelectorAll(".toast-message");
+      if (toasts.length > 0) {
+        setTimeout(() => {
+          toasts.forEach(t => {
+            t.style.transition = "opacity 0.4s ease, transform 0.4s ease";
+            t.style.opacity = "0";
+            t.style.transform = "translateX(50px)";
+            setTimeout(() => t.remove(), 400);
+          });
+        }, 4000);
+      }
+    });
+  </script>
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>
