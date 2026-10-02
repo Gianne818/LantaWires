@@ -1,0 +1,20 @@
+/* Home Feature Specific Styles - CSIT327 Vertical Slicing */
+.home-telemetry-panel {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.map-container-glow {
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7), 0 0 20px rgba(245, 158, 11, 0.08);
+}
+
+.pulsing-hazard-node {
+  animation: pulse-hazard 2s infinite ease-in-out;
+}
+
+@keyframes pulse-hazard {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.2); opacity: 1; filter: drop-shadow(0 0 6px rgba(244, 63, 94, 0.8)); }
+}

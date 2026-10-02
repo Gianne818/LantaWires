@@ -73,7 +73,8 @@ def register_view(request):
             return render(request, "register/register.html", context)
 
         from django.contrib.auth.models import User
-        from .models import UserProfile
+        from apps.profile.models import CebuBarangay, Profile
+        from apps.user_settings.models import UserSettings
 
         # Check if email is already registered
         if User.objects.filter(username__iexact=email).exists() or User.objects.filter(email__iexact=email).exists():
@@ -89,13 +90,23 @@ def register_view(request):
         )
 
         avatar = "".join(part[0] for part in name.split()[:2]).upper() or "LW"
-        UserProfile.objects.create(
+        barangay_obj, _ = CebuBarangay.objects.get_or_create(
+            name=barangay,
+            defaults={
+                "district": "South District",
+                "zip_code": "6000",
+                "center_lat": 10.2982,
+                "center_lng": 123.8741,
+            },
+        )
+        Profile.objects.create(
             user=user,
             full_name=name,
             phone=phone,
-            barangay=barangay,
+            barangay=barangay_obj,
             avatar=avatar,
         )
+        UserSettings.objects.create(user=user)
 
         request.session["last_registered_email"] = email
         request.session.save()

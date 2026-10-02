@@ -53,9 +53,9 @@ class RegisterScreenTests(TestCase):
         # Verifies transition back to Login screen
         self.assertEqual(response.status_code, 302)
         from django.contrib.auth.models import User
-        from register.models import UserProfile
+        from apps.profile.models import Profile
         self.assertTrue(User.objects.filter(email="morales.cebu@gmail.com").exists())
-        self.assertTrue(UserProfile.objects.filter(user__email="morales.cebu@gmail.com").exists())
+        self.assertTrue(Profile.objects.filter(user__email="morales.cebu@gmail.com").exists())
 
         # 2. Login screen shows the created account notice & prefilled email
         login_page = self.client.get(reverse("login:index") + "?registered_email=morales.cebu@gmail.com")

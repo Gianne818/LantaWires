@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
 
-from register.models import UserProfile
+from apps.profile.models import Profile
 
 DEFAULT_USERS = [
     {
@@ -51,34 +51,48 @@ def login_view(request):
         if user is not None:
             login(request, user)
             profile = getattr(user, "profile", None)
+            profile_barangay = (
+                profile.barangay.name if profile and profile.barangay_id else "Tisa"
+            )
             user_profile = {
                 "id": f"usr-{user.id:04d}",
-                "name": profile.full_name if profile else (user.get_full_name() or user.username),
+                "name": profile.full_name if profile and profile.full_name else (user.get_full_name() or user.username),
                 "email": user.email,
                 "phone": profile.phone if profile else "+63 917 000 0000",
-                "barangay": profile.barangay if profile else "Tisa",
-                "avatar": profile.avatar if profile else (user.first_name[:2].upper() or "LW"),
+                "barangay": profile_barangay,
+                "avatar": profile.avatar if profile and profile.avatar else (user.first_name[:2].upper() or "LW"),
             }
             request.session["current_user"] = user_profile
             request.session.save()
             messages.success(request, f"Logged in successfully as {user_profile['name']}.")
-            return redirect("home:index")
+            return redirect("home:home")
 
         # 2. Check demo users fallback
         demo_match = next((u for u in DEFAULT_USERS if u["email"].lower() == email.lower()), None)
         if demo_match and password == "cebuwirehazard2026":
+            from apps.profile.models import CebuBarangay
+
             user, _ = User.objects.get_or_create(
                 username=email.lower(),
                 defaults={"email": email.lower(), "first_name": demo_match["name"]}
             )
             user.set_password(password)
             user.save()
-            UserProfile.objects.update_or_create(
+            barangay_obj, _ = CebuBarangay.objects.get_or_create(
+                name=demo_match["barangay"],
+                defaults={
+                    "district": "South District",
+                    "zip_code": "6000",
+                    "center_lat": 10.2982,
+                    "center_lng": 123.8741,
+                },
+            )
+            Profile.objects.update_or_create(
                 user=user,
                 defaults={
                     "full_name": demo_match["name"],
                     "phone": demo_match["phone"],
-                    "barangay": demo_match["barangay"],
+                    "barangay": barangay_obj,
                     "avatar": demo_match["avatar"],
                 }
             )
@@ -86,7 +100,7 @@ def login_view(request):
             request.session["current_user"] = demo_match
             request.session.save()
             messages.success(request, f"Logged in successfully as {demo_match['name']}.")
-            return redirect("home:index")
+            return redirect("home:home")
 
         messages.error(request, "Invalid email or password.")
         return render(

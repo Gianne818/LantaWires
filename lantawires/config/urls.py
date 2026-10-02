@@ -1,14 +1,11 @@
 from django.contrib import admin
-from django.shortcuts import redirect
 from django.urls import include, path
-
-def root_redirect(request):
-    return redirect("login:index")
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", root_redirect, name="root"),
-    path("login/", include("login.urls", namespace="login")),
-    path("register/", include("register.urls", namespace="register")),
-    path("home/", include("home.urls", namespace="home")),
+    path("login/", include("apps.login.urls")),
+    path("register/", include("apps.register.urls")),
+    path("", include("apps.home.urls")),
+    path("profile/", include("apps.profile.urls")),
+    path("settings/", include("apps.user_settings.urls")),
 ]

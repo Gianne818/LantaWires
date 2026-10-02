@@ -1,4 +1,5 @@
 import os
+import sys
 from pathlib import Path
 from dotenv import load_dotenv
 import dj_database_url
@@ -21,10 +22,12 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # Vertical slicing: 3 core applications
-    "login",
-    "register",
-    "home",
+    # Vertical slicing: 5 feature applications
+    "apps.login",
+    "apps.register",
+    "apps.home",
+    "apps.profile",
+    "apps.user_settings",
 ]
 
 MIDDLEWARE = [
@@ -57,16 +60,22 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-# Database Configuration: Supabase PostgreSQL (or SQLite fallback if not configured)
-db_url = os.environ.get("DIRECT_URL") or os.environ.get("DATABASE_URL")
-
-if db_url and "[YOUR-PASSWORD]" not in db_url:
-    db_config = dj_database_url.parse(db_url, conn_max_age=600, ssl_require=True)
-    if "OPTIONS" in db_config and "pgbouncer" in db_config["OPTIONS"]:
-        del db_config["OPTIONS"]["pgbouncer"]
-        db_config["DISABLE_SERVER_SIDE_CURSORS"] = True
+# Database Configuration: Supabase PostgreSQL
+DATABASE_URL = os.environ.get("DATABASE_URL")
+if "test" in sys.argv:
     DATABASES = {
-        "default": db_config
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": ":memory:",
+        }
+    }
+elif DATABASE_URL:
+    DATABASES = {
+        "default": dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=True,
+        )
     }
 else:
     DATABASES = {

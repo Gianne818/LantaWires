@@ -1,6 +1,5 @@
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
-from register.models import UserProfile
 
 DEMO_USERS = [
     {
@@ -33,6 +32,8 @@ class Command(BaseCommand):
     help = "Seeds demo users and profiles into the database."
 
     def handle(self, *args, **options):
+        from apps.profile.models import CebuBarangay, Profile
+
         for data in DEMO_USERS:
             email = data["email"].lower()
             user, created = User.objects.get_or_create(
@@ -47,12 +48,21 @@ class Command(BaseCommand):
             user.email = email
             user.save()
 
-            profile, _ = UserProfile.objects.update_or_create(
+            barangay_obj, _ = CebuBarangay.objects.get_or_create(
+                name=data["barangay"],
+                defaults={
+                    "district": "South District",
+                    "zip_code": "6000",
+                    "center_lat": 10.2982,
+                    "center_lng": 123.8741,
+                },
+            )
+            Profile.objects.update_or_create(
                 user=user,
                 defaults={
                     "full_name": data["name"],
                     "phone": data["phone"],
-                    "barangay": data["barangay"],
+                    "barangay": barangay_obj,
                     "avatar": data["avatar"],
                 },
             )

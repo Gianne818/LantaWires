@@ -3,6 +3,10 @@
 
 {% block title %}Login — LantaWires Overhead Wire Hazard Detection{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/login/login.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="auth-wrapper">
   <!-- Left Column: Branding, Context & Feature Highlights -->
@@ -20,8 +24,8 @@
 
       <!-- App Title & Logo -->
       <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.75rem;">
-        <div style="width: 52px; height: 52px; border-radius: 1rem; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); display: flex; align-items: center; justify-content: center; color: #fbbf24; box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);">
-          <i data-lucide="shield-alert" style="width: 28px; height: 28px;"></i>
+        <div style="width: 52px; height: 52px; border-radius: 1rem; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); display: flex; align-items: center; justify-content: center; box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);">
+          <img src="{% static 'images/login/login-badge.svg' %}" alt="LantaWires Shield" style="width: 36px; height: 36px;">
         </div>
         <div>
           <h1 style="font-size: 2.25rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; color: #ffffff;">
@@ -90,7 +94,7 @@
   <!-- Right Column: Login Form -->
   <div class="auth-form-col">
     <div class="auth-card">
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #1e293b;">
+      <div style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #1e293b;">
         <div>
           <h2 style="font-size: 1.5rem; font-weight: 700; color: #ffffff; letter-spacing: -0.02em;">
             Login
@@ -99,11 +103,6 @@
             Enter your credentials to access the hazard reporting dashboard.
           </p>
         </div>
-
-        <button type="button" id="login-autofill-btn" class="btn-autofill" title="Populate demo credentials">
-          <i data-lucide="sparkles" style="width: 14px; height: 14px; color: #fbbf24;"></i>
-          <span>Autofill Sample</span>
-        </button>
       </div>
 
       {% if registered_notice %}
@@ -187,7 +186,7 @@
           Don't have an account yet?
           <a
             id="login-to-register-link"
-            href="{% url 'register:index' %}"
+            href="{% url 'register:register' %}"
             style="color: #fbbf24; font-weight: 600; text-decoration: none; margin-left: 0.25rem;"
           >
             Create an account
@@ -200,5 +199,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/login.js' %}"></script>
+<script src="{% static 'js/login/login.js' %}"></script>
 {% endblock %}
