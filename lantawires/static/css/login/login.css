@@ -1,30 +1,17 @@
-/* Login Feature Specific Styles - CSIT327 Vertical Slicing */
-.login-feature-card {
-  position: relative;
-  overflow: hidden;
-  border-radius: 1.25rem;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+/* Login — clay minimal overrides */
+.auth-brand-mark {
+  width: 56px; height: 56px; border-radius: 18px;
+  background: linear-gradient(180deg, var(--peach-soft), var(--peach));
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--shadow-btn); color: var(--peach-ink); flex-shrink: 0;
 }
-
-.login-autofill-pulse {
-  animation: pulse-amber 2.5s infinite;
+.auth-mini-feature {
+  display: flex; align-items: center; gap: .6rem;
+  background: var(--clay-card-2); border: 2px solid var(--clay-border);
+  border-radius: 14px; padding: .6rem .7rem;
 }
-
-@keyframes pulse-amber {
-  0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
-  70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
-}
-
-.login-feature-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: rgba(245, 158, 11, 0.1);
-  border: 1px solid rgba(245, 158, 11, 0.25);
-  color: #fbbf24;
-  padding: 0.35rem 0.85rem;
-  border-radius: 9999px;
-  font-size: 0.78rem;
-  font-weight: 600;
+.auth-mini-icon {
+  width: 30px; height: 30px; border-radius: 10px; flex-shrink: 0;
+  background: var(--clay-inset); box-shadow: var(--shadow-inset);
+  display: flex; align-items: center; justify-content: center; color: var(--peach);
 }

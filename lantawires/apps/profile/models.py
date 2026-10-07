@@ -49,6 +49,12 @@ class Profile(models.Model):
     full_name = models.CharField(max_length=150)
     phone = models.CharField(max_length=30)
     avatar = models.CharField(max_length=10, blank=True, null=True, default="GC")
+    role = models.CharField(
+        max_length=20,
+        choices=[("citizen", "Citizen"), ("resolver", "Resolver")],
+        default="citizen",
+        help_text="Citizens report hazards. Resolvers can also toggle report status.",
+    )
     bio = models.TextField(
         blank=True, null=True, default="Cebu City civic safety contributor"
     )

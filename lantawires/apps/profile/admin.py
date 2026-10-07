@@ -10,5 +10,6 @@ class CebuBarangayAdmin(admin.ModelAdmin):
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ("user", "full_name", "phone", "barangay", "created_at")
+    list_display = ("user", "full_name", "phone", "barangay", "role", "created_at")
+    list_filter = ("role",)
     search_fields = ("user__username", "full_name", "phone")

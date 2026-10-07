@@ -100,6 +100,7 @@ def home_view(request):
             "phone": profile.phone if profile else "+63 917 000 0000",
             "barangay": profile_barangay,
             "avatar": profile.avatar if profile and profile.avatar else (request.user.first_name[:2].upper() or "LW"),
+            "role": getattr(profile, "role", "citizen") or "citizen",
         }
         request.session["current_user"] = current_user
         request.session.save()
@@ -107,6 +108,16 @@ def home_view(request):
     if not current_user and not request.user.is_authenticated:
         messages.warning(request, "Please log in to access the home screen.")
         return redirect("login:login")
+
+    role = (current_user or {}).get("role", "citizen")
+    if role not in ("citizen", "resolver") and request.user.is_authenticated:
+        try:
+            role = request.user.profile.role
+            current_user["role"] = role
+            request.session["current_user"] = current_user
+        except Exception:
+            role = "citizen"
+    can_toggle = role == "resolver"
 
     reports = get_session_reports(request)
 
@@ -124,6 +135,7 @@ def home_view(request):
 
     context = {
         "current_user": current_user or DEFAULT_GUEST,
+        "can_toggle": can_toggle,
         "reports": reports,
         "reports_json": json.dumps(reports),
         "barangays": CEBU_BARANGAYS,
@@ -264,6 +276,20 @@ def create_report_api(request):
 
 @require_POST
 def update_status_api(request):
+    def _is_resolver():
+        sess_role = (request.session.get("current_user") or {}).get("role")
+        if sess_role == "resolver":
+            return True
+        if request.user.is_authenticated:
+            try:
+                return request.user.profile.role == "resolver"
+            except Exception:
+                return False
+        return False
+
+    if not _is_resolver():
+        return JsonResponse({"status": "error", "message": "Resolver role required."}, status=403)
+
     try:
         data = json.loads(request.body)
         report_id = data.get("reportId")

@@ -1,20 +1,17 @@
-/* Register Feature Specific Styles - CSIT327 Vertical Slicing */
-.register-guidelines-box {
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(51, 65, 85, 0.5);
-  border-radius: 0.85rem;
-  padding: 1.1rem;
+/* Register — clay minimal overrides */
+.auth-brand-mark {
+  width: 56px; height: 56px; border-radius: 18px;
+  background: linear-gradient(180deg, var(--peach-soft), var(--peach));
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--shadow-btn); color: var(--peach-ink); flex-shrink: 0;
 }
-
-.barangay-select-wrap {
-  position: relative;
+.auth-mini-feature {
+  display: flex; align-items: center; gap: .6rem;
+  background: var(--clay-card-2); border: 2px solid var(--clay-border);
+  border-radius: 14px; padding: .6rem .7rem;
 }
-
-.barangay-badge-count {
-  font-size: 0.72rem;
-  padding: 0.2rem 0.55rem;
-  border-radius: 9999px;
-  background: rgba(245, 158, 11, 0.15);
-  color: #fbbf24;
-  font-weight: 700;
+.auth-mini-icon {
+  width: 30px; height: 30px; border-radius: 10px; flex-shrink: 0;
+  background: var(--clay-inset); box-shadow: var(--shadow-inset);
+  display: flex; align-items: center; justify-content: center; color: var(--peach);
 }

@@ -9,8 +9,8 @@ class RegisterScreenTests(TestCase):
         response = self.client.get(reverse("register:index"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "register/register.html")
-        self.assertContains(response, "Create Account")
-        self.assertContains(response, "Cebu City Barangay")
+        self.assertContains(response, "Create account")
+        self.assertContains(response, "Barangay")
         self.assertContains(response, "Brgy. Tisa")
         self.assertContains(response, "Brgy. Lahug")
         self.assertContains(response, reverse("login:index"))
@@ -72,3 +72,34 @@ class RegisterScreenTests(TestCase):
         self.assertRedirects(login_response, reverse("home:index"))
         self.assertEqual(self.client.session["current_user"]["name"], "Eduardo Morales")
         self.assertEqual(self.client.session["current_user"]["barangay"], "Lahug")
+        self.assertEqual(self.client.session["current_user"]["role"], "citizen")
+
+    def test_register_with_resolver_invite_code(self):
+        response = self.client.post(reverse("register:index"), {
+            "name": "TIC Dispatcher",
+            "email": "tic@cebucity.ph",
+            "phone": "+63 917 000 0001",
+            "barangay": "Tisa",
+            "password": "cebuwirehazard2026",
+            "confirm_password": "cebuwirehazard2026",
+            "resolver_code": "TIC-VECO-2026",
+            "agree_terms": "on",
+        })
+        self.assertEqual(response.status_code, 302)
+        from apps.profile.models import Profile
+        profile = Profile.objects.get(user__email="tic@cebucity.ph")
+        self.assertEqual(profile.role, "resolver")
+
+    def test_register_with_wrong_invite_code_shows_error(self):
+        response = self.client.post(reverse("register:index"), {
+            "name": "Fake Resolver",
+            "email": "fake@cebucity.ph",
+            "phone": "+63 917 000 0002",
+            "barangay": "Tisa",
+            "password": "cebuwirehazard2026",
+            "confirm_password": "cebuwirehazard2026",
+            "resolver_code": "WRONG-CODE",
+            "agree_terms": "on",
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Invalid resolver invite code")

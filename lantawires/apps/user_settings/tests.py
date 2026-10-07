@@ -31,9 +31,9 @@ class SettingsFeatureTests(TestCase):
         response = self.client.get(reverse("user_settings:settings"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "user_settings/user_settings.html")
-        self.assertContains(response, "System Preferences")
-        self.assertContains(response, "Cyber Slate Dark Mode")
-        self.assertContains(response, "Barangay Wire Radar Alerts")
+        self.assertContains(response, "Preferences")
+        self.assertContains(response, "Dark clay mode")
+        self.assertContains(response, "Barangay alerts")
 
     def test_settings_update_post(self):
         self.client.force_login(self.user)

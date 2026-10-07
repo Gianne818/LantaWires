@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Create Account — LantaWires Overhead Wire Hazard Detection{% endblock %}
+{% block title %}Create Account — LantaWires{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/register/register.css' %}">
@@ -9,257 +9,110 @@
 
 {% block content %}
 <div class="auth-wrapper">
-  <!-- Left Column: Context & Citizen Partnership -->
   <div class="auth-hero-col">
-    <!-- Ambient Glow -->
-    <div style="position: absolute; top: -100px; left: -100px; width: 380px; height: 380px; background: rgba(245, 158, 11, 0.12); border-radius: 9999px; filter: blur(80px); pointer-events: none;"></div>
-    <div style="position: absolute; bottom: -100px; right: -100px; width: 380px; height: 380px; background: rgba(217, 119, 6, 0.1); border-radius: 9999px; filter: blur(80px); pointer-events: none;"></div>
-
-    <div style="position: relative; z-index: 10; max-width: 580px;">
-      <!-- Platform Tag -->
-      <div class="badge-pill badge-amber" style="margin-bottom: 1.5rem;">
-        <span style="width: 8px; height: 8px; border-radius: 9999px; background: #fbbf24; display: inline-block; box-shadow: 0 0 8px #fbbf24;"></span>
-        <span>Cebu City Civic Safety Platform</span>
+    <div style="display:flex;align-items:center;gap:.9rem;margin-bottom:1.25rem;">
+      <div class="auth-brand-mark">
+        <img src="{% static 'images/register/register-badge.svg' %}" alt="Join" style="width: 32px; height: 32px;">
       </div>
-
-      <!-- App Title & Logo -->
-      <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.75rem;">
-        <div style="width: 52px; height: 52px; border-radius: 1rem; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); display: flex; align-items: center; justify-content: center; box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);">
-          <img src="{% static 'images/register/register-badge.svg' %}" alt="Citizen Registration" style="width: 36px; height: 36px;">
-        </div>
-        <div>
-          <h1 style="font-size: 2.25rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; color: #ffffff;">
-            LantaWires
-          </h1>
-          <p style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: #fbbf24; font-weight: 700; margin-top: 0.25rem;">
-            Overhead Wire Hazard Detection System
-          </p>
-        </div>
-      </div>
-
-      <!-- Narrative Context -->
-      <div style="color: #cbd5e1; font-size: 0.95rem; line-height: 1.6; display: flex; flex-direction: column; gap: 0.9rem; margin-bottom: 2rem;">
-        <p style="font-size: 1.05rem; font-weight: 600; color: #f8fafc;">
-          Join the community initiative to safeguard Cebu City streets against overhead cable entanglements and electrical hazards.
-        </p>
-        <p style="color: #94a3b8; font-size: 0.88rem;">
-          Registering an account allows you to submit geocoded incident photos directly from your neighborhood, analyze sag clearance with automated computer vision, and monitor hazard clearing across all 80 barangays.
-        </p>
-        <p style="color: #94a3b8; font-size: 0.88rem;">
-          Whether you notice low-clearance lines above jeepney lanes in Tisa or frayed spaghetti clusters in Buhisan, your reports help keep pedestrians and motorists safe.
-        </p>
-      </div>
-
-      <!-- Feature Grid -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.85rem; padding-top: 0.5rem;">
-        <div style="padding: 1rem; background: rgba(15, 23, 42, 0.85); border: 1px solid #1e293b; border-radius: 0.85rem;">
-          <div style="width: 32px; height: 32px; border-radius: 0.55rem; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.25); display: flex; align-items: center; justify-content: center; color: #fbbf24; margin-bottom: 0.6rem;">
-            <i data-lucide="cpu" style="width: 16px; height: 16px;"></i>
-          </div>
-          <h4 style="font-size: 0.82rem; font-weight: 700; color: #f1f5f9;">AI Clearance Triage</h4>
-          <p style="font-size: 0.72rem; color: #94a3b8; margin-top: 0.25rem; line-height: 1.4;">
-            Detects illegal sag heights below city road transit standards.
-          </p>
-        </div>
-
-        <div style="padding: 1rem; background: rgba(15, 23, 42, 0.85); border: 1px solid #1e293b; border-radius: 0.85rem;">
-          <div style="width: 32px; height: 32px; border-radius: 0.55rem; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.25); display: flex; align-items: center; justify-content: center; color: #fbbf24; margin-bottom: 0.6rem;">
-            <i data-lucide="map-pin" style="width: 16px; height: 16px;"></i>
-          </div>
-          <h4 style="font-size: 0.82rem; font-weight: 700; color: #f1f5f9;">Barangay Mapping</h4>
-          <p style="font-size: 0.72rem; color: #94a3b8; margin-top: 0.25rem; line-height: 1.4;">
-            Geotags reports to your specific Cebu City neighborhood.
-          </p>
-        </div>
-
-        <div style="padding: 1rem; background: rgba(15, 23, 42, 0.85); border: 1px solid #1e293b; border-radius: 0.85rem;">
-          <div style="width: 32px; height: 32px; border-radius: 0.55rem; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.25); display: flex; align-items: center; justify-content: center; color: #fbbf24; margin-bottom: 0.6rem;">
-            <i data-lucide="activity" style="width: 16px; height: 16px;"></i>
-          </div>
-          <h4 style="font-size: 0.82rem; font-weight: 700; color: #f1f5f9;">Resolution Status</h4>
-          <p style="font-size: 0.72rem; color: #94a3b8; margin-top: 0.25rem; line-height: 1.4;">
-            Track status updates from inspection to bundle clearing.
-          </p>
-        </div>
+      <div>
+        <h1 style="font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em;">LantaWires</h1>
+        <p style="font-size: .72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .08em;">Wire hazard watch · Cebu City</p>
       </div>
     </div>
-
-    <!-- Footer Note -->
-    <div style="position: relative; z-index: 10; padding-top: 1.5rem; margin-top: 2rem; border-top: 1px solid rgba(30, 41, 59, 0.8); font-size: 0.75rem; color: #64748b; display: flex; justify-content: space-between; align-items: center;">
-      <span>Community overhead wire safety system</span>
-      <span>Cebu City, Philippines</span>
+    <p style="font-size: .95rem; font-weight: 600; line-height: 1.5; margin-bottom: .5rem;">Join your barangay safety watch.</p>
+    <p class="section-sub" style="margin-bottom: 1.25rem;">Report sagging wires, track clearing, keep streets safe.</p>
+    <div style="display: flex; flex-direction: column; gap: .6rem;">
+      <div class="auth-mini-feature">
+        <div class="auth-mini-icon"><i data-lucide="camera" style="width: 15px; height: 15px;"></i></div>
+        <div><p style="font-size: .8rem; font-weight: 700;">Snap & submit</p><p class="section-sub">One photo is enough</p></div>
+      </div>
+      <div class="auth-mini-feature">
+        <div class="auth-mini-icon"><i data-lucide="shield-check" style="width: 15px; height: 15px;"></i></div>
+        <div><p style="font-size: .8rem; font-weight: 700;">Verified reports</p><p class="section-sub">AI + community review</p></div>
+      </div>
     </div>
   </div>
 
-  <!-- Right Column: Registration Form -->
-  <div class="auth-form-col">
-    <div class="auth-card" style="max-width: 560px;">
-      <div style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #1e293b;">
-        <div>
-          <h2 style="font-size: 1.5rem; font-weight: 700; color: #ffffff; letter-spacing: -0.02em;">
-            Create Account
-          </h2>
-          <p style="font-size: 0.78rem; color: #94a3b8; margin-top: 0.25rem;">
-            Register to report hazards and track cleanups across Cebu City.
-          </p>
+  <div class="auth-card" style="max-width: 520px; position: relative;">
+    <img src="{% static 'images/mascot-sparrow-welcome.svg' %}" alt="Wiry welcomes you" class="mascot-peek" style="position: absolute; top: -72px; right: 18px; width: 130px;" />
+    <div style="margin-bottom: 1.25rem; padding-top: .5rem;">
+      <span class="badge-pill badge-amber stamp-tilt" style="margin-bottom: .6rem;">Join the watch</span>
+      <h2 style="font-size: 1.4rem; font-weight: 800;">Become a Brgy. Hero</h2>
+      <p class="section-sub">Report wires in your barangay.</p>
+    </div>
+
+    <form id="register-form" action="{% url 'register:index' %}" method="POST">
+      {% csrf_token %}
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: .75rem;">
+        <div class="form-group">
+          <label class="form-label" for="register-name-input">Full name</label>
+          <div class="input-container">
+            <i data-lucide="user" class="input-icon-left"></i>
+            <input id="register-name-input" name="name" type="text" value="{{ name|default:'' }}" placeholder="e.g. Gianne Cruz" required class="input-field" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="register-phone-input">Mobile</label>
+          <div class="input-container">
+            <i data-lucide="phone" class="input-icon-left"></i>
+            <input id="register-phone-input" name="phone" type="tel" value="{{ phone|default:'' }}" placeholder="+63 9XX XXX XXXX" required class="input-field" />
+          </div>
         </div>
       </div>
-
-      <form id="register-form" action="{% url 'register:index' %}" method="POST">
-        {% csrf_token %}
-
-        <!-- Full Name & Mobile -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.85rem;">
-          <div class="form-group">
-            <label class="form-label" for="register-name-input">Full Name</label>
-            <div class="input-container">
-              <i data-lucide="user" class="input-icon-left"></i>
-              <input
-                id="register-name-input"
-                name="name"
-                type="text"
-                value="{{ name|default:'' }}"
-                placeholder="e.g. Gianne Cruz"
-                required
-                class="input-field"
-              />
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="register-phone-input">Mobile Number</label>
-            <div class="input-container">
-              <i data-lucide="phone" class="input-icon-left"></i>
-              <input
-                id="register-phone-input"
-                name="phone"
-                type="tel"
-                value="{{ phone|default:'' }}"
-                placeholder="+63 917 554 8921"
-                required
-                class="input-field"
-              />
-            </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: .75rem;">
+        <div class="form-group">
+          <label class="form-label" for="register-email-input">Email</label>
+          <div class="input-container">
+            <i data-lucide="mail" class="input-icon-left"></i>
+            <input id="register-email-input" name="email" type="email" value="{{ email|default:'' }}" placeholder="you@cebucity.ph" required class="input-field" />
           </div>
         </div>
-
-        <!-- Email & Cebu Barangay -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.85rem;">
-          <div class="form-group">
-            <label class="form-label" for="register-email-input">Email Address</label>
-            <div class="input-container">
-              <i data-lucide="mail" class="input-icon-left"></i>
-              <input
-                id="register-email-input"
-                name="email"
-                type="email"
-                value="{{ email|default:'' }}"
-                placeholder="gianne@cebucity.ph"
-                required
-                class="input-field"
-              />
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="register-barangay-select">Cebu City Barangay</label>
-            <div class="input-container">
-              <i data-lucide="map-pin" class="input-icon-left"></i>
-              <select
-                id="register-barangay-select"
-                name="barangay"
-                class="input-field"
-                style="appearance: none; cursor: pointer; padding-right: 2.2rem;"
-              >
-                {% for b in barangays %}
-                  <option value="{{ b }}" {% if b == selected_barangay or b == 'Tisa' %}selected{% endif %} style="background: #0f172a; color: #f8fafc;">
-                    Brgy. {{ b }}
-                  </option>
-                {% endfor %}
-              </select>
-              <i data-lucide="chevron-down" style="position: absolute; right: 0.9rem; color: #64748b; pointer-events: none; width: 16px; height: 16px;"></i>
-            </div>
-          </div>
+        <div class="form-group">
+          <label class="form-label" for="register-barangay-select">Barangay</label>
+          <select id="register-barangay-select" name="barangay" class="input-field no-icon" style="cursor: pointer;">
+            {% for b in barangays %}
+              <option value="{{ b }}" {% if b == selected_barangay or b == 'Tisa' %}selected{% endif %}>Brgy. {{ b }}</option>
+            {% endfor %}
+          </select>
         </div>
-
-        <!-- Password & Confirm Password -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.85rem;">
-          <div class="form-group">
-            <label class="form-label" for="register-password-input">Password</label>
-            <div class="input-container">
-              <i data-lucide="lock" class="input-icon-left"></i>
-              <input
-                id="register-password-input"
-                name="password"
-                type="password"
-                placeholder="Min. 6 characters"
-                required
-                class="input-field"
-                style="padding-right: 2.6rem;"
-              />
-              <button
-                type="button"
-                id="toggle-reg-password-btn"
-                class="input-toggle-right"
-                title="Toggle password visibility"
-              >
-                <i data-lucide="eye" id="reg-eye-icon" style="width: 16px; height: 16px;"></i>
-              </button>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="register-confirm-password-input">Confirm Password</label>
-            <div class="input-container">
-              <i data-lucide="lock" class="input-icon-left"></i>
-              <input
-                id="register-confirm-password-input"
-                name="confirm_password"
-                type="password"
-                placeholder="Re-type password"
-                required
-                class="input-field"
-              />
-            </div>
-          </div>
-        </div>
-
-        <!-- Guidelines Checkbox -->
-        <div style="background: rgba(2, 6, 23, 0.45); border: 1px solid #1e293b; border-radius: 0.75rem; padding: 0.85rem; margin: 0.5rem 0 1.25rem;">
-          <label style="display: flex; align-items: flex-start; gap: 0.65rem; font-size: 0.75rem; color: #94a3b8; cursor: pointer;">
-            <input
-              id="register-terms-checkbox"
-              name="agree_terms"
-              type="checkbox"
-              checked
-              style="accent-color: #f59e0b; width: 16px; height: 16px; margin-top: 2px; border-radius: 4px;"
-            />
-            <span style="line-height: 1.45;">
-              I certify that reported hazards represent authentic overhead wire conditions within Cebu City to facilitate accurate community safety monitoring.
-            </span>
-          </label>
-        </div>
-
-        <!-- Submit Button -->
-        <button id="register-submit-btn" type="submit" class="btn-primary">
-          <span>Create Account</span>
-          <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i>
-        </button>
-      </form>
-
-      <!-- Navigation to Login Screen -->
-      <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid #1e293b; text-align: center;">
-        <p style="font-size: 0.78rem; color: #94a3b8;">
-          Already registered?
-          <a
-            id="register-to-login-link"
-            href="{% url 'login:login' %}"
-            style="color: #fbbf24; font-weight: 600; text-decoration: none; margin-left: 0.25rem;"
-          >
-            Login here
-          </a>
-        </p>
       </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: .75rem;">
+        <div class="form-group">
+          <label class="form-label" for="register-password-input">Password</label>
+          <div class="input-container">
+            <i data-lucide="lock" class="input-icon-left"></i>
+            <input id="register-password-input" name="password" type="password" placeholder="Min. 6 characters" required class="input-field" style="padding-right: 2.6rem;" />
+            <button type="button" id="toggle-reg-password-btn" class="input-toggle-right"><i data-lucide="eye" id="reg-eye-icon" style="width: 16px; height: 16px;"></i></button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="register-confirm-password-input">Confirm</label>
+          <div class="input-container">
+            <i data-lucide="lock" class="input-icon-left"></i>
+            <input id="register-confirm-password-input" name="confirm_password" type="password" placeholder="Re-type password" required class="input-field" />
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="register-resolver-input">Resolver invite code <span style="font-weight: 500; color: var(--muted);">(optional)</span></label>
+        <div class="input-container">
+          <i data-lucide="key-round" class="input-icon-left"></i>
+          <input id="register-resolver-input" name="resolver_code" type="text" placeholder="Citizens leave blank" class="input-field" autocomplete="off" />
+        </div>
+        <p class="section-sub" style="margin-top: .3rem;">TIC / VECO responders enter their invite code to unlock status toggling.</p>
+      </div>
+      <label style="display: flex; gap: .6rem; font-size: .76rem; color: var(--muted); cursor: pointer; background: var(--clay-card-2); border: 2px solid var(--clay-border); border-radius: 14px; padding: .7rem .8rem; margin: .25rem 0 1rem;">
+        <input id="register-terms-checkbox" name="agree_terms" type="checkbox" checked style="accent-color: var(--peach); width: 16px; height: 16px; margin-top: 2px;" />
+        <span>Reports reflect real wire conditions in Cebu City.</span>
+      </label>
+      <button id="register-submit-btn" type="submit" class="btn-primary">
+        <span>Create account</span>
+        <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i>
+      </button>
+    </form>
+
+    <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 2px solid var(--clay-border); text-align: center;">
+      <p style="font-size: .8rem; color: var(--muted);">Have an account? <a id="register-to-login-link" href="{% url 'login:login' %}" style="color: #c05c2a; font-weight: 800; text-decoration: none;">Login</a></p>
     </div>
   </div>
 </div>

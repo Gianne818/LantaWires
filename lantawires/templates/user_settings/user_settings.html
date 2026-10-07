@@ -1,192 +1,96 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}System Settings — LantaWires Overhead Wire Hazard Detection{% endblock %}
+{% block title %}Settings — LantaWires{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/user_settings/user_settings.css' %}">
 {% endblock %}
 
 {% block content %}
-<div style="min-height: 100vh; background: #020617; padding-bottom: 5rem;">
-
-  <!-- Sticky Application Bar -->
+<div class="page-soft">
   <header class="app-header">
-    <div class="container-7xl app-nav">
-      <!-- App Brand -->
-      <div style="display: flex; align-items: center; gap: 0.85rem;">
-        <div style="width: 42px; height: 42px; border-radius: 0.85rem; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); display: flex; align-items: center; justify-content: center; color: #fbbf24;">
-          <img src="{% static 'images/user_settings/settings-dial.svg' %}" alt="Settings Dial" style="width: 28px; height: 28px;">
+    <div class="app-nav">
+      <div style="display: flex; align-items: center; gap: .7rem;">
+        <div style="width: 40px; height: 40px; border-radius: 14px; background: linear-gradient(180deg, var(--peach-soft), var(--peach)); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-btn);">
+          <img src="{% static 'images/user_settings/settings-dial.svg' %}" alt="Settings" style="width: 24px; height: 24px;">
         </div>
-        <div>
-          <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <span style="font-size: 1.25rem; font-weight: 800; color: #ffffff; letter-spacing: -0.02em;">
-              LantaWires
-            </span>
-            <span class="badge-pill badge-amber" style="font-size: 0.65rem; padding: 0.15rem 0.5rem;">
-              Settings Slice
-            </span>
-          </div>
-          <p style="font-size: 0.72rem; color: #94a3b8; margin-top: 0.1rem;">
-            User Preferences & Incident Telemetry Controls
-          </p>
-        </div>
+        <span style="font-size: 1.1rem; font-weight: 800;">LantaWires</span>
       </div>
-
-      <!-- Navigation Links -->
-      <nav style="display: flex; align-items: center; gap: 0.5rem;">
-        <a
-          id="nav-link-home"
-          href="{% url 'home:home' %}"
-          style="display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.45rem 0.9rem; background: #0f172a; border: 1px solid #1e293b; border-radius: 0.6rem; color: #cbd5e1; font-size: 0.82rem; font-weight: 600; text-decoration: none; transition: all 0.2s;"
-        >
-          <i data-lucide="layout-dashboard" style="width: 15px; height: 15px;"></i>
-          <span>Operations</span>
-        </a>
-        <a
-          id="nav-link-profile"
-          href="{% url 'profile:profile' %}"
-          style="display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.45rem 0.9rem; background: #0f172a; border: 1px solid #1e293b; border-radius: 0.6rem; color: #cbd5e1; font-size: 0.82rem; font-weight: 600; text-decoration: none; transition: all 0.2s;"
-        >
-          <i data-lucide="user" style="width: 15px; height: 15px; color: #38bdf8;"></i>
-          <span>Profile</span>
-        </a>
-        <a
-          id="nav-link-settings"
-          href="{% url 'user_settings:settings' %}"
-          style="display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.45rem 0.9rem; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 0.6rem; color: #fbbf24; font-size: 0.82rem; font-weight: 700; text-decoration: none;"
-        >
-          <i data-lucide="settings" style="width: 15px; height: 15px;"></i>
-          <span>Settings</span>
-        </a>
+      <nav style="display: flex; align-items: center; gap: .3rem;">
+        <a id="nav-link-home" href="{% url 'home:home' %}" class="nav-link"><i data-lucide="layout-dashboard" style="width: 15px; height: 15px;"></i><span>Operations</span></a>
+        <a id="nav-link-profile" href="{% url 'profile:profile' %}" class="nav-link"><i data-lucide="user" style="width: 15px; height: 15px;"></i><span>Profile</span></a>
+        <a id="nav-link-settings" href="{% url 'user_settings:settings' %}" class="nav-link active"><i data-lucide="settings" style="width: 15px; height: 15px;"></i><span>Settings</span></a>
       </nav>
-
-      <!-- Sign Out -->
-      <div style="display: flex; align-items: center; gap: 1rem;">
-        <a
-          id="settings-sign-out-btn"
-          href="{% url 'home:logout' %}"
-          style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.85rem; background: #0f172a; border: 1px solid #1e293b; border-radius: 0.6rem; color: #cbd5e1; font-size: 0.78rem; font-weight: 600; text-decoration: none;"
-        >
-          <i data-lucide="log-out" style="width: 15px; height: 15px; color: #f43f5e;"></i>
-          <span>Sign Out</span>
-        </a>
-      </div>
+      <a id="settings-sign-out-btn" href="{% url 'home:logout' %}" class="clay-btn-ghost"><i data-lucide="log-out" style="width: 15px; height: 15px;"></i><span>Sign out</span></a>
     </div>
   </header>
 
-  <!-- Settings Content Container -->
   <main class="settings-container">
-    
-    <!-- Top Breadcrumb & Status -->
-    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
-      <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: #94a3b8;">
-        <a href="{% url 'home:home' %}" style="color: #cbd5e1; text-decoration: none; display: flex; align-items: center; gap: 0.35rem;">
-          <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
-          <span>Return to Operations</span>
-        </a>
-        <span>/</span>
-        <span style="color: #f8fafc; font-weight: 600;">System Preferences</span>
-      </div>
-
-      <div style="display: flex; align-items: center; gap: 0.5rem; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); padding: 0.35rem 0.85rem; border-radius: 9999px;">
-        <span style="width: 8px; height: 8px; border-radius: 9999px; background: #fbbf24; box-shadow: 0 0 8px #fbbf24;"></span>
-        <span style="font-size: 0.75rem; font-weight: 700; color: #fbbf24;">Supabase UserSettings Synced</span>
-      </div>
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+      <a href="{% url 'home:home' %}" style="color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: .35rem; font-size: .83rem; font-weight: 600;">
+        <i data-lucide="arrow-left" style="width: 15px; height: 15px;"></i><span>Operations</span>
+      </a>
+      <span class="badge-pill badge-amber"><span style="width: 7px; height: 7px; border-radius: 9999px; background: var(--peach);"></span><span>Synced</span></span>
     </div>
 
-    <!-- Main Settings Form Card -->
-    <div class="settings-card">
+    <div class="clay-card settings-card">
+      <div style="margin-bottom: 1.25rem;">
+        <h1 style="font-size: 1.3rem; font-weight: 800;">Preferences</h1>
+        <p class="section-sub">Theme, alerts, and dispatch options.</p>
+      </div>
       <form method="post">
         {% csrf_token %}
-
-        <!-- Group 1: Appearance & Display -->
         <div class="settings-group">
-          <h2 class="settings-group-title">Display & Appearance</h2>
-
-          <!-- Dark Mode -->
-          <div class="settings-row {% if settings.dark_mode %}setting-active{% endif %}">
-            <div style="display: flex; align-items: center; gap: 1rem;">
-              <div style="width: 38px; height: 38px; border-radius: 0.65rem; background: rgba(245, 158, 11, 0.15); display: flex; align-items: center; justify-content: center; color: #fbbf24;">
-                <i data-lucide="moon" style="width: 20px; height: 20px;"></i>
-              </div>
-              <div>
-                <p style="font-size: 0.92rem; font-weight: 700; color: #f8fafc;">Cyber Slate Dark Mode</p>
-                <p style="font-size: 0.78rem; color: #94a3b8;">High-contrast slate palette designed for low-light night hazard inspection.</p>
-              </div>
+          <h2 class="settings-group-title">Appearance</h2>
+          <div class="settings-row">
+            <div style="display: flex; align-items: center; gap: .85rem;">
+              <div class="metric-icon"><i data-lucide="moon" style="width: 18px; height: 18px;"></i></div>
+              <div><p style="font-size: .9rem; font-weight: 800;">Dark clay mode</p><p class="section-sub">Softer contrast for night checks.</p></div>
             </div>
             <label class="switch-toggle">
-              <input type="checkbox" name="dark_mode" class="settings-switch-input" {% if settings.dark_mode %}checked{% endif %}>
+              <input type="checkbox" name="dark_mode" id="setting-dark-mode" class="settings-switch-input" {% if settings.dark_mode %}checked{% endif %}>
               <span class="slider-round"></span>
             </label>
           </div>
         </div>
 
-        <!-- Group 2: Notifications & Agency Dispatch -->
         <div class="settings-group">
-          <h2 class="settings-group-title">Notifications & Agency Dispatch</h2>
-
-          <!-- Email Notifications -->
+          <h2 class="settings-group-title">Notifications</h2>
           <div class="settings-row {% if settings.email_notifications %}setting-active{% endif %}">
-            <div style="display: flex; align-items: center; gap: 1rem;">
-              <div style="width: 38px; height: 38px; border-radius: 0.65rem; background: rgba(56, 189, 248, 0.15); display: flex; align-items: center; justify-content: center; color: #38bdf8;">
-                <i data-lucide="mail" style="width: 20px; height: 20px;"></i>
-              </div>
-              <div>
-                <p style="font-size: 0.92rem; font-weight: 700; color: #f8fafc;">Email Dispatch Receipts</p>
-                <p style="font-size: 0.78rem; color: #94a3b8;">Receive automated resolution receipts when VECO or Cebu TIC resolves a reported bundle.</p>
-              </div>
+            <div style="display: flex; align-items: center; gap: .85rem;">
+              <div class="metric-icon"><i data-lucide="mail" style="width: 18px; height: 18px;"></i></div>
+              <div><p style="font-size: .9rem; font-weight: 800;">Email receipts</p><p class="section-sub">When TIC or VECO resolves a report.</p></div>
             </div>
             <label class="switch-toggle">
               <input type="checkbox" name="email_notifications" class="settings-switch-input" {% if settings.email_notifications %}checked{% endif %}>
               <span class="slider-round"></span>
             </label>
           </div>
-
-          <!-- Hazard Radar Alerts -->
           <div class="settings-row {% if settings.hazard_alerts %}setting-active{% endif %}">
-            <div style="display: flex; align-items: center; gap: 1rem;">
-              <div style="width: 38px; height: 38px; border-radius: 0.65rem; background: rgba(244, 63, 94, 0.15); display: flex; align-items: center; justify-content: center; color: #f43f5e;">
-                <i data-lucide="radio" style="width: 20px; height: 20px;"></i>
-              </div>
-              <div>
-                <p style="font-size: 0.92rem; font-weight: 700; color: #f8fafc;">Barangay Wire Radar Alerts</p>
-                <p style="font-size: 0.78rem; color: #94a3b8;">Push notifications for newly reported critical sagging cables in your registered barangay.</p>
-              </div>
+            <div style="display: flex; align-items: center; gap: .85rem;">
+              <div class="metric-icon" style="color: var(--red);"><i data-lucide="radio" style="width: 18px; height: 18px;"></i></div>
+              <div><p style="font-size: .9rem; font-weight: 800;">Barangay alerts</p><p class="section-sub">New critical wires near you.</p></div>
             </div>
             <label class="switch-toggle">
               <input type="checkbox" name="hazard_alerts" class="settings-switch-input" {% if settings.hazard_alerts %}checked{% endif %}>
               <span class="slider-round"></span>
             </label>
           </div>
-
-          <!-- Automated Agency Dispatch Updates -->
           <div class="settings-row {% if settings.auto_dispatch_updates %}setting-active{% endif %}">
-            <div style="display: flex; align-items: center; gap: 1rem;">
-              <div style="width: 38px; height: 38px; border-radius: 0.65rem; background: rgba(16, 185, 129, 0.15); display: flex; align-items: center; justify-content: center; color: #10b981;">
-                <i data-lucide="send" style="width: 20px; height: 20px;"></i>
-              </div>
-              <div>
-                <p style="font-size: 0.92rem; font-weight: 700; color: #f8fafc;">Real-Time Agency Routing</p>
-                <p style="font-size: 0.78rem; color: #94a3b8;">Directly mirror emergency ticket telemetry to Visayan Electric and Cebu City TIC dispatch API.</p>
-              </div>
+            <div style="display: flex; align-items: center; gap: .85rem;">
+              <div class="metric-icon" style="color: var(--green);"><i data-lucide="send" style="width: 18px; height: 18px;"></i></div>
+              <div><p style="font-size: .9rem; font-weight: 800;">Auto routing</p><p class="section-sub">Mirror tickets to agency desks.</p></div>
             </div>
             <label class="switch-toggle">
               <input type="checkbox" name="auto_dispatch_updates" class="settings-switch-input" {% if settings.auto_dispatch_updates %}checked{% endif %}>
               <span class="slider-round"></span>
             </label>
           </div>
-
-          <!-- Sound Alerts -->
           <div class="settings-row {% if settings.sound_alerts %}setting-active{% endif %}">
-            <div style="display: flex; align-items: center; gap: 1rem;">
-              <div style="width: 38px; height: 38px; border-radius: 0.65rem; background: rgba(168, 85, 247, 0.15); display: flex; align-items: center; justify-content: center; color: #c084fc;">
-                <i data-lucide="volume-2" style="width: 20px; height: 20px;"></i>
-              </div>
-              <div>
-                <p style="font-size: 0.92rem; font-weight: 700; color: #f8fafc;">Audio Chime on Critical Hazard Proximity</p>
-                <p style="font-size: 0.78rem; color: #94a3b8;">Audible tone when browsing hotspot map pins with clearance below 3.0 meters.</p>
-              </div>
+            <div style="display: flex; align-items: center; gap: .85rem;">
+              <div class="metric-icon"><i data-lucide="volume-2" style="width: 18px; height: 18px;"></i></div>
+              <div><p style="font-size: .9rem; font-weight: 800;">Sound chime</p><p class="section-sub">Tone for low-clearance pins.</p></div>
             </div>
             <label class="switch-toggle">
               <input type="checkbox" name="sound_alerts" class="settings-switch-input" {% if settings.sound_alerts %}checked{% endif %}>
@@ -195,19 +99,12 @@
           </div>
         </div>
 
-        <!-- Save Button Footer -->
-        <div style="display: flex; justify-content: flex-end; gap: 1rem; border-top: 1px solid #1e293b; padding-top: 1.5rem; margin-top: 2rem;">
-          <a href="{% url 'home:home' %}" class="btn-secondary" style="font-size: 0.85rem; padding: 0.65rem 1.25rem; text-decoration: none;">
-            Cancel
-          </a>
-          <button id="save-settings-btn" type="submit" class="btn-primary" style="font-size: 0.85rem; padding: 0.65rem 1.5rem; width: auto;">
-            <i data-lucide="save" style="width: 16px; height: 16px;"></i>
-            <span>Save Settings to Supabase</span>
-          </button>
+        <div style="display: flex; justify-content: flex-end; gap: .75rem; border-top: 2px solid var(--clay-border); padding-top: 1.25rem; flex-wrap: wrap;">
+          <a href="{% url 'home:home' %}" class="btn-secondary">Cancel</a>
+          <button id="save-settings-btn" type="submit" class="clay-btn-primary" style="width: auto;"><i data-lucide="save" style="width: 15px; height: 15px;"></i><span>Save</span></button>
         </div>
       </form>
     </div>
-
   </main>
 </div>
 {% endblock %}

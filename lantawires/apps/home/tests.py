@@ -29,11 +29,11 @@ class HomeScreenTests(TestCase):
         self.assertTemplateUsed(response, "home/home.html")
         self.assertContains(response, "Gianne Cruz")
         self.assertContains(response, "Brgy. Tisa")
-        self.assertContains(response, "Total Verified")
-        self.assertContains(response, "Active Dispatches")
-        self.assertContains(response, "Critical Hazards")
-        self.assertContains(response, "Resolved Bundles")
-        self.assertContains(response, "Cebu Hotspot Map")
+        self.assertContains(response, "Verified")
+        self.assertContains(response, "Dispatched")
+        self.assertContains(response, "Critical")
+        self.assertContains(response, "Resolved")
+        self.assertContains(response, "Report hazard")
         self.assertContains(response, reverse("home:logout"))
 
     def test_create_report_api(self):
@@ -65,6 +65,20 @@ class HomeScreenTests(TestCase):
             "reportId": "rep-001",
             "newStatus": "resolved",
         }
+        # Citizens cannot toggle
+        response = self.client.post(
+            reverse("home:update_status"),
+            data=json.dumps(payload),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 403)
+
+        # Resolvers can toggle
+        session = self.client.session
+        user = dict(session["current_user"])
+        user["role"] = "resolver"
+        session["current_user"] = user
+        session.save()
         response = self.client.post(
             reverse("home:update_status"),
             data=json.dumps(payload),

@@ -94,27 +94,27 @@ document.addEventListener("DOMContentLoaded", () => {
   function getSeverityConfig(sev) {
     switch (sev) {
       case "critical":
-        return { label: "CRITICAL", bg: "#f43f5e", badgeClass: "badge-critical" };
+        return { label: "CRITICAL", bg: "#ff6b6b", badgeClass: "badge-critical" };
       case "high":
-        return { label: "HIGH", bg: "#f59e0b", badgeClass: "badge-high" };
+        return { label: "HIGH", bg: "#ff8f5e", badgeClass: "badge-high" };
       case "medium":
-        return { label: "MEDIUM", bg: "#eab308", badgeClass: "badge-medium" };
+        return { label: "MEDIUM", bg: "#8a94a8", badgeClass: "badge-medium" };
       default:
-        return { label: "RESOLVED", bg: "#10b981", badgeClass: "badge-resolved" };
+        return { label: "RESOLVED", bg: "#2fb37c", badgeClass: "badge-resolved" };
     }
   }
 
-  // Helper: Status label config
+  // Helper: Status label config — short labels to avoid wrapping
   function getStatusConfig(status) {
     switch (status) {
       case "ai_verified":
-        return { label: "AI Verified", badgeClass: "badge-amber" };
+        return { label: "Verified", badgeClass: "badge-amber" };
       case "dispatched":
-        return { label: "Dispatched for Clearing", badgeClass: "badge-amber" };
+        return { label: "Dispatched", badgeClass: "badge-amber" };
       case "under_inspection":
-        return { label: "Inspection Ongoing", badgeClass: "badge-high" };
+        return { label: "Inspecting", badgeClass: "badge-high" };
       case "resolved":
-        return { label: "Bundled & Elevated", badgeClass: "badge-resolved" };
+        return { label: "Resolved", badgeClass: "badge-resolved" };
       default:
         return { label: status, badgeClass: "badge-amber" };
     }
@@ -178,9 +178,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (window.lucide) window.lucide.createIcons();
   }
 
-  // Render Incident Cards Grid
-  function renderIncidentCards() {
+  // Render Incident Cards Grid — paginated, no ticket IDs on cards
+  let visibleCount = 6;
+  const PAGE_SIZE = 6;
+  function renderIncidentCards(reset) {
     if (!incidentCardsContainer) return;
+    if (reset) visibleCount = PAGE_SIZE;
     incidentCardsContainer.innerHTML = "";
 
     const filtered = getFilteredReports();
@@ -189,79 +192,74 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (filtered.length === 0) {
       incidentCardsContainer.innerHTML = `
-        <div style="grid-column: 1 / -1; padding: 3rem 1.5rem; text-align: center; background: #0f172a; border: 1px dashed #1e293b; border-radius: 1rem; color: #94a3b8;">
-          <p style="font-size: 0.95rem; font-weight: 600;">No hazards match your filter query.</p>
-          <p style="font-size: 0.75rem; margin-top: 0.35rem; color: #64748b;">Try adjusting your search criteria or selecting 'All Cebu City Barangays'.</p>
+        <div class="clay-card" style="grid-column: 1 / -1; padding: 2.2rem 1.5rem; text-align: center; border-radius: 20px;">
+          <img src="/static/images/mascot-sparrow.svg" alt="All clear" style="width: 110px; margin: 0 auto .6rem;" />
+          <p style="font-size: 0.95rem; font-weight: 800;">All clear in Cebu! Wiry found nothing.</p>
+          <p class="section-sub" style="margin-top: 0.3rem;">Try a different search or barangay.</p>
         </div>
       `;
       return;
     }
 
-    filtered.forEach(report => {
+    filtered.slice(0, visibleCount).forEach(report => {
       const sevConfig = getSeverityConfig(report.severity);
       const statusConfig = getStatusConfig(report.status);
 
       const card = document.createElement("div");
+      card.className = "clay-card";
       card.style.cssText = `
-        background: #0f172a;
-        border: 1px solid #1e293b;
-        border-radius: 1rem;
-        padding: 1.15rem;
+        border-radius: 20px;
+        padding: 1.1rem;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: transform 0.15s ease;
       `;
       card.addEventListener("mouseenter", () => {
-        card.style.borderColor = "#f59e0b";
-        card.style.transform = "translateY(-2px)";
+        card.style.transform = "translateY(-3px)";
       });
       card.addEventListener("mouseleave", () => {
-        card.style.borderColor = "#1e293b";
         card.style.transform = "translateY(0)";
       });
 
       card.innerHTML = `
         <div>
-          <!-- Header Meta -->
-          <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.6rem;">
-            <div style="display: flex; align-items: center; gap: 0.45rem;">
-              <span style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #fbbf24;">${report.ticketNumber}</span>
-              <span class="badge-pill ${sevConfig.badgeClass}" style="font-size: 0.62rem; padding: 0.1rem 0.4rem;">${sevConfig.label}</span>
-            </div>
-            <span class="badge-pill ${statusConfig.badgeClass}" style="font-size: 0.65rem; padding: 0.1rem 0.45rem;">${statusConfig.label}</span>
+          <!-- Header Meta — severity + status only, no ticket ID -->
+          <div class="incident-meta-row" style="margin-bottom: 0.6rem;">
+            <span class="badge-pill badge-compact ${sevConfig.badgeClass}">${sevConfig.label}</span>
+            <span class="badge-pill badge-compact ${statusConfig.badgeClass}">${statusConfig.label}</span>
           </div>
 
           <!-- Title -->
-          <h3 style="font-size: 0.95rem; font-weight: 700; color: #ffffff; line-height: 1.35; margin-bottom: 0.35rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+          <h3 style="font-size: 0.92rem; font-weight: 800; line-height: 1.35; margin-bottom: 0.3rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
             ${report.title}
           </h3>
 
           <!-- Address -->
-          <p style="font-size: 0.75rem; color: #94a3b8; display: flex; align-items: center; gap: 0.35rem;">
-            <i data-lucide="map-pin" style="width: 14px; height: 14px; color: #fbbf24; flex-shrink: 0;"></i>
+          <p style="font-size: 0.75rem; color: var(--muted); display: flex; align-items: center; gap: 0.35rem;">
+            <i data-lucide="map-pin" style="width: 13px; height: 13px; flex-shrink: 0;"></i>
             <span>${report.address}</span>
           </p>
 
           <!-- AI Telemetry Snippet Box -->
-          <div style="margin-top: 0.85rem; padding: 0.65rem; border-radius: 0.65rem; background: rgba(2, 6, 23, 0.6); border: 1px solid #1e293b; font-size: 0.72rem; display: flex; flex-direction: column; gap: 0.25rem;">
+          <div class="clay-inset-box" style="margin-top: 0.8rem; font-size: 0.72rem; display: flex; flex-direction: column; gap: 0.25rem;">
             <div style="display: flex; justify-content: space-between;">
-              <span style="color: #64748b;">Clearance Sag:</span>
-              <span style="color: #f43f5e; font-weight: 600;">${(report.aiAnalysis?.cableSagClearance || "3.2m above road").split("(")[0]}</span>
+              <span style="color: var(--muted);">Clearance:</span>
+              <span style="color: var(--red); font-weight: 700;">${(report.aiAnalysis?.cableSagClearance || "3.2m above road").split("(")[0]}</span>
             </div>
             <div style="display: flex; justify-content: space-between;">
-              <span style="color: #64748b;">AI Confidence:</span>
-              <span style="color: #34d399; font-weight: 700; font-family: var(--font-mono);">${report.aiAnalysis?.confidence || 95.4}%</span>
+              <span style="color: var(--muted);">Confidence:</span>
+              <span style="color: var(--green); font-weight: 800;">${report.aiAnalysis?.confidence || 95.4}%</span>
             </div>
           </div>
         </div>
 
         <!-- Footer -->
-        <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid #1e293b; display: flex; align-items: center; justify-content: space-between; font-size: 0.72rem; color: #64748b;">
-          <span>Reported ${report.reportedAt}</span>
-          <span style="color: #fbbf24; font-weight: 600; display: inline-flex; align-items: center; gap: 0.25rem;">
-            <span>Inspect Telemetry</span>
+        <div style="margin-top: 0.9rem; padding-top: 0.7rem; border-top: 2px solid var(--clay-border); display: flex; align-items: center; justify-content: space-between; font-size: 0.72rem; color: var(--muted);">
+          <span>${report.reportedAt}</span>
+          <span style="color: #c05c2a; font-weight: 800; display: inline-flex; align-items: center; gap: 0.25rem;">
+            <span>Inspect</span>
             <i data-lucide="chevron-right" style="width: 13px; height: 13px;"></i>
           </span>
         </div>
@@ -273,6 +271,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
       incidentCardsContainer.appendChild(card);
     });
+
+    // Show-more pagination
+    const remaining = filtered.length - visibleCount;
+    let moreBtn = document.getElementById("show-more-hazards-btn");
+    if (remaining > 0) {
+      if (!moreBtn) {
+        moreBtn = document.createElement("button");
+        moreBtn.id = "show-more-hazards-btn";
+        moreBtn.type = "button";
+        moreBtn.className = "clay-btn-ghost";
+        moreBtn.style.cssText = "grid-column: 1 / -1; justify-self: center; margin-top: .25rem;";
+        moreBtn.addEventListener("click", () => { visibleCount += PAGE_SIZE; renderIncidentCards(false); });
+        incidentCardsContainer.appendChild(moreBtn);
+      }
+      moreBtn.innerHTML = `<span>Show more (${remaining} remaining)</span>`;
+      moreBtn.style.display = "inline-flex";
+    } else if (moreBtn) {
+      moreBtn.style.display = "none";
+    }
 
     if (window.lucide) window.lucide.createIcons();
   }
@@ -344,10 +361,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       recipients.forEach(r => {
         const item = document.createElement("div");
-        item.style.cssText = "display: flex; justify-content: space-between; align-items: center; color: #cbd5e1;";
+      item.style.cssText = "display: flex; justify-content: space-between; align-items: center;";
         item.innerHTML = `
-          <span><strong>${r.agency}</strong> (${r.department || 'Dispatch'})</span>
-          <span style="color: #34d399; font-weight: 600;">✓ ${r.status || 'Delivered'}</span>
+          <span><strong>${r.agency}</strong></span>
+          <span style="color: var(--green); font-weight: 800;">✓ ${r.status || 'Delivered'}</span>
         `;
         detailRecipientsList.appendChild(item);
       });
@@ -389,7 +406,7 @@ document.addEventListener("DOMContentLoaded", () => {
           // Re-render
           openDetailModal(currentSelectedReport);
           renderMapPins();
-          renderIncidentCards();
+          renderIncidentCards(false);
           updateStats();
         }
       } catch (err) {
@@ -448,11 +465,9 @@ document.addEventListener("DOMContentLoaded", () => {
   presetBtns.forEach(btn => {
     btn.addEventListener("click", () => {
       presetBtns.forEach(b => {
-        b.style.borderColor = "#1e293b";
-        b.style.background = "#0b1120";
+        b.classList.remove("selected-preset");
       });
-      btn.style.borderColor = "#f59e0b";
-      btn.style.background = "rgba(245, 158, 11, 0.08)";
+      btn.classList.add("selected-preset");
 
       const idx = parseInt(btn.getAttribute("data-preset-index"), 10);
       selectedPresetIndex = idx;
@@ -573,7 +588,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
           // Refresh UI
           renderMapPins();
-          renderIncidentCards();
+          renderIncidentCards(true);
           updateStats();
           selectReport(newRep);
           openDetailModal(newRep);
@@ -587,18 +602,16 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Filter Listeners
-  if (searchInput) searchInput.addEventListener("input", () => { renderMapPins(); renderIncidentCards(); });
-  if (barangaySelect) barangaySelect.addEventListener("change", () => { renderMapPins(); renderIncidentCards(); });
-  if (severitySelect) severitySelect.addEventListener("change", () => { renderMapPins(); renderIncidentCards(); });
+  if (searchInput) searchInput.addEventListener("input", () => { renderMapPins(); renderIncidentCards(true); });
+  if (barangaySelect) barangaySelect.addEventListener("change", () => { renderMapPins(); renderIncidentCards(true); });
+  if (severitySelect) severitySelect.addEventListener("change", () => { renderMapPins(); renderIncidentCards(true); });
 
   // View Switcher Tabs
   if (viewMapBtn && viewListBtn) {
     viewMapBtn.addEventListener("click", () => {
       activeTab = "map";
-      viewMapBtn.style.background = "#f59e0b";
-      viewMapBtn.style.color = "#020617";
-      viewListBtn.style.background = "transparent";
-      viewListBtn.style.color = "#94a3b8";
+      viewMapBtn.classList.add("active");
+      viewListBtn.classList.remove("active");
 
       if (mapViewSection) mapViewSection.style.display = "flex";
       if (feedViewSection) feedViewSection.style.display = "flex";
@@ -607,10 +620,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     viewListBtn.addEventListener("click", () => {
       activeTab = "feed";
-      viewListBtn.style.background = "#f59e0b";
-      viewListBtn.style.color = "#020617";
-      viewMapBtn.style.background = "transparent";
-      viewMapBtn.style.color = "#94a3b8";
+      viewListBtn.classList.add("active");
+      viewMapBtn.classList.remove("active");
 
       if (feedViewSection) {
         feedViewSection.scrollIntoView({ behavior: "smooth" });

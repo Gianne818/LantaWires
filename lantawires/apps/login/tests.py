@@ -16,7 +16,7 @@ class LoginScreenTests(TestCase):
         self.assertTemplateUsed(response, "login/login.html")
         self.assertContains(response, "LantaWires")
         self.assertContains(response, "Login")
-        self.assertContains(response, "Email Address")
+        self.assertContains(response, "Email")
         self.assertContains(response, reverse("register:index"))
 
     def test_login_post_missing_fields_shows_error(self):

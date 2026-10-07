@@ -32,6 +32,8 @@ def register_view(request):
         "barangays": CEBU_BARANGAYS,
     }
 
+    RESOLVER_INVITE_CODE = "TIC-VECO-2026"
+
     if request.method == "POST":
         name = request.POST.get("name", "").strip()
         email = request.POST.get("email", "").strip()
@@ -40,6 +42,7 @@ def register_view(request):
         password = request.POST.get("password", "").strip()
         confirm_password = request.POST.get("confirm_password", "").strip()
         agree_terms = request.POST.get("agree_terms") == "on"
+        resolver_code = request.POST.get("resolver_code", "").strip()
 
         context.update({
             "name": name,
@@ -71,6 +74,13 @@ def register_view(request):
         if not agree_terms:
             messages.error(request, "Please acknowledge the hazard reporting guidelines.")
             return render(request, "register/register.html", context)
+
+        role = "citizen"
+        if resolver_code:
+            if resolver_code != RESOLVER_INVITE_CODE:
+                messages.error(request, "Invalid resolver invite code. Leave it blank for a citizen account.")
+                return render(request, "register/register.html", context)
+            role = "resolver"
 
         from django.contrib.auth.models import User
         from apps.profile.models import CebuBarangay, Profile
@@ -105,6 +115,7 @@ def register_view(request):
             phone=phone,
             barangay=barangay_obj,
             avatar=avatar,
+            role=role,
         )
         UserSettings.objects.create(user=user)
 

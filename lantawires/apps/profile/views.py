@@ -77,6 +77,7 @@ def profile_view(request):
                 "phone": phone or current_user_session.get("phone"),
                 "barangay": barangay_name,
                 "avatar": avatar,
+                "role": profile.role if profile else current_user_session.get("role", "citizen"),
             })
             request.session["current_user"] = current_user_session
             request.session.save()

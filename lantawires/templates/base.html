@@ -1,40 +1,40 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="csrf-token" content="{{ csrf_token }}">
-  <title>{% block title %}LantaWires — Overhead Wire Hazard Detection System{% endblock %}</title>
-  
-  <!-- Modern Typography -->
+  <title>{% block title %}LantaWires — Overhead Wire Hazard Detection{% endblock %}</title>
+  <script>
+    (function() {
+      try {
+        var stored = localStorage.getItem('lw-theme');
+        var serverDark = "{{ settings.dark_mode }}";
+        var theme = stored || (serverDark === "True" ? "dark" : "light");
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (e) {}
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  
-  <!-- Core Design System -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/lantawires.css' %}">
-  
   {% block extra_css %}{% endblock %}
-
-  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  
   {% block extra_head %}{% endblock %}
 </head>
 <body>
-
-  <!-- Flash Messages Toast System -->
   {% if messages %}
     <div class="flash-messages-container" id="toast-container">
       {% for message in messages %}
         <div class="toast-message {{ message.tags }}">
           {% if message.tags == 'success' %}
-            <i data-lucide="check-circle-2" style="width: 18px; height: 18px; color: #34d399; flex-shrink: 0;"></i>
+            <i data-lucide="check-circle-2" style="width: 18px; height: 18px; color: var(--green); flex-shrink: 0;"></i>
           {% elif message.tags == 'error' %}
-            <i data-lucide="alert-circle" style="width: 18px; height: 18px; color: #f87171; flex-shrink: 0;"></i>
+            <i data-lucide="alert-circle" style="width: 18px; height: 18px; color: var(--red); flex-shrink: 0;"></i>
           {% else %}
-            <i data-lucide="info" style="width: 18px; height: 18px; color: #fbbf24; flex-shrink: 0;"></i>
+            <i data-lucide="info" style="width: 18px; height: 18px; color: var(--peach); flex-shrink: 0;"></i>
           {% endif %}
           <span style="flex: 1;">{{ message }}</span>
           <button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;color:inherit;cursor:pointer;opacity:0.7;">✕</button>
@@ -43,17 +43,15 @@
     </div>
   {% endif %}
 
-  <!-- Main Content Hook -->
   {% block content %}{% endblock %}
 
+  <button type="button" class="theme-fab" id="theme-toggle-fab" title="Toggle light / dark clay">
+    <i data-lucide="moon" id="theme-toggle-icon" style="width: 20px; height: 20px;"></i>
+  </button>
+
   <script>
-    // Initialize Lucide icons on document load
     document.addEventListener("DOMContentLoaded", () => {
-      if (window.lucide) {
-        window.lucide.createIcons();
-      }
-      
-      // Auto-dismiss toast messages after 4 seconds
+      if (window.lucide) window.lucide.createIcons();
       const toasts = document.querySelectorAll(".toast-message");
       if (toasts.length > 0) {
         setTimeout(() => {
@@ -65,6 +63,21 @@
           });
         }, 4000);
       }
+      const fab = document.getElementById("theme-toggle-fab");
+      const icon = document.getElementById("theme-toggle-icon");
+      function syncIcon() {
+        var theme = document.documentElement.getAttribute("data-theme") || "light";
+        if (icon) icon.setAttribute("data-lucide", theme === "dark" ? "sun" : "moon");
+        if (window.lucide) window.lucide.createIcons();
+      }
+      syncIcon();
+      if (fab) fab.addEventListener("click", () => {
+        var cur = document.documentElement.getAttribute("data-theme") || "light";
+        var next = cur === "dark" ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", next);
+        try { localStorage.setItem("lw-theme", next); } catch (e) {}
+        syncIcon();
+      });
     });
   </script>
 

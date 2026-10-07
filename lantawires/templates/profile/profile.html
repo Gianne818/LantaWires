@@ -1,300 +1,123 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Citizen Profile — LantaWires Overhead Wire Hazard Detection{% endblock %}
+{% block title %}Profile — LantaWires{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/profile/profile.css' %}">
 {% endblock %}
 
 {% block content %}
-<div style="min-height: 100vh; background: #020617; padding-bottom: 5rem;">
-
-  <!-- Sticky Application Bar -->
+<div class="page-soft">
   <header class="app-header">
-    <div class="container-7xl app-nav">
-      <!-- App Brand -->
-      <div style="display: flex; align-items: center; gap: 0.85rem;">
-        <div style="width: 42px; height: 42px; border-radius: 0.85rem; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); display: flex; align-items: center; justify-content: center; color: #fbbf24;">
-          <img src="{% static 'images/profile/profile-shield.svg' %}" alt="Profile Shield" style="width: 28px; height: 28px; border-radius: 6px;">
+    <div class="app-nav">
+      <div style="display: flex; align-items: center; gap: .7rem;">
+        <div style="width: 40px; height: 40px; border-radius: 14px; background: linear-gradient(180deg, var(--peach-soft), var(--peach)); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-btn);">
+          <img src="{% static 'images/profile/profile-shield.svg' %}" alt="Profile" style="width: 24px; height: 24px; border-radius: 6px;">
         </div>
-        <div>
-          <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <span style="font-size: 1.25rem; font-weight: 800; color: #ffffff; letter-spacing: -0.02em;">
-              LantaWires
-            </span>
-            <span class="badge-pill badge-amber" style="font-size: 0.65rem; padding: 0.15rem 0.5rem;">
-              Profile Slice
-            </span>
-          </div>
-          <p style="font-size: 0.72rem; color: #94a3b8; margin-top: 0.1rem;">
-            Citizen Safety Credential & Barangay Zone
-          </p>
-        </div>
+        <span style="font-size: 1.1rem; font-weight: 800;">LantaWires</span>
       </div>
-
-      <!-- Navigation Links -->
-      <nav style="display: flex; align-items: center; gap: 0.5rem;">
-        <a
-          id="nav-link-home"
-          href="{% url 'home:home' %}"
-          style="display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.45rem 0.9rem; background: #0f172a; border: 1px solid #1e293b; border-radius: 0.6rem; color: #cbd5e1; font-size: 0.82rem; font-weight: 600; text-decoration: none; transition: all 0.2s;"
-        >
-          <i data-lucide="layout-dashboard" style="width: 15px; height: 15px;"></i>
-          <span>Operations</span>
-        </a>
-        <a
-          id="nav-link-profile"
-          href="{% url 'profile:profile' %}"
-          style="display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.45rem 0.9rem; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 0.6rem; color: #38bdf8; font-size: 0.82rem; font-weight: 700; text-decoration: none;"
-        >
-          <i data-lucide="user" style="width: 15px; height: 15px;"></i>
-          <span>Profile</span>
-        </a>
-        <a
-          id="nav-link-settings"
-          href="{% url 'user_settings:settings' %}"
-          style="display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.45rem 0.9rem; background: #0f172a; border: 1px solid #1e293b; border-radius: 0.6rem; color: #cbd5e1; font-size: 0.82rem; font-weight: 600; text-decoration: none; transition: all 0.2s;"
-        >
-          <i data-lucide="settings" style="width: 15px; height: 15px; color: #f59e0b;"></i>
-          <span>Settings</span>
-        </a>
+      <nav style="display: flex; align-items: center; gap: .3rem;">
+        <a id="nav-link-home" href="{% url 'home:home' %}" class="nav-link"><i data-lucide="layout-dashboard" style="width: 15px; height: 15px;"></i><span>Operations</span></a>
+        <a id="nav-link-profile" href="{% url 'profile:profile' %}" class="nav-link active"><i data-lucide="user" style="width: 15px; height: 15px;"></i><span>Profile</span></a>
+        <a id="nav-link-settings" href="{% url 'user_settings:settings' %}" class="nav-link"><i data-lucide="settings" style="width: 15px; height: 15px;"></i><span>Settings</span></a>
       </nav>
-
-      <!-- Sign Out -->
-      <div style="display: flex; align-items: center; gap: 1rem;">
-        <a
-          id="profile-sign-out-btn"
-          href="{% url 'home:logout' %}"
-          style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.85rem; background: #0f172a; border: 1px solid #1e293b; border-radius: 0.6rem; color: #cbd5e1; font-size: 0.78rem; font-weight: 600; text-decoration: none;"
-        >
-          <i data-lucide="log-out" style="width: 15px; height: 15px; color: #f43f5e;"></i>
-          <span>Sign Out</span>
-        </a>
-      </div>
+      <a id="profile-sign-out-btn" href="{% url 'home:logout' %}" class="clay-btn-ghost"><i data-lucide="log-out" style="width: 15px; height: 15px;"></i><span>Sign out</span></a>
     </div>
   </header>
 
-  <!-- Profile Content Container -->
   <main class="profile-container">
-    
-    <!-- Top Breadcrumb & Status -->
-    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
-      <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: #94a3b8;">
-        <a href="{% url 'home:home' %}" style="color: #cbd5e1; text-decoration: none; display: flex; align-items: center; gap: 0.35rem;">
-          <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
-          <span>Return to Operations</span>
-        </a>
-        <span>/</span>
-        <span style="color: #f8fafc; font-weight: 600;">Citizen Profile</span>
-      </div>
-
-      <div style="display: flex; align-items: center; gap: 0.5rem; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 0.35rem 0.85rem; border-radius: 9999px;">
-        <span style="width: 8px; height: 8px; border-radius: 9999px; background: #10b981; box-shadow: 0 0 8px #10b981;"></span>
-        <span style="font-size: 0.75rem; font-weight: 700; color: #34d399;">Supabase PostgreSQL Connected</span>
-      </div>
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+      <a href="{% url 'home:home' %}" style="color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: .35rem; font-size: .83rem; font-weight: 600;">
+        <i data-lucide="arrow-left" style="width: 15px; height: 15px;"></i><span>Operations</span>
+      </a>
+      <span class="badge-pill badge-resolved"><span style="width: 7px; height: 7px; border-radius: 9999px; background: var(--green);"></span><span>Verified responder</span></span>
     </div>
 
-    <!-- Main Profile Card -->
-    <div class="profile-card">
-      <div class="profile-header-glow"></div>
-
-      <!-- User Header Row -->
-      <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.5rem; border-bottom: 1px solid #1e293b; padding-bottom: 2rem;">
-        <div style="display: flex; align-items: center; gap: 1.5rem;">
-          <div class="avatar-badge-xl" id="profile-avatar-preview">
-            {{ profile.avatar|default:"GC" }}
-          </div>
-          <div>
-            <div style="display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.25rem;">
-              <h1 style="font-size: 1.75rem; font-weight: 800; color: #ffffff; letter-spacing: -0.02em;">
-                {{ profile.full_name|default:"Gianne Cruz" }}
-              </h1>
-              <span class="badge-pill badge-amber" style="font-size: 0.72rem; padding: 0.2rem 0.6rem;">
-                Verified Citizen Responder
-              </span>
-            </div>
-            <p style="font-size: 0.85rem; color: #94a3b8; display: flex; align-items: center; gap: 0.5rem;">
-              <i data-lucide="map-pin" style="width: 14px; height: 14px; color: #fbbf24;"></i>
-              <span>Brgy. {{ profile.barangay.name|default:"Tisa" }}, Cebu City</span>
-              <span>•</span>
-              <i data-lucide="mail" style="width: 14px; height: 14px; color: #38bdf8;"></i>
-              <span>{{ user.email|default:"gianne@cebucity.ph" }}</span>
-            </p>
-          </div>
+    <div class="clay-card profile-card">
+      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 1.1rem; padding-bottom: 1.25rem; border-bottom: 2px solid var(--clay-border);">
+        <div class="avatar-badge-xl" id="profile-avatar-preview">{{ profile.avatar|default:"GC" }}</div>
+        <div style="flex: 1; min-width: 220px;">
+          <h1 style="font-size: 1.45rem; font-weight: 800; letter-spacing: -0.02em;">{{ profile.full_name|default:"Gianne Cruz" }}</h1>
+          <p class="section-sub" style="display: flex; align-items: center; gap: .4rem; margin-top: .2rem;">
+            <i data-lucide="map-pin" style="width: 13px; height: 13px;"></i><span>Brgy. {{ profile.barangay.name|default:"Tisa" }} · {{ user.email|default:"gianne@cebucity.ph" }}</span>
+          </p>
         </div>
-
-        <div style="display: flex; gap: 0.75rem;">
-          <a href="{% url 'user_settings:settings' %}" class="btn-secondary" style="font-size: 0.82rem; padding: 0.55rem 1.1rem; text-decoration: none;">
-            <i data-lucide="sliders-horizontal" style="width: 15px; height: 15px;"></i>
-            <span>Preferences</span>
-          </a>
-        </div>
+        <a href="{% url 'user_settings:settings' %}" class="clay-btn-ghost"><i data-lucide="sliders-horizontal" style="width: 15px; height: 15px;"></i><span>Preferences</span></a>
       </div>
 
-      <!-- Civic Stats Grid -->
       <div class="profile-stats-grid">
         <div class="profile-stat-box">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
-            <span style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Hazards Logged</span>
-            <i data-lucide="flag" style="width: 16px; height: 16px; color: #fbbf24;"></i>
-          </div>
-          <div style="font-size: 1.75rem; font-weight: 800; color: #f8fafc; font-family: var(--font-mono);">
-            14
-          </div>
-          <p style="font-size: 0.72rem; color: #10b981; margin-top: 0.25rem;">+3 this week across Cebu</p>
+          <span class="section-sub" style="font-weight: 800; text-transform: uppercase; font-size: .68rem;">Logged</span>
+          <div style="font-size: 1.6rem; font-weight: 800;">14</div>
+          <p class="section-sub">+3 this week</p>
         </div>
-
         <div class="profile-stat-box">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
-            <span style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">VECO / TIC Dispatches</span>
-            <i data-lucide="truck" style="width: 16px; height: 16px; color: #38bdf8;"></i>
-          </div>
-          <div style="font-size: 1.75rem; font-weight: 800; color: #f8fafc; font-family: var(--font-mono);">
-            11
-          </div>
-          <p style="font-size: 0.72rem; color: #38bdf8; margin-top: 0.25rem;">Automated agency alerts</p>
+          <span class="section-sub" style="font-weight: 800; text-transform: uppercase; font-size: .68rem;">Dispatched</span>
+          <div style="font-size: 1.6rem; font-weight: 800;">11</div>
+          <p class="section-sub">TIC & VECO alerts</p>
         </div>
-
         <div class="profile-stat-box">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
-            <span style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Resolved Bundles</span>
-            <i data-lucide="check-circle" style="width: 16px; height: 16px; color: #10b981;"></i>
-          </div>
-          <div style="font-size: 1.75rem; font-weight: 800; color: #10b981; font-family: var(--font-mono);">
-            9
-          </div>
-          <p style="font-size: 0.72rem; color: #94a3b8; margin-top: 0.25rem;">Safely elevated & bundled</p>
+          <span class="section-sub" style="font-weight: 800; text-transform: uppercase; font-size: .68rem;">Resolved</span>
+          <div style="font-size: 1.6rem; font-weight: 800; color: var(--green);">9</div>
+          <p class="section-sub">Cleared & bundled</p>
         </div>
-
         <div class="profile-stat-box">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
-            <span style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Assigned Zone</span>
-            <i data-lucide="shield-check" style="width: 16px; height: 16px; color: #f59e0b;"></i>
-          </div>
-          <div style="font-size: 1.25rem; font-weight: 800; color: #fbbf24; margin-top: 0.25rem;">
-            Brgy. {{ profile.barangay.name|default:"Tisa" }}
-          </div>
-          <p style="font-size: 0.72rem; color: #94a3b8; margin-top: 0.25rem;">South District Cebu City</p>
+          <span class="section-sub" style="font-weight: 800; text-transform: uppercase; font-size: .68rem;">Zone</span>
+          <div style="font-size: 1.15rem; font-weight: 800; color: #c05c2a;">Brgy. {{ profile.barangay.name|default:"Tisa" }}</div>
+          <p class="section-sub">South District</p>
         </div>
       </div>
 
+      <form method="post" action="{% url 'profile:profile' %}">
+        {% csrf_token %}
         <div class="profile-form-card">
-          <h3 class="profile-form-title">
-            <i data-lucide="edit-3" style="width: 18px; height: 18px; color: #fbbf24;"></i>
-            <span>Edit Profile & Civic Information</span>
-          </h3>
-
-          <!-- Avatar Preset Selection -->
-          <div style="margin-bottom: 1.5rem;">
-            <label class="profile-label" style="margin-bottom: 0.6rem;">
-              <i data-lucide="smile" style="width: 15px; height: 15px; color: #fbbf24;"></i>
-              <span>Avatar Badge Initial</span>
-            </label>
-            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          <h3 class="profile-form-title"><i data-lucide="edit-3" style="width: 17px; height: 17px; color: var(--peach);"></i><span>Edit profile</span></h3>
+          <div style="margin-bottom: 1.1rem;">
+            <label class="profile-label" style="margin-bottom: .5rem;">Avatar</label>
+            <div style="display: flex; gap: .5rem; flex-wrap: wrap;">
               {% for av in avatar_presets %}
-                <button
-                  type="button"
-                  class="avatar-preset-btn {% if profile.avatar == av %}selected-avatar{% endif %}"
-                  data-avatar="{{ av }}"
-                >
-                  {{ av }}
-                </button>
+                <button type="button" class="avatar-preset-btn {% if profile.avatar == av %}selected-avatar{% endif %}" data-avatar="{{ av }}">{{ av }}</button>
               {% endfor %}
             </div>
             <input type="hidden" name="avatar" id="profile-avatar-input" value="{{ profile.avatar|default:'GC' }}">
           </div>
-
           <div class="profile-form-grid">
-            <!-- Full Name -->
             <div class="profile-field-group">
-              <label class="profile-label" for="profile-fullname-input">
-                <i data-lucide="user" style="width: 15px; height: 15px; color: #38bdf8;"></i>
-                <span>Full Name</span>
-              </label>
+              <label class="profile-label" for="profile-fullname-input">Full name</label>
               <div class="profile-input-wrap">
                 <i data-lucide="user" class="profile-input-icon"></i>
-                <input
-                  id="profile-fullname-input"
-                  type="text"
-                  name="full_name"
-                  class="profile-input"
-                  value="{{ profile.full_name|default:'Gianne Cruz' }}"
-                  required
-                  placeholder="e.g. Gianne Cruz"
-                />
+                <input id="profile-fullname-input" type="text" name="full_name" class="profile-input" value="{{ profile.full_name|default:'Gianne Cruz' }}" required />
               </div>
             </div>
-
-            <!-- Phone Number -->
             <div class="profile-field-group">
-              <label class="profile-label" for="profile-phone-input">
-                <i data-lucide="phone" style="width: 15px; height: 15px; color: #34d399;"></i>
-                <span>Mobile / Contact Number</span>
-              </label>
+              <label class="profile-label" for="profile-phone-input">Mobile</label>
               <div class="profile-input-wrap">
                 <i data-lucide="phone" class="profile-input-icon"></i>
-                <input
-                  id="profile-phone-input"
-                  type="text"
-                  name="phone"
-                  class="profile-input"
-                  value="{{ profile.phone|default:'+63 917 554 8921' }}"
-                  required
-                  placeholder="+63 9XX XXX XXXX"
-                />
+                <input id="profile-phone-input" type="text" name="phone" class="profile-input" value="{{ profile.phone|default:'+63 917 554 8921' }}" required />
               </div>
             </div>
-
-            <!-- Cebu City Barangay -->
             <div class="profile-field-group">
-              <label class="profile-label" for="profile-barangay-select">
-                <i data-lucide="map-pin" style="width: 15px; height: 15px; color: #fbbf24;"></i>
-                <span>Cebu City Barangay</span>
-              </label>
+              <label class="profile-label" for="profile-barangay-select">Barangay</label>
               <div class="profile-input-wrap">
                 <i data-lucide="map-pin" class="profile-input-icon"></i>
                 <select id="profile-barangay-select" name="barangay" class="profile-select">
-                  {% for brgy in barangays %}
-                    <option value="{{ brgy }}" {% if profile.barangay.name == brgy %}selected{% endif %}>
-                      Brgy. {{ brgy }}
-                    </option>
-                  {% endfor %}
+                  {% for brgy in barangays %}<option value="{{ brgy }}" {% if profile.barangay.name == brgy %}selected{% endif %}>Brgy. {{ brgy }}</option>{% endfor %}
                 </select>
               </div>
             </div>
           </div>
-
-          <!-- Civic Bio -->
-          <div class="profile-field-group" style="margin-bottom: 1.75rem;">
-            <label class="profile-label" for="profile-bio-input">
-              <i data-lucide="file-text" style="width: 15px; height: 15px; color: #c084fc;"></i>
-              <span>Civic Responder Bio</span>
-            </label>
-            <textarea
-              id="profile-bio-input"
-              name="bio"
-              class="profile-textarea"
-              rows="3"
-              placeholder="Tell us about your community watch or civic safety involvement..."
-            >{{ profile.bio|default:'Lead Civic Responder & Wire Hazard Safety Volunteer for Cebu City South District.' }}</textarea>
+          <div class="profile-field-group" style="margin-bottom: 1rem;">
+            <label class="profile-label" for="profile-bio-input">Bio</label>
+            <textarea id="profile-bio-input" name="bio" class="profile-textarea" rows="3">{{ profile.bio|default:'Wire hazard volunteer for Cebu City South District.' }}</textarea>
           </div>
-
-          <!-- Action Buttons -->
           <div class="profile-actions">
-            <a href="{% url 'home:home' %}" class="profile-btn-cancel">
-              <i data-lucide="x" style="width: 15px; height: 15px;"></i>
-              <span>Cancel</span>
-            </a>
-            <button id="save-profile-btn" type="submit" class="profile-btn-save">
-              <i data-lucide="save" style="width: 16px; height: 16px;"></i>
-              <span>Save Profile to Supabase</span>
-            </button>
+            <a href="{% url 'home:home' %}" class="profile-btn-cancel">Cancel</a>
+            <button id="save-profile-btn" type="submit" class="profile-btn-save"><i data-lucide="save" style="width: 15px; height: 15px;"></i><span>Save changes</span></button>
           </div>
         </div>
       </form>
     </div>
-
   </main>
 </div>
 {% endblock %}

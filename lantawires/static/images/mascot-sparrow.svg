@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 130" fill="none">
+  <!-- perched wire -->
+  <path d="M8 96 Q80 112 152 84" stroke="#4a2a18" stroke-width="5" stroke-linecap="round"/>
+  <path d="M52 92 L52 102 M104 94 L104 104" stroke="#4a2a18" stroke-width="3" stroke-linecap="round" opacity="0.45"/>
+  <!-- tail -->
+  <path d="M38 78 L16 88 L36 92 Z" fill="#C96F3B" stroke="#4a2a18" stroke-width="4" stroke-linejoin="round"/>
+  <!-- body -->
+  <ellipse cx="78" cy="70" rx="36" ry="30" fill="#FFB085" stroke="#4a2a18" stroke-width="4"/>
+  <!-- belly -->
+  <ellipse cx="82" cy="80" rx="20" ry="14" fill="#FFF1E8"/>
+  <!-- wing -->
+  <path d="M64 62 Q84 66 88 84 Q72 88 60 76 Z" fill="#FF8F5E" stroke="#4a2a18" stroke-width="3.5" stroke-linejoin="round"/>
+  <path d="M70 70 L82 72 M68 76 L80 78" stroke="#4a2a18" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>
+  <!-- head tuft -->
+  <path d="M78 40 Q82 30 88 38 Q92 30 96 40" stroke="#4a2a18" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+  <!-- eye -->
+  <circle cx="100" cy="58" r="7" fill="#fff" stroke="#4a2a18" stroke-width="3.5"/>
+  <circle cx="102" cy="59" r="3" fill="#4a2a18"/>
+  <circle cx="103" cy="58" r="1" fill="#fff"/>
+  <!-- blush -->
+  <ellipse cx="92" cy="70" rx="5" ry="3.5" fill="#FF6B6B" opacity="0.55"/>
+  <!-- beak -->
+  <path d="M112 62 L128 67 L112 73 Z" fill="#FFC53D" stroke="#4a2a18" stroke-width="3.5" stroke-linejoin="round"/>
+  <path d="M112 67 L128 67" stroke="#4a2a18" stroke-width="2" opacity="0.6"/>
+  <!-- legs -->
+  <path d="M68 98 L68 106 M88 98 L88 106" stroke="#4a2a18" stroke-width="4" stroke-linecap="round"/>
+  <path d="M62 106 L74 106 M82 106 L94 106" stroke="#4a2a18" stroke-width="3" stroke-linecap="round"/>
+  <!-- spark -->
+  <path d="M132 30 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3 Z" fill="#FFC53D" stroke="#4a2a18" stroke-width="2.5" stroke-linejoin="round"/>
+</svg>

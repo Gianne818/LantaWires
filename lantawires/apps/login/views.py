@@ -61,6 +61,7 @@ def login_view(request):
                 "phone": profile.phone if profile else "+63 917 000 0000",
                 "barangay": profile_barangay,
                 "avatar": profile.avatar if profile and profile.avatar else (user.first_name[:2].upper() or "LW"),
+                "role": getattr(profile, "role", "citizen") or "citizen",
             }
             request.session["current_user"] = user_profile
             request.session.save()
@@ -97,7 +98,13 @@ def login_view(request):
                 }
             )
             login(request, user)
-            request.session["current_user"] = demo_match
+            demo_profile = dict(demo_match)
+            try:
+                prof = Profile.objects.get(user=user)
+                demo_profile["role"] = prof.role
+            except Profile.DoesNotExist:
+                demo_profile["role"] = "citizen"
+            request.session["current_user"] = demo_profile
             request.session.save()
             messages.success(request, f"Logged in successfully as {demo_match['name']}.")
             return redirect("home:home")
