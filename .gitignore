@@ -1,3 +1,17 @@
 /sample_crms
 /venv
 /.env
+.venv/
+__pycache__/
+*.pyc
+
+# Final Project Monitoring & Evidence artifacts
+BASELINE_COMMIT.txt
+GIT_*.txt
+*.patch
+*_FINAL_PROJECT/
+*_FINAL_PROJECT_EVIDENCE.zip
+*_submission_description.txt
+*submission_description*.txt
+APPLICATION_SCREENSHOTS/
+GITHUB_SCREENSHOTS/
