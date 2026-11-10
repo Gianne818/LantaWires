@@ -172,7 +172,7 @@ def home_view(request):
         "can_toggle": can_toggle,
         "reports": reports,
         "reports_json": json.dumps(reports),
-        "barangays": CEBU_BARANGAYS,
+        "barangays": list(CebuBarangay.objects.values_list("name", flat=True)) or CEBU_BARANGAYS,
         "presets": SAMPLE_HAZARD_PRESETS,
         "presets_json": json.dumps(SAMPLE_HAZARD_PRESETS),
         "stats": stats,
@@ -266,9 +266,9 @@ def create_report_api(request):
                 recommended_action=rec_action,
                 safety_warning=safety_warning,
                 is_valid_hazard=True,
-                cable_sag_clearance=sag_clearance,
-                wire_density_score=wire_density,
-                severity_rating=severity,
+                cable_sag_clearance=str(sag_clearance)[:100],
+                wire_density_score=str(wire_density)[:50],
+                severity_rating=str(severity)[:20],
             )
 
             # 3. Create HazardDispatch entries (CRUZ_ERD: hazard_dispatches & utility_agencies)

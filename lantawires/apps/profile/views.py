@@ -96,7 +96,7 @@ def profile_view(request):
             "avatar": profile.avatar if profile else "GC",
             "email": user.email if user else "gianne@cebucity.ph",
         },
-        "barangays": CEBU_BARANGAYS,
+        "barangays": list(CebuBarangay.objects.values_list("name", flat=True)) or CEBU_BARANGAYS,
         "avatar_presets": AVATAR_PRESETS,
     }
     return render(request, "profile/profile.html", context)

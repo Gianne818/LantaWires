@@ -210,7 +210,7 @@ INITIAL_REPORTS = [
         "severity": "critical",
         "status": "under_inspection",
         "reportedAt": "3 hours ago",
-        "imageUrl": "https://images.unsplash.com/photo-1509391365360-2e959784a276?auto=format&fit=crop&w=800&q=80",
+        "imageUrl": "https://images.unsplash.com/photo-1498084393753-b411b2d26b34?auto=format&fit=crop&w=800&q=80",
         "reporterName": "R. Abella",
         "clearanceHeightMeters": 4.0,
         "hazardType": "transformer_spark",

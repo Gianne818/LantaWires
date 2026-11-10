@@ -27,9 +27,12 @@ CEBU_BARANGAYS = [
     "Apas",
 ]
 
+from apps.profile.models import CebuBarangay
+
 def register_view(request):
+    db_barangays = list(CebuBarangay.objects.values_list("name", flat=True))
     context = {
-        "barangays": CEBU_BARANGAYS,
+        "barangays": db_barangays if db_barangays else CEBU_BARANGAYS,
     }
 
     RESOLVER_INVITE_CODE = "TIC-VECO-2026"

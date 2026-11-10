@@ -434,7 +434,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (previewCard && report) {
       previewCard.style.display = "flex";
-      if (previewImage) previewImage.src = report.imageUrl;
+      if (previewImage) {
+        previewImage.onerror = function() {
+          this.src = "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80";
+        };
+        previewImage.src = report.imageUrl || "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80";
+      }
       if (previewTicket) previewTicket.textContent = report.ticketNumber;
       if (previewBarangay) previewBarangay.textContent = `Brgy. ${report.barangay}`;
       if (previewTitle) previewTitle.textContent = report.title;
@@ -466,7 +471,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (detailTicket) detailTicket.textContent = report.ticketNumber;
     if (detailTitle) detailTitle.textContent = report.title;
-    if (detailImage) detailImage.src = report.imageUrl;
+    if (detailImage) {
+      detailImage.onerror = function() {
+        this.src = "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80";
+      };
+      detailImage.src = report.imageUrl || "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80";
+    }
 
     if (detailSeverityBadge) {
       detailSeverityBadge.className = `badge-pill ${sevConfig.badgeClass}`;
