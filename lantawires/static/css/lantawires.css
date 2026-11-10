@@ -231,8 +231,9 @@ select.clay-input, select.input-field { appearance: none; cursor: pointer; paddi
 
 /* modals */
 .modal-overlay {
-  position: fixed; inset: 0; background: rgba(43,51,69,.35); backdrop-filter: blur(6px);
-  z-index: 100; display: flex; align-items: center; justify-content: center; padding: 1rem;
+  position: fixed; inset: 0; background: rgba(15, 23, 42, 0.72) !important;
+  backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important;
+  z-index: 999999 !important; display: flex; align-items: center; justify-content: center; padding: 1rem;
   opacity: 0; pointer-events: none; transition: opacity .25s ease;
 }
 .modal-overlay.open { opacity: 1; pointer-events: auto; }

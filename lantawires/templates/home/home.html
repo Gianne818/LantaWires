@@ -116,12 +116,12 @@
 
     <div id="map-view-section" style="display: flex; flex-direction: column; gap: .85rem;">
       <div class="map-container">
-        <div style="position: absolute; top: .8rem; left: .8rem; right: .8rem; z-index: 500; display: flex; justify-content: space-between; gap: .5rem; pointer-events: none;">
+        <div style="position: absolute; top: .8rem; left: .8rem; right: .8rem; z-index: 10; display: flex; justify-content: space-between; gap: .5rem; pointer-events: none;">
           <div class="badge-pill badge-neutral" style="background: var(--clay-card); pointer-events: auto;"><i data-lucide="navigation" style="width: 13px; height: 13px;"></i><span id="map-coords-badge">10.3157° N, 123.8854° E</span></div>
           <div class="badge-pill badge-resolved" style="background: var(--clay-card); pointer-events: auto;"><span style="width: 7px; height: 7px; border-radius: 9999px; background: var(--green);"></span><span>Live Cebu GIS</span></div>
         </div>
         <div id="leaflet-map" style="width: 100%; height: 100%; position: absolute; inset: 0; z-index: 1;"></div>
-        <div style="position: absolute; bottom: .8rem; left: .8rem; z-index: 500; display: flex; gap: .6rem; padding: .4rem .8rem; border-radius: 12px; background: var(--clay-card); border: 2px solid var(--clay-border); font-size: .7rem; color: var(--ink-2); font-weight: 600;">
+        <div style="position: absolute; bottom: .8rem; left: .8rem; z-index: 10; display: flex; gap: .6rem; padding: .4rem .8rem; border-radius: 12px; background: var(--clay-card); border: 2px solid var(--clay-border); font-size: .7rem; color: var(--ink-2); font-weight: 600;">
           <span style="display:flex;align-items:center;gap:.3rem;"><span style="width: 9px; height: 9px; border-radius: 4px; background: var(--red);"></span>Critical</span>
           <span style="display:flex;align-items:center;gap:.3rem;"><span style="width: 9px; height: 9px; border-radius: 4px; background: var(--peach);"></span>High</span>
           <span style="display:flex;align-items:center;gap:.3rem;"><span style="width: 9px; height: 9px; border-radius: 4px; background: var(--green);"></span>Resolved</span>
@@ -166,30 +166,52 @@
       </div>
       <div id="report-step-input" class="modal-body" style="display: flex; flex-direction: column; gap: 1rem;">
         <div>
-          <label class="form-label">Pick a scenario or upload</label>
-          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: .55rem;">
-            {% for p in presets %}
-              <button type="button" class="preset-btn {% if forloop.first %}selected-preset{% endif %}" data-preset-index="{{ forloop.counter0 }}">
-                <span style="display: block; font-size: .72rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ p.title|truncatechars:26 }}</span>
-                <span style="font-size: .68rem; color: #c05c2a; font-weight: 700;">Brgy. {{ p.barangay }}</span>
-              </button>
-            {% endfor %}
+          <label class="form-label" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Hazard photo</span>
+            <span style="font-size: .68rem; color: var(--muted); font-weight: 500;">Clear sightline of wire/pole</span>
+          </label>
+          <div id="photo-upload-dropzone" style="position: relative; height: 185px; border-radius: 18px; overflow: hidden; border: 2px dashed var(--clay-border); background: var(--clay-inset); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease;">
+            <!-- Placeholder state (visible before upload) -->
+            <div id="upload-placeholder-content" style="text-align: center; padding: 1.25rem;">
+              <div style="width: 46px; height: 46px; border-radius: 14px; background: var(--clay-card); box-shadow: var(--shadow-clay-sm); display: flex; align-items: center; justify-content: center; margin: 0 auto .6rem; color: var(--peach);">
+                <i data-lucide="camera" style="width: 22px; height: 22px;"></i>
+              </div>
+              <p style="font-size: .84rem; font-weight: 700; color: var(--ink);">Take a photo or browse to upload</p>
+              <p class="section-sub" style="font-size: .72rem; margin-top: .2rem;">Click anywhere to select photo from device</p>
+              <span class="clay-btn-ghost" style="font-size: .72rem; padding: .35rem .75rem; margin-top: .6rem; display: inline-flex; align-items: center; gap: .35rem; pointer-events: none;">
+                <i data-lucide="upload" style="width: 12px; height: 12px;"></i> Select photo
+              </span>
+            </div>
+            
+            <!-- Preview image (hidden initially until file selected) -->
+            <img id="wizard-photo-preview" src="" alt="Hazard photo preview" style="display: none; width: 100%; height: 100%; object-fit: cover;" />
+            
+            <div id="wizard-preview-overlay" style="display: none; position: absolute; bottom: .55rem; left: .55rem; right: .55rem; justify-content: space-between; align-items: center;">
+              <span class="badge-pill badge-neutral" style="background: var(--clay-card);"><span id="wizard-photo-badge">Photo attached</span></span>
+              <span class="clay-btn-ghost" style="font-size: .7rem; padding: .35rem .65rem; background: var(--clay-card);"><i data-lucide="refresh-cw" style="width: 11px; height: 11px;"></i> Change</span>
+            </div>
+            <input type="file" id="wizard-custom-file" accept="image/*" style="display: none;" />
           </div>
         </div>
-        <div style="position: relative; height: 180px; border-radius: 18px; overflow: hidden; border: 2px solid var(--clay-border); background: var(--clay-inset);">
-          <img id="wizard-photo-preview" src="{{ presets.0.imageUrl }}" alt="Hazard" style="width: 100%; height: 100%; object-fit: cover;" />
-          <div style="position: absolute; bottom: .55rem; left: .55rem; right: .55rem; display: flex; justify-content: space-between; align-items: center;">
-            <span class="badge-pill badge-neutral" style="background: var(--clay-card);"><span id="wizard-photo-badge">Brgy. {{ presets.0.barangay }}</span></span>
-            <label class="clay-btn-ghost" style="font-size: .7rem; padding: .4rem .7rem; cursor: pointer;"><i data-lucide="upload" style="width: 12px; height: 12px;"></i><span>Upload</span><input type="file" id="wizard-custom-file" accept="image/*" style="display: none;" /></label>
-          </div>
-        </div>
+
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: .7rem;">
-          <div class="form-group"><label class="form-label">Title</label><input type="text" id="wizard-title-input" class="clay-input no-icon" value="{{ presets.0.title }}" /></div>
-          <div class="form-group"><label class="form-label">Barangay</label>
-            <select id="wizard-barangay-select" class="clay-input no-icon">{% for b in barangays %}<option value="{{ b }}" {% if b == presets.0.barangay %}selected{% endif %}>Brgy. {{ b }}</option>{% endfor %}</select>
+          <div class="form-group">
+            <label class="form-label">Incident title</label>
+            <input type="text" id="wizard-title-input" class="clay-input no-icon" placeholder="e.g. Dangling power wire blocking road" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Barangay</label>
+            <select id="wizard-barangay-select" class="clay-input no-icon">
+              {% for b in barangays %}
+                <option value="{{ b }}" {% if b == current_user.barangay %}selected{% endif %}>Brgy. {{ b }}</option>
+              {% endfor %}
+            </select>
           </div>
         </div>
-        <div class="form-group"><label class="form-label">Street / landmark</label><input type="text" id="wizard-address-input" class="clay-input no-icon" value="{{ presets.0.address }}" /></div>
+        <div class="form-group">
+          <label class="form-label">Street / landmark</label>
+          <input type="text" id="wizard-address-input" class="clay-input no-icon" placeholder="e.g. Corner F. Pacaña St., near elementary school" />
+        </div>
       </div>
       <div id="report-step-loading" class="modal-body" style="display: none; text-align: center; padding: 2.5rem 1.5rem;">
         <div class="metric-icon" style="width: 56px; height: 56px; margin: 0 auto 1rem;"><i data-lucide="cpu" style="width: 26px; height: 26px;"></i></div>
@@ -278,5 +300,5 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script id="reports-data" type="application/json">{{ reports_json|safe }}</script>
 <script id="presets-data" type="application/json">{{ presets_json|safe }}</script>
-<script src="{% static 'js/home/home.js' %}?v=5"></script>
+<script src="{% static 'js/home/home.js' %}?v=14"></script>
 {% endblock %}

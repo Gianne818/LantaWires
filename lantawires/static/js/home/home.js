@@ -531,7 +531,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const nextStatus = currentSelectedReport.status === "resolved" ? "dispatched" : "resolved";
       
       try {
-        const res = await fetch("/home/api/status/", {
+        const res = await fetch("/api/status/", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -576,13 +576,27 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Report Wizard Logic
-  let selectedPresetIndex = 0;
   let customUploadedImage = null;
+  const photoUploadDropzone = document.getElementById("photo-upload-dropzone");
+  const uploadPlaceholderContent = document.getElementById("upload-placeholder-content");
+  const wizardPreviewOverlay = document.getElementById("wizard-preview-overlay");
 
   function openReportModal() {
     if (!reportModal) return;
+    customUploadedImage = null;
+    if (wizardCustomFile) wizardCustomFile.value = "";
+    if (wizardPhotoPreview) {
+      wizardPhotoPreview.src = "";
+      wizardPhotoPreview.style.display = "none";
+    }
+    if (uploadPlaceholderContent) uploadPlaceholderContent.style.display = "block";
+    if (wizardPreviewOverlay) wizardPreviewOverlay.style.display = "none";
+    if (photoUploadDropzone) photoUploadDropzone.style.borderStyle = "dashed";
+    if (wizardTitleInput) wizardTitleInput.value = "";
+    if (wizardAddressInput) wizardAddressInput.value = "";
     setWizardStep("input");
     reportModal.classList.add("open");
+    if (window.lucide) lucide.createIcons();
   }
 
   function closeReportModal() {
@@ -603,44 +617,68 @@ document.addEventListener("DOMContentLoaded", () => {
   if (closeReportModalBtn) closeReportModalBtn.addEventListener("click", closeReportModal);
   if (cancelReportBtn) cancelReportBtn.addEventListener("click", closeReportModal);
 
-  // Preset Selection
-  const presetBtns = document.querySelectorAll(".preset-card-btn");
-  presetBtns.forEach(btn => {
-    btn.addEventListener("click", () => {
-      presetBtns.forEach(b => {
-        b.classList.remove("selected-preset");
-      });
-      btn.classList.add("selected-preset");
-
-      const idx = parseInt(btn.getAttribute("data-preset-index"), 10);
-      selectedPresetIndex = idx;
-      customUploadedImage = null;
-
-      const p = presets[idx];
-      if (p) {
-        if (wizardPhotoPreview) wizardPhotoPreview.src = p.imageUrl;
-        if (wizardPhotoBadge) wizardPhotoBadge.textContent = `Brgy. ${p.barangay}`;
-        if (wizardTitleInput) wizardTitleInput.value = p.title;
-        if (wizardBarangaySelect) wizardBarangaySelect.value = p.barangay;
-        if (wizardAddressInput) wizardAddressInput.value = p.address;
+  // Photo Upload Dropzone Click & Drag
+  if (photoUploadDropzone && wizardCustomFile) {
+    photoUploadDropzone.addEventListener("click", (e) => {
+      // Don't trigger if clicked directly on input
+      if (e.target !== wizardCustomFile) {
+        wizardCustomFile.click();
       }
     });
-  });
 
-  // Custom File Upload Handler
+    photoUploadDropzone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      photoUploadDropzone.style.borderColor = "var(--peach)";
+      photoUploadDropzone.style.background = "var(--peach-soft)";
+    });
+
+    photoUploadDropzone.addEventListener("dragleave", (e) => {
+      e.preventDefault();
+      photoUploadDropzone.style.borderColor = "var(--clay-border)";
+      photoUploadDropzone.style.background = "var(--clay-inset)";
+    });
+
+    photoUploadDropzone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      photoUploadDropzone.style.borderColor = "var(--clay-border)";
+      photoUploadDropzone.style.background = "var(--clay-inset)";
+      const files = e.dataTransfer?.files;
+      if (files && files.length > 0) {
+        handlePhotoFile(files[0]);
+      }
+    });
+  }
+
+  // Handle Photo File selection
+  function handlePhotoFile(file) {
+    if (!file || !file.type.startsWith("image/")) {
+      alert("Please upload a valid image file (JPG, PNG, WEBP).");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      customUploadedImage = reader.result;
+      if (wizardPhotoPreview) {
+        wizardPhotoPreview.src = customUploadedImage;
+        wizardPhotoPreview.style.display = "block";
+      }
+      if (uploadPlaceholderContent) uploadPlaceholderContent.style.display = "none";
+      if (wizardPreviewOverlay) wizardPreviewOverlay.style.display = "flex";
+      if (wizardPhotoBadge) {
+        const brgy = wizardBarangaySelect ? wizardBarangaySelect.value : "Cebu";
+        wizardPhotoBadge.textContent = `${file.name.slice(0, 16)}… · Brgy. ${brgy}`;
+      }
+      if (photoUploadDropzone) photoUploadDropzone.style.borderStyle = "solid";
+      if (window.lucide) lucide.createIcons();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // Custom File Input change
   if (wizardCustomFile) {
     wizardCustomFile.addEventListener("change", e => {
       const file = e.target.files?.[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = () => {
-          customUploadedImage = reader.result;
-          if (wizardPhotoPreview) wizardPhotoPreview.src = customUploadedImage;
-          const brgy = wizardBarangaySelect ? wizardBarangaySelect.value : "Tisa";
-          if (wizardPhotoBadge) wizardPhotoBadge.textContent = `Brgy. ${brgy} (Custom Upload)`;
-        };
-        reader.readAsDataURL(file);
-      }
+      if (file) handlePhotoFile(file);
     });
   }
 
@@ -671,13 +709,12 @@ document.addEventListener("DOMContentLoaded", () => {
         if (progress >= 100) {
           clearInterval(interval);
           setTimeout(() => {
-            const p = presets[selectedPresetIndex] || presets[0];
-            if (resConfidence) resConfidence.textContent = `${p.confidence || 96.8}%`;
-            if (resSag) resSag.textContent = p.sagClearance || "2.9m clearance";
+            if (resConfidence) resConfidence.textContent = "97.8%";
+            if (resSag) resSag.textContent = "2.8m above road (Severe)";
             setWizardStep("result");
           }, 350);
         }
-      }, 400);
+      }, 350);
     });
   }
 
@@ -687,19 +724,21 @@ document.addEventListener("DOMContentLoaded", () => {
       confirmDispatchBtn.disabled = true;
       confirmDispatchBtn.innerHTML = `<span>Dispatching...</span>`;
 
-      const p = presets[selectedPresetIndex] || presets[0];
-      const title = wizardTitleInput ? wizardTitleInput.value : p.title;
-      const barangay = wizardBarangaySelect ? wizardBarangaySelect.value : p.barangay;
-      const address = wizardAddressInput ? wizardAddressInput.value : p.address;
-      const imageUrl = customUploadedImage || p.imageUrl;
+      const barangay = (wizardBarangaySelect ? wizardBarangaySelect.value : "") || "Tisa";
+      const title = (wizardTitleInput ? wizardTitleInput.value.trim() : "") || `Low-hanging cable hazard - Brgy. ${barangay}`;
+      const address = (wizardAddressInput ? wizardAddressInput.value.trim() : "") || `Brgy. ${barangay}, Cebu City`;
+      const imageUrl = customUploadedImage || "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80";
 
-      let gps = { lat: 10.2982, lng: 123.8741 };
-      if (barangay === "Buhisan") gps = { lat: 10.2891, lng: 123.8633 };
-      else if (barangay === "Lahug") gps = { lat: 10.3298, lng: 123.9056 };
-      else if (barangay === "Guadalupe") gps = { lat: 10.3152, lng: 123.8821 };
+      let baseCoords = BARANGAY_CENTROIDS[barangay] || [10.2982, 123.8741];
+      const jitterLat = (Math.random() - 0.5) * 0.004;
+      const jitterLng = (Math.random() - 0.5) * 0.004;
+      const gps = {
+        lat: Number((baseCoords[0] + jitterLat).toFixed(5)),
+        lng: Number((baseCoords[1] + jitterLng).toFixed(5))
+      };
 
       try {
-        const response = await fetch("/home/api/report/", {
+        const response = await fetch("/api/report/", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -710,13 +749,13 @@ document.addEventListener("DOMContentLoaded", () => {
             barangay: barangay,
             address: address,
             gps: gps,
-            severity: p.severity || "critical",
-            hazardType: p.hazardType || "sagging_cable",
+            severity: "critical",
+            hazardType: "sagging_cable",
             imageUrl: imageUrl,
-            confidence: p.confidence || 96.4,
-            sagClearance: p.sagClearance || "2.9m clearance",
-            wireDensity: p.wireDensity || "High bundle density",
-            components: p.components || ["Sagging cable", "Overgrown spaghetti loop"],
+            confidence: 97.8,
+            sagClearance: "2.8m clearance (Critical)",
+            wireDensity: "Severe (Telecom tangled directly onto secondary bus)",
+            components: ["Dangling drop cable", "Overhanging telecom loop", "Distribution secondary snag"],
           }),
         });
 
@@ -726,8 +765,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
           reports.unshift(newRep);
           closeReportModal();
-          confirmDispatchBtn.disabled = false;
-          confirmDispatchBtn.innerHTML = `<span>Submit & Dispatch Report</span>`;
 
           // Refresh UI
           renderMapPins();
@@ -735,14 +772,20 @@ document.addEventListener("DOMContentLoaded", () => {
           updateStats();
           selectReport(newRep, false);
           if (leafletMap && newRep.gpsCoordinates) {
-            leafletMap.flyTo([newRep.gpsCoordinates.lat, newRep.gpsCoordinates.lng], 15, { duration: 1.0 });
+            leafletMap.flyTo([newRep.gpsCoordinates.lat, newRep.gpsCoordinates.lng], 16, { duration: 1.0 });
           }
           openDetailModal(newRep);
+        } else {
+          const errData = await response.json().catch(() => ({}));
+          alert("Dispatch error: " + (errData.message || response.statusText || "Server error"));
         }
       } catch (err) {
         console.error("Dispatch error:", err);
+        alert("Connection error while dispatching report.");
+      } finally {
         confirmDispatchBtn.disabled = false;
-        confirmDispatchBtn.innerHTML = `<span>Submit & Dispatch Report</span>`;
+        confirmDispatchBtn.innerHTML = `<span>Submit & dispatch</span>`;
+        if (window.lucide) lucide.createIcons();
       }
     });
   }
