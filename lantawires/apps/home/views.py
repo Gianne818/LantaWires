@@ -7,7 +7,14 @@ from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
 from .data import CEBU_BARANGAYS, INITIAL_REPORTS, SAMPLE_HAZARD_PRESETS
-from .models import HazardCategory, HazardReport
+from .models import (
+    AIHazardAnalysis,
+    HazardCategory,
+    HazardDispatch,
+    HazardReport,
+    UtilityAgency,
+)
+from apps.profile.models import CebuBarangay
 
 HAZARD_TYPE_TO_CATEGORY = {
     "sagging_cable": "SAGGING_CABLE",
@@ -29,16 +36,46 @@ DEFAULT_GUEST = {
 def get_session_reports(request):
     custom_reports = request.session.get("custom_reports", [])
     
-    # Also fetch database reports if any
+    # Also fetch database reports from Supabase PostgreSQL (CRUZ_ERD: home_hazardreport, ai_hazard_analyses, hazard_dispatches)
     db_reports = []
     try:
-        for r in HazardReport.objects.select_related("barangay", "reporter", "category").all():
+        for r in HazardReport.objects.select_related("barangay", "reporter", "category").prefetch_related("dispatches__agency").all():
             barangay_name = r.barangay.name if r.barangay_id else "Tisa"
             reporter_name = (
                 r.reporter.get_full_name() or r.reporter.username
                 if r.reporter_id
                 else "Citizen Reporter"
             )
+
+            # Read real AIHazardAnalysis from DB if present
+            ai_obj = getattr(r, "ai_analysis", None)
+            components = (
+                [c.strip() for c in ai_obj.detected_components.split(",") if c.strip()]
+                if ai_obj and ai_obj.detected_components
+                else ["Sagging drop wire", "Power bundle snag"]
+            )
+            confidence = ai_obj.confidence_score if ai_obj else r.confidence_score
+            cable_sag = ai_obj.cable_sag_clearance if ai_obj else f"{r.clearance_meters}m clearance"
+            wire_density = ai_obj.wire_density_score if ai_obj else "High (Overlapping bundles)"
+            safety_warning = ai_obj.safety_warning if ai_obj else "Immediate danger to tall motor vehicles and neighborhood safety."
+            rec_action = ai_obj.recommended_action if ai_obj else "Field team dispatch for cable tensioning."
+
+            # Read real HazardDispatch recipients from DB
+            recipients = []
+            for d in r.dispatches.all():
+                recipients.append({
+                    "agency": d.agency.agency_name,
+                    "department": d.agency.department,
+                    "email": d.agency.contact_email,
+                    "status": d.delivery_status,
+                    "dispatchedAt": d.dispatched_at.strftime("%I:%M %p") if d.dispatched_at else "Immediate",
+                })
+            if not recipients:
+                recipients = [
+                    {"agency": "Cebu City Technical Infrastructure Committee (TIC)", "department": "Spaghetti Wire Eradication Task Force", "email": "tic-dispatch@cebucity.gov.ph", "status": "Delivered", "dispatchedAt": "Immediate"},
+                    {"agency": "Visayan Electric (VECO)", "department": "Distribution Line Safety Dispatch", "email": "emergency.hotline@veco.com.ph", "status": "Delivered", "dispatchedAt": "Immediate"}
+                ]
+
             db_reports.append({
                 "id": f"rep-db-{r.id}",
                 "ticketNumber": r.ticket_number,
@@ -55,26 +92,23 @@ def get_session_reports(request):
                 "hazardType": r.hazard_type,
                 "affectedAgencies": ["Cebu City TIC", "Visayan Electric (VECO)", "Telco Response Unit"],
                 "aiAnalysis": {
-                    "confidence": r.confidence_score,
-                    "cableSagClearance": f"{r.clearance_meters}m clearance",
-                    "wireDensityScore": "High (Overlapping bundles)",
-                    "detectedComponents": ["Sagging drop wire", "Power bundle snag"],
+                    "confidence": confidence,
+                    "cableSagClearance": cable_sag,
+                    "wireDensityScore": wire_density,
+                    "detectedComponents": components,
                     "severityRating": r.severity,
-                    "recommendedAction": "Field team dispatch for cable tensioning.",
-                    "safetyWarning": "Immediate danger to tall motor vehicles and neighborhood safety.",
+                    "recommendedAction": rec_action,
+                    "safetyWarning": safety_warning,
                     "isValidHazard": True,
                 },
                 "dispatchDetails": {
                     "dispatchTimestamp": r.created_at.strftime("%b %d, %Y %I:%M %p"),
                     "dispatchTurnaroundSeconds": 30,
-                    "recipients": [
-                        {"agency": "Cebu City Technical Infrastructure Committee (TIC)", "department": "Spaghetti Wire Eradication Task Force", "email": "tic-dispatch@cebucity.gov.ph", "status": "Delivered", "dispatchedAt": "Immediate"},
-                        {"agency": "Visayan Electric (VECO)", "department": "Distribution Line Safety Dispatch", "email": "emergency.hotline@veco.com.ph", "status": "Delivered", "dispatchedAt": "Immediate"}
-                    ]
+                    "recipients": recipients,
                 }
             })
-    except Exception:
-        pass
+    except Exception as e:
+        print("Error fetching database reports:", e)
 
     # Combine custom reports, db reports, and initial reports (avoiding ticket duplicates)
     seen_tickets = set()
@@ -173,11 +207,9 @@ def create_report_api(request):
         confidence = float(data.get("confidence", 95.8))
         hazard_type = data.get("hazardType", "sagging_cable")
 
-        # Persist directly into Supabase PostgreSQL (ERD: home_hazardreport
-        # with FKs to auth_user, cebu_barangays, hazard_categories)
+        # Persist directly into Supabase PostgreSQL (CRUZ_ERD: home_hazardreport, ai_hazard_analyses, hazard_dispatches)
+        db_report_id = None
         try:
-            from apps.profile.models import CebuBarangay
-
             barangay_obj, _ = CebuBarangay.objects.get_or_create(
                 name=barangay,
                 defaults={
@@ -199,7 +231,9 @@ def create_report_api(request):
             reporter_user = (
                 request.user if request.user.is_authenticated else None
             )
-            HazardReport.objects.create(
+
+            # 1. Create HazardReport
+            report_obj = HazardReport.objects.create(
                 ticket_number=ticket_number,
                 title=title,
                 reporter=reporter_user,
@@ -215,11 +249,67 @@ def create_report_api(request):
                 confidence_score=confidence,
                 image_url=image_url,
             )
+            db_report_id = report_obj.id
+
+            # 2. Create AIHazardAnalysis (CRUZ_ERD: ai_hazard_analyses)
+            components_list = data.get("components") or ["Sagging drop wire", "Power bundle snag"]
+            components_str = ", ".join(components_list) if isinstance(components_list, list) else str(components_list)
+            sag_clearance = data.get("sagClearance") or f"{clearance}m clearance"
+            wire_density = data.get("wireDensity") or "High (Overlapping bundles)"
+            safety_warning = data.get("safetyWarning") or "Immediate danger to tall motor vehicles and neighborhood safety."
+            rec_action = data.get("recommendedAction") or "Emergency bucket truck dispatch for cable re-tensioning and bundle elevation."
+
+            AIHazardAnalysis.objects.create(
+                report=report_obj,
+                confidence_score=confidence,
+                detected_components=components_str,
+                recommended_action=rec_action,
+                safety_warning=safety_warning,
+                is_valid_hazard=True,
+                cable_sag_clearance=sag_clearance,
+                wire_density_score=wire_density,
+                severity_rating=severity,
+            )
+
+            # 3. Create HazardDispatch entries (CRUZ_ERD: hazard_dispatches & utility_agencies)
+            tic_agency, _ = UtilityAgency.objects.get_or_create(
+                agency_name="Cebu City Technical Infrastructure Committee (TIC)",
+                defaults={
+                    "department": "Spaghetti Wire Eradication Task Force",
+                    "contact_email": "tic-dispatch@cebucity.gov.ph",
+                    "hotline_number": "(032) 411-0115",
+                    "agency_type": "LGU",
+                },
+            )
+            veco_agency, _ = UtilityAgency.objects.get_or_create(
+                agency_name="Visayan Electric (VECO)",
+                defaults={
+                    "department": "Distribution Line Safety Dispatch",
+                    "contact_email": "emergency.hotline@veco.com.ph",
+                    "hotline_number": "(032) 230-8326",
+                    "agency_type": "Power",
+                },
+            )
+
+            HazardDispatch.objects.create(
+                report=report_obj,
+                agency=tic_agency,
+                turnaround_seconds=30,
+                delivery_status="Delivered",
+                resolution_notes="Automated dispatch sent to LGU Spaghetti Wire Task Force",
+            )
+            HazardDispatch.objects.create(
+                report=report_obj,
+                agency=veco_agency,
+                turnaround_seconds=32,
+                delivery_status="Delivered",
+                resolution_notes="Automated emergency dispatch sent to VECO distribution safety crew",
+            )
         except Exception as db_err:
             print("Database persistence warning:", db_err)
 
         new_report = {
-            "id": f"rep-{int(time.time())}",
+            "id": f"rep-db-{db_report_id}" if db_report_id else f"rep-{int(time.time())}",
             "ticketNumber": ticket_number,
             "title": title,
             "barangay": barangay,
@@ -295,11 +385,22 @@ def update_status_api(request):
         report_id = data.get("reportId")
         new_status = data.get("newStatus")
 
-        # Update in database if exists
+        # Update in database if exists (CRUZ_ERD: home_hazardreport & hazard_dispatches)
         try:
-            HazardReport.objects.filter(ticket_number=report_id).update(status=new_status)
-        except Exception:
-            pass
+            report_qs = HazardReport.objects.filter(ticket_number=report_id)
+            if not report_qs.exists() and str(report_id).startswith("rep-db-"):
+                try:
+                    db_id = int(str(report_id).replace("rep-db-", ""))
+                    report_qs = HazardReport.objects.filter(id=db_id)
+                except ValueError:
+                    pass
+            report_qs.update(status=new_status)
+            for rep in report_qs:
+                HazardDispatch.objects.filter(report=rep).update(
+                    delivery_status="Resolved" if new_status == "resolved" else "Delivered"
+                )
+        except Exception as e:
+            print("Database status update warning:", e)
 
         custom_reports = request.session.get("custom_reports", [])
         updated = False
