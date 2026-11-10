@@ -13,6 +13,84 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // DOM references
   const mapPinsContainer = document.getElementById("map-pins-container");
+  let leafletMap = null;
+  let leafletMarkersGroup = null;
+
+  const BARANGAY_CENTROIDS = {
+    "Tisa": [10.2982, 123.8741],
+    "Buhisan": [10.2891, 123.8633],
+    "Lahug": [10.3298, 123.9056],
+    "Guadalupe": [10.3223, 123.8812],
+    "Mabolo": [10.3189, 123.9145],
+    "Kasambagan": [10.3242, 123.9118],
+    "Banilad": [10.3394, 123.9115],
+    "Punta Princesa": [10.2931, 123.8715],
+    "Labangon": [10.3015, 123.8802],
+    "Sambag I": [10.3105, 123.8901],
+    "Sambag II": [10.3135, 123.8925],
+    "Talamban": [10.3644, 123.9172],
+    "Tejero": [10.3038, 123.9082],
+    "Pari-an": [10.2995, 123.9038],
+    "Carreta": [10.3081, 123.9103],
+    "San Nicolas Proper": [10.2965, 123.8942],
+    "Mambaling": [10.2912, 123.8804],
+    "Basak San Nicolas": [10.2882, 123.8752],
+    "Basak Pardo": [10.2825, 123.8682],
+    "Cogon Ramos": [10.3115, 123.8975],
+    "Capitol Site": [10.3175, 123.8912],
+    "Kamputhaw": [10.3205, 123.8982],
+    "Apas": [10.3341, 123.9085],
+  };
+
+  // Cebu City administrative & metropolitan bounds
+  const CEBU_CITY_BOUNDS = typeof L !== "undefined" ? L.latLngBounds(
+    [10.2200, 123.7500], // Southwest: Pardo / Inayawan / mountain limits
+    [10.4500, 124.0100]  // Northeast: Talamban / Pit-os / coastal limits
+  ) : null;
+
+  function initLeafletMap() {
+    const mapEl = document.getElementById("leaflet-map");
+    if (!mapEl || typeof L === "undefined") return;
+
+    try {
+      const cebuBounds = L.latLngBounds(
+        [10.2200, 123.7500],
+        [10.4500, 124.0100]
+      );
+
+      leafletMap = L.map("leaflet-map", {
+        center: [10.3157, 123.8854], // Cebu City Center
+        zoom: 13,
+        minZoom: 12, // Locked: cannot zoom out away from Cebu City
+        maxZoom: 20, // Deep street/pole-level zoom enabled
+        maxBounds: cebuBounds,
+        maxBoundsViscosity: 0.9, // Firm bounce: cannot pan outside Cebu City
+        zoomControl: false,
+      });
+
+      L.control.zoom({ position: "topright" }).addTo(leafletMap);
+
+      // Official OpenStreetMap (Humanitarian OSM Cartography - 100% genuine OpenStreetMap, no localhost block)
+      L.tileLayer("https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png", {
+        maxNativeZoom: 19,
+        maxZoom: 20, // Scales up smoothly for deep street inspection
+        subdomains: ["a", "b", "c"],
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(leafletMap);
+
+      leafletMarkersGroup = L.layerGroup().addTo(leafletMap);
+
+      const coordsBadge = document.getElementById("map-coords-badge");
+      leafletMap.on("move", () => {
+        if (coordsBadge) {
+          const center = leafletMap.getCenter();
+          coordsBadge.textContent = `${center.lat.toFixed(4)}° N, ${center.lng.toFixed(4)}° E`;
+        }
+      });
+    } catch (e) {
+      console.warn("Leaflet initialization warning:", e);
+    }
+  }
   const incidentCardsContainer = document.getElementById("incident-cards-container");
   const searchInput = document.getElementById("search-incidents-input");
   const barangaySelect = document.getElementById("filter-barangay-select");
@@ -142,10 +220,62 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Render Map Pins
   function renderMapPins() {
+    const filtered = getFilteredReports();
+
+    if (leafletMap && leafletMarkersGroup) {
+      leafletMarkersGroup.clearLayers();
+
+      filtered.forEach(report => {
+        const lat = report.gpsCoordinates?.lat || 10.2982;
+        const lng = report.gpsCoordinates?.lng || 123.8741;
+        const isCritical = report.severity === "critical";
+        const isSelected = currentSelectedReport && currentSelectedReport.id === report.id;
+        const sevConfig = getSeverityConfig(report.severity);
+
+        const customIcon = L.divIcon({
+          className: "custom-leaflet-marker",
+          html: `
+            <div class="custom-leaflet-pin">
+              <div class="map-pin ${isSelected ? "active" : ""}">
+                ${isCritical ? '<span class="map-pin-pulse"></span>' : ""}
+                <div class="map-pin-head" style="background: ${sevConfig.bg};">
+                  <i data-lucide="${report.status === "resolved" ? "check" : "alert-triangle"}" style="width: 14px; height: 14px; stroke-width: 2.5;"></i>
+                </div>
+              </div>
+            </div>
+          `,
+          iconSize: [32, 32],
+          iconAnchor: [16, 16],
+          popupAnchor: [0, -18],
+        });
+
+        const marker = L.marker([lat, lng], { icon: customIcon });
+
+        const popupHtml = `
+          <div style="font-family: inherit; font-size: 0.8rem; min-width: 170px; line-height: 1.35; padding: 2px;">
+            <div style="font-weight: 800; font-size: 0.84rem; margin-bottom: 2px; color: var(--ink);">${report.title}</div>
+            <div style="color: var(--muted); font-size: 0.72rem; margin-bottom: 6px;">📍 Brgy. ${report.barangay}</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+              <span class="badge-pill ${sevConfig.badgeClass}" style="font-size: 0.65rem; padding: 2px 7px;">${sevConfig.label}</span>
+              <span style="font-weight: 700; color: var(--red); font-size: 0.74rem;">${report.clearanceHeightMeters || 3.1}m clearance</span>
+            </div>
+          </div>
+        `;
+        marker.bindPopup(popupHtml);
+
+        marker.on("click", () => {
+          selectReport(report, false);
+        });
+
+        marker.addTo(leafletMarkersGroup);
+      });
+
+      if (window.lucide) window.lucide.createIcons();
+      return;
+    }
+
     if (!mapPinsContainer) return;
     mapPinsContainer.innerHTML = "";
-
-    const filtered = getFilteredReports();
 
     filtered.forEach(report => {
       const coords = getMapCoordinates(
@@ -295,9 +425,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Select Report on Map
-  function selectReport(report) {
+  function selectReport(report, panMap = true) {
     currentSelectedReport = report;
-    renderMapPins();
+
+    if (panMap && leafletMap && report && report.gpsCoordinates) {
+      leafletMap.panTo([report.gpsCoordinates.lat, report.gpsCoordinates.lng], { animate: true, duration: 0.6 });
+    }
 
     if (previewCard && report) {
       previewCard.style.display = "flex";
@@ -590,7 +723,10 @@ document.addEventListener("DOMContentLoaded", () => {
           renderMapPins();
           renderIncidentCards(true);
           updateStats();
-          selectReport(newRep);
+          selectReport(newRep, false);
+          if (leafletMap && newRep.gpsCoordinates) {
+            leafletMap.flyTo([newRep.gpsCoordinates.lat, newRep.gpsCoordinates.lng], 15, { duration: 1.0 });
+          }
           openDetailModal(newRep);
         }
       } catch (err) {
@@ -603,7 +739,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Filter Listeners
   if (searchInput) searchInput.addEventListener("input", () => { renderMapPins(); renderIncidentCards(true); });
-  if (barangaySelect) barangaySelect.addEventListener("change", () => { renderMapPins(); renderIncidentCards(true); });
+  if (barangaySelect) barangaySelect.addEventListener("change", () => {
+    const b = barangaySelect.value;
+    if (leafletMap && b in BARANGAY_CENTROIDS) {
+      leafletMap.flyTo(BARANGAY_CENTROIDS[b], 15, { duration: 1.0 });
+    } else if (leafletMap && b === "all") {
+      leafletMap.flyTo([10.3157, 123.8854], 13, { duration: 1.0 });
+    }
+    renderMapPins();
+    renderIncidentCards(true);
+  });
   if (severitySelect) severitySelect.addEventListener("change", () => { renderMapPins(); renderIncidentCards(true); });
 
   // View Switcher Tabs
@@ -615,6 +760,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (mapViewSection) mapViewSection.style.display = "flex";
       if (feedViewSection) feedViewSection.style.display = "flex";
+      setTimeout(() => { if (leafletMap) leafletMap.invalidateSize(); }, 80);
       renderMapPins();
     });
 
@@ -630,9 +776,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Initial render
+  initLeafletMap();
   renderMapPins();
   renderIncidentCards();
   if (reports.length > 0) {
-    selectReport(reports[0]);
+    selectReport(reports[0], false);
   }
 });

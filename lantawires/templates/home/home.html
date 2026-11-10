@@ -5,6 +5,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/home/home.css' %}">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 {% endblock %}
 
 {% block content %}
@@ -115,30 +116,12 @@
 
     <div id="map-view-section" style="display: flex; flex-direction: column; gap: .85rem;">
       <div class="map-container">
-        <div style="position: absolute; top: .8rem; left: .8rem; right: .8rem; z-index: 20; display: flex; justify-content: space-between; gap: .5rem; pointer-events: none;">
-          <div class="badge-pill badge-neutral" style="background: var(--clay-card); pointer-events: auto;"><i data-lucide="navigation" style="width: 13px; height: 13px;"></i><span>10.3157° N, 123.8854° E</span></div>
-          <div class="badge-pill badge-resolved" style="background: var(--clay-card); pointer-events: auto;"><span style="width: 7px; height: 7px; border-radius: 9999px; background: var(--green);"></span><span>Live</span></div>
+        <div style="position: absolute; top: .8rem; left: .8rem; right: .8rem; z-index: 500; display: flex; justify-content: space-between; gap: .5rem; pointer-events: none;">
+          <div class="badge-pill badge-neutral" style="background: var(--clay-card); pointer-events: auto;"><i data-lucide="navigation" style="width: 13px; height: 13px;"></i><span id="map-coords-badge">10.3157° N, 123.8854° E</span></div>
+          <div class="badge-pill badge-resolved" style="background: var(--clay-card); pointer-events: auto;"><span style="width: 7px; height: 7px; border-radius: 9999px; background: var(--green);"></span><span>Live Cebu GIS</span></div>
         </div>
-        <svg style="width: 100%; height: 100%;" viewBox="0 0 800 480" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" stroke-width="0.8" stroke-opacity="0.12" />
-            </pattern>
-          </defs>
-          <rect width="800" height="480" fill="transparent" />
-          <rect width="800" height="480" fill="url(#grid)" style="color: var(--muted);" />
-          <path d="M 680,0 C 650,80 630,160 610,240 C 590,320 620,400 660,480 L 800,480 L 800,0 Z" fill="var(--blue-bg)" stroke="var(--blue)" stroke-width="1.5" stroke-dasharray="4 4" stroke-opacity="0.5" />
-          <path d="M 120,480 C 180,380 260,310 360,250 C 440,200 520,130 580,0" stroke="var(--muted)" stroke-width="3.5" stroke-linecap="round" stroke-opacity="0.35" />
-          <path d="M 140,160 C 220,190 310,220 400,245 C 470,265 540,280 630,300" stroke="var(--muted)" stroke-width="2.5" stroke-linecap="round" stroke-opacity="0.3" />
-          <g opacity="0.55" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" fill="var(--muted)" style="user-select: none;">
-            <text x="210" y="380">TISA</text>
-            <text x="470" y="110">LAHUG</text>
-            <text x="230" y="190">GUADALUPE</text>
-            <text x="480" y="325">COLON</text>
-          </g>
-        </svg>
-        <div id="map-pins-container"></div>
-        <div style="position: absolute; bottom: .8rem; left: .8rem; z-index: 20; display: flex; gap: .6rem; padding: .4rem .8rem; border-radius: 12px; background: var(--clay-card); border: 2px solid var(--clay-border); font-size: .7rem; color: var(--ink-2); font-weight: 600;">
+        <div id="leaflet-map" style="width: 100%; height: 100%; position: absolute; inset: 0; z-index: 1;"></div>
+        <div style="position: absolute; bottom: .8rem; left: .8rem; z-index: 500; display: flex; gap: .6rem; padding: .4rem .8rem; border-radius: 12px; background: var(--clay-card); border: 2px solid var(--clay-border); font-size: .7rem; color: var(--ink-2); font-weight: 600;">
           <span style="display:flex;align-items:center;gap:.3rem;"><span style="width: 9px; height: 9px; border-radius: 4px; background: var(--red);"></span>Critical</span>
           <span style="display:flex;align-items:center;gap:.3rem;"><span style="width: 9px; height: 9px; border-radius: 4px; background: var(--peach);"></span>High</span>
           <span style="display:flex;align-items:center;gap:.3rem;"><span style="width: 9px; height: 9px; border-radius: 4px; background: var(--green);"></span>Resolved</span>
@@ -292,7 +275,8 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script id="reports-data" type="application/json">{{ reports_json|safe }}</script>
 <script id="presets-data" type="application/json">{{ presets_json|safe }}</script>
-<script src="{% static 'js/home/home.js' %}"></script>
+<script src="{% static 'js/home/home.js' %}?v=4"></script>
 {% endblock %}
