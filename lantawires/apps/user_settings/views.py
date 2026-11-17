@@ -49,9 +49,18 @@ def settings_view(request):
         "sound_alerts": False,
     })
 
+    role = (current_user_session or {}).get("role")
+    if role not in ("citizen", "resolver") and user is not None:
+        try:
+            role = user.profile.role
+        except Exception:
+            role = "citizen"
+    is_resolver = role == "resolver"
+
     context = {
         "user": user,
         "settings": settings_obj or session_settings,
         "current_user": current_user_session,
+        "is_resolver": is_resolver,
     }
     return render(request, "user_settings/user_settings.html", context)

@@ -1,6 +1,6 @@
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
+from apps.home.views import get_session_reports
 from .models import CebuBarangay, Profile
 
 CEBU_BARANGAYS = [
@@ -85,16 +85,45 @@ def profile_view(request):
         messages.success(request, "Profile updated successfully.")
         return redirect("profile:profile")
 
-    profile_barangay = profile.barangay.name if profile and profile.barangay_id else "Tisa"
+    profile_barangay = profile.barangay.name if profile and profile.barangay_id else (current_user_session or {}).get("barangay", "Tisa")
+    district = profile.barangay.district if profile and profile.barangay_id else "South District"
+    role = profile.role if profile else (current_user_session or {}).get("role", "citizen")
+    is_resolver = role == "resolver"
+
+    display_name = (
+        profile.full_name
+        if profile and profile.full_name
+        else (current_user_session or {}).get("name", "Gianne Cruz")
+    )
+
+    all_reports = get_session_reports(request)
+    if is_resolver:
+        relevant_reports = all_reports
+    else:
+        relevant_reports = [
+            r for r in all_reports if (r.get("reporterName") or "").strip().lower() == display_name.strip().lower()
+        ]
+
+    profile_stats = {
+        "logged": len(relevant_reports),
+        "active": sum(1 for r in relevant_reports if r.get("status") != "resolved"),
+        "resolved": sum(1 for r in relevant_reports if r.get("status") == "resolved"),
+    }
+
     context = {
         "user": user,
         "profile": profile,
+        "is_resolver": is_resolver,
+        "district": district,
+        "profile_stats": profile_stats,
+        "recent_reports": relevant_reports[:5],
         "current_user": current_user_session or {
-            "name": profile.full_name if profile else "Gianne Cruz",
+            "name": display_name,
             "phone": profile.phone if profile else "+63 917 554 8921",
-            "barangay": profile_barangay if profile else "Tisa",
+            "barangay": profile_barangay,
             "avatar": profile.avatar if profile else "GC",
             "email": user.email if user else "gianne@cebucity.ph",
+            "role": role,
         },
         "barangays": list(CebuBarangay.objects.values_list("name", flat=True)) or CEBU_BARANGAYS,
         "avatar_presets": AVATAR_PRESETS,

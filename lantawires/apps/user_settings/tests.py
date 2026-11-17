@@ -47,3 +47,23 @@ class SettingsFeatureTests(TestCase):
         self.settings.refresh_from_db()
         self.assertTrue(self.settings.sound_alerts)
         self.assertFalse(self.settings.auto_dispatch_updates)
+
+    def test_settings_screen_segregates_citizen_vs_resolver_options(self):
+        from apps.profile.models import CebuBarangay, Profile
+
+        brgy = CebuBarangay.objects.create(
+            name="Tisa", district="South District", zip_code="6000", center_lat=10.2982, center_lng=123.8741
+        )
+        profile = Profile.objects.create(
+            user=self.user, full_name="Gianne Cruz", phone="+63 917", barangay=brgy, role="citizen"
+        )
+        self.client.force_login(self.user)
+        citizen_res = self.client.get(reverse("user_settings:settings"))
+        self.assertContains(citizen_res, "Citizen Preferences")
+        self.assertNotContains(citizen_res, "Auto routing")
+
+        profile.role = "resolver"
+        profile.save()
+        resolver_res = self.client.get(reverse("user_settings:settings"))
+        self.assertContains(resolver_res, "Resolver Dispatch Config")
+        self.assertContains(resolver_res, "Auto routing")

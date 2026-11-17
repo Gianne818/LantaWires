@@ -18,7 +18,13 @@
         <span style="font-size: 1.1rem; font-weight: 800;">LantaWires</span>
       </div>
       <nav style="display: flex; align-items: center; gap: .3rem;">
-        <a id="nav-link-home" href="{% url 'home:home' %}" class="nav-link"><i data-lucide="layout-dashboard" style="width: 15px; height: 15px;"></i><span>Operations</span></a>
+        {% if is_resolver %}
+          <a id="nav-link-home" href="{% url 'home:home' %}" class="nav-link"><i data-lucide="shield-check" style="width: 15px; height: 15px;"></i><span>Triage Console</span></a>
+          <a id="nav-link-dispatches" href="{% url 'home:dispatches' %}" class="nav-link"><i data-lucide="send" style="width: 15px; height: 15px;"></i><span>Dispatches</span></a>
+        {% else %}
+          <a id="nav-link-home" href="{% url 'home:home' %}" class="nav-link"><i data-lucide="radar" style="width: 15px; height: 15px;"></i><span>Watch</span></a>
+          <a id="nav-link-my-reports" href="{% url 'home:my_reports' %}" class="nav-link"><i data-lucide="file-text" style="width: 15px; height: 15px;"></i><span>My Reports</span></a>
+        {% endif %}
         <a id="nav-link-profile" href="{% url 'profile:profile' %}" class="nav-link"><i data-lucide="user" style="width: 15px; height: 15px;"></i><span>Profile</span></a>
         <a id="nav-link-settings" href="{% url 'user_settings:settings' %}" class="nav-link active"><i data-lucide="settings" style="width: 15px; height: 15px;"></i><span>Settings</span></a>
       </nav>
@@ -29,15 +35,19 @@
   <main class="settings-container">
     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
       <a href="{% url 'home:home' %}" style="color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: .35rem; font-size: .83rem; font-weight: 600;">
-        <i data-lucide="arrow-left" style="width: 15px; height: 15px;"></i><span>Operations</span>
+        <i data-lucide="arrow-left" style="width: 15px; height: 15px;"></i><span>{% if is_resolver %}Triage Console{% else %}Watch{% endif %}</span>
       </a>
-      <span class="badge-pill badge-amber"><span style="width: 7px; height: 7px; border-radius: 9999px; background: var(--peach);"></span><span>Synced</span></span>
+      {% if is_resolver %}
+        <span class="badge-pill badge-resolved"><span style="width: 7px; height: 7px; border-radius: 9999px; background: var(--green);"></span><span>Resolver Dispatch Config</span></span>
+      {% else %}
+        <span class="badge-pill badge-amber"><span style="width: 7px; height: 7px; border-radius: 9999px; background: var(--peach);"></span><span>Citizen Preferences</span></span>
+      {% endif %}
     </div>
 
     <div class="clay-card settings-card">
       <div style="margin-bottom: 1.25rem;">
         <h1 style="font-size: 1.3rem; font-weight: 800;">Preferences</h1>
-        <p class="section-sub">Theme, alerts, and dispatch options.</p>
+        <p class="section-sub">{% if is_resolver %}Theme, triage alerts, and agency dispatch routing.{% else %}Theme and neighborhood wire hazard notifications.{% endif %}</p>
       </div>
       <form method="post">
         {% csrf_token %}
@@ -60,7 +70,7 @@
           <div class="settings-row {% if settings.email_notifications %}setting-active{% endif %}">
             <div style="display: flex; align-items: center; gap: .85rem;">
               <div class="metric-icon"><i data-lucide="mail" style="width: 18px; height: 18px;"></i></div>
-              <div><p style="font-size: .9rem; font-weight: 800;">Email receipts</p><p class="section-sub">When TIC or VECO resolves a report.</p></div>
+              <div><p style="font-size: .9rem; font-weight: 800;">{% if is_resolver %}Email receipts{% else %}Report status updates{% endif %}</p><p class="section-sub">{% if is_resolver %}When TIC or VECO resolves a report.{% else %}Notify when crews update your submitted wire reports.{% endif %}</p></div>
             </div>
             <label class="switch-toggle">
               <input type="checkbox" name="email_notifications" class="settings-switch-input" {% if settings.email_notifications %}checked{% endif %}>
@@ -77,6 +87,7 @@
               <span class="slider-round"></span>
             </label>
           </div>
+          {% if is_resolver %}
           <div class="settings-row {% if settings.auto_dispatch_updates %}setting-active{% endif %}">
             <div style="display: flex; align-items: center; gap: .85rem;">
               <div class="metric-icon" style="color: var(--green);"><i data-lucide="send" style="width: 18px; height: 18px;"></i></div>
@@ -87,6 +98,7 @@
               <span class="slider-round"></span>
             </label>
           </div>
+          {% endif %}
           <div class="settings-row {% if settings.sound_alerts %}setting-active{% endif %}">
             <div style="display: flex; align-items: center; gap: .85rem;">
               <div class="metric-icon"><i data-lucide="volume-2" style="width: 18px; height: 18px;"></i></div>

@@ -58,3 +58,17 @@ class ProfileFeatureTests(TestCase):
         self.assertEqual(self.profile.full_name, "Gianne C. Cruz")
         self.assertEqual(self.profile.barangay.name, "Lahug")
         self.assertEqual(self.profile.phone, "+63 917 999 8888")
+
+    def test_profile_displays_role_specific_badges_and_nav(self):
+        self.client.force_login(self.user)
+        citizen_res = self.client.get(reverse("profile:profile"))
+        self.assertContains(citizen_res, "Verified Citizen")
+        self.assertContains(citizen_res, "My Recent Hazard Reports")
+        self.assertContains(citizen_res, reverse("home:my_reports"))
+
+        self.profile.role = "resolver"
+        self.profile.save()
+        resolver_res = self.client.get(reverse("profile:profile"))
+        self.assertContains(resolver_res, "TIC / VECO Resolver")
+        self.assertContains(resolver_res, "Recent Queue Activity")
+        self.assertContains(resolver_res, reverse("home:dispatches"))
