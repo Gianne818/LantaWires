@@ -5,6 +5,31 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/home/home.css' %}">
+<style>
+  .app-header { padding: 0 1rem; }
+  .app-nav { flex-wrap: wrap; gap: .6rem 1rem; padding: .55rem .85rem; }
+  .app-nav nav { flex-wrap: wrap; }
+  .lw-page-stack { margin-top: 1.15rem; display: flex; flex-direction: column; gap: 1.15rem; }
+  .home-hero { border-radius: var(--r-lg); padding: 1.5rem 1.6rem; }
+  .metrics-grid { margin-top: 0; gap: 1rem; }
+  .metric-card { border-radius: var(--r-md); padding: 1.2rem; display: flex; flex-direction: column; gap: .35rem; }
+  .metric-label { font-size: .8rem; font-weight: 700; color: var(--ink-2); letter-spacing: -0.01em; }
+  .metric-num { font-variant-numeric: tabular-nums; line-height: 1; align-self: flex-start; margin: .2rem 0 .1rem; }
+  .section-sub { color: var(--ink-2); line-height: 1.45; }
+  .ticket-chip { font-variant-numeric: tabular-nums; }
+  .report-card { border-radius: var(--r-md); padding: 1.25rem; display: flex; flex-direction: column; gap: .85rem; }
+  .report-meta-val { font-variant-numeric: tabular-nums; }
+  .report-stage-row { display: flex; gap: .35rem; align-items: center; flex-wrap: wrap; font-size: .72rem; font-weight: 700; }
+  .report-card-footer { padding-top: .7rem; border-top: 2px solid var(--clay-border); display: flex; justify-content: space-between; align-items: center; gap: .5rem; flex-wrap: wrap; font-size: .75rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .empty-reports-card { padding: 2.5rem 1.5rem; text-align: center; border-radius: var(--r-lg); }
+  .clay-btn-primary:hover, .clay-btn-ghost:hover, .metric-card:hover { transform: translateY(-2px); }
+  .mascot-peek:hover { transform: translateY(-2px); }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--peach); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) {
+    .clay-btn-primary, .clay-btn-ghost, .metric-card, .mascot-peek, .nav-link { transition: none !important; }
+    .clay-btn-primary:hover, .clay-btn-ghost:hover, .metric-card:hover, .mascot-peek:hover { transform: none !important; }
+  }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -17,10 +42,10 @@
         </div>
         <div style="display: flex; align-items: center; gap: .45rem;">
           <span style="font-size: 1.1rem; font-weight: 800; letter-spacing: -0.02em;">LantaWires</span>
-          <span class="badge-pill badge-amber" style="font-size: .62rem;">Citizen Watch</span>
+          <span class="badge-pill badge-amber" style="font-size: .66rem;">Citizen Watch</span>
         </div>
       </div>
-      <nav style="display: flex; align-items: center; gap: .3rem;">
+      <nav aria-label="Primary" style="display: flex; align-items: center; gap: .3rem;">
         <a id="nav-link-home" href="{% url 'home:home' %}" class="nav-link"><i data-lucide="radar" style="width: 15px; height: 15px;"></i><span>Watch</span></a>
         <a id="nav-link-my-reports" href="{% url 'home:my_reports' %}" class="nav-link active"><i data-lucide="file-text" style="width: 15px; height: 15px;"></i><span>My Reports</span></a>
         <a id="nav-link-profile" href="{% url 'profile:profile' %}" class="nav-link"><i data-lucide="user" style="width: 15px; height: 15px;"></i><span>Profile</span></a>
@@ -30,89 +55,89 @@
         <a href="{% url 'profile:profile' %}" style="display: flex; align-items: center; gap: .6rem; text-decoration: none;">
           <div style="text-align: right;" class="desktop-user-meta">
             <p style="font-size: .8rem; font-weight: 800; color: var(--ink); line-height: 1.2;">{{ current_user.name }}</p>
-            <p style="font-size: .7rem; color: var(--muted); font-weight: 600;">Brgy. {{ current_user.barangay }} · {% if is_resolver %}Resolver{% else %}Citizen{% endif %}</p>
+            <p style="font-size: .72rem; color: var(--ink-2); font-weight: 600;">Brgy. {{ current_user.barangay }} · {% if is_resolver %}Resolver{% else %}Citizen{% endif %}</p>
           </div>
           <div class="avatar-clay">{{ current_user.avatar|default:"LW" }}</div>
         </a>
-        <a id="my-reports-sign-out-btn" href="{% url 'home:logout' %}" class="clay-btn-ghost" title="Sign out"><i data-lucide="log-out" style="width: 15px; height: 15px;"></i></a>
+        <a id="my-reports-sign-out-btn" href="{% url 'home:logout' %}" class="clay-btn-ghost" title="Sign out" aria-label="Sign out"><i data-lucide="log-out" style="width: 15px; height: 15px;"></i></a>
       </div>
     </div>
   </header>
 
-  <div class="container-7xl" style="margin-top: 0.9rem; display: flex; flex-direction: column; gap: 1rem;">
+  <main class="container-7xl lw-page-stack">
     <div class="clay-card home-hero">
       <div style="max-width: 580px;">
-        <span class="badge-pill badge-amber" style="margin-bottom: .5rem;"><i data-lucide="file-check-2" style="width: 13px; height: 13px;"></i><span>Personal submission tracker</span></span>
+        <span class="badge-pill badge-amber" style="margin-bottom: .55rem;"><i data-lucide="file-check-2" style="width: 13px; height: 13px;"></i><span>Personal submission tracker</span></span>
         <h1 style="font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;">My Submitted Hazard Reports</h1>
-        <p class="section-sub" style="margin-top: .3rem;">Track AI verification and TIC / VECO crew progress for hazards you reported across Cebu City.</p>
+        <p class="section-sub" style="margin-top: .35rem;">Track AI verification and TIC / VECO crew progress for hazards you reported across Cebu City.</p>
       </div>
       <a href="{% url 'home:home' %}" class="clay-btn-primary" style="text-decoration: none;"><i data-lucide="camera" style="width: 16px; height: 16px;"></i><span>New report</span></a>
     </div>
 
     <div class="metrics-grid">
       <div class="metric-card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: .4rem;">
-          <span style="font-size: .7rem; font-weight: 800; text-transform: uppercase; color: var(--muted);">Total Submitted</span>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span class="metric-label">Total submitted</span>
           <div class="metric-icon"><i data-lucide="layers" style="width: 16px; height: 16px;"></i></div>
         </div>
         <div class="metric-num">{{ my_stats.total }}</div>
-        <p class="section-sub" style="margin-top: .3rem;">By {{ current_user.name }}</p>
+        <p class="section-sub">By {{ current_user.name }}</p>
       </div>
       <div class="metric-card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: .4rem;">
-          <span style="font-size: .7rem; font-weight: 800; text-transform: uppercase; color: var(--muted);">Dispatched</span>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span class="metric-label">Dispatched</span>
           <div class="metric-icon"><i data-lucide="send" style="width: 16px; height: 16px;"></i></div>
         </div>
         <div class="metric-num">{{ my_stats.dispatched }}</div>
-        <p class="section-sub" style="margin-top: .3rem;">Sent to TIC &amp; VECO</p>
+        <p class="section-sub">Sent to TIC &amp; VECO</p>
       </div>
       <div class="metric-card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: .4rem;">
-          <span style="font-size: .7rem; font-weight: 800; text-transform: uppercase; color: var(--muted);">Investigating</span>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span class="metric-label">Investigating</span>
           <div class="metric-icon" style="color: var(--peach);"><i data-lucide="wrench" style="width: 16px; height: 16px;"></i></div>
         </div>
         <div class="metric-num" style="color: var(--peach);">{{ my_stats.investigating }}</div>
-        <p class="section-sub" style="margin-top: .3rem;">Field crew en route</p>
+        <p class="section-sub">Field crew en route</p>
       </div>
       <div class="metric-card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: .4rem;">
-          <span style="font-size: .7rem; font-weight: 800; text-transform: uppercase; color: var(--muted);">Resolved</span>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span class="metric-label">Resolved</span>
           <div class="metric-icon" style="color: var(--green);"><i data-lucide="check-circle-2" style="width: 16px; height: 16px;"></i></div>
         </div>
         <div class="metric-num" style="color: var(--green);">{{ my_stats.resolved }}</div>
-        <p class="section-sub" style="margin-top: .3rem;">Cleared &amp; safe</p>
+        <p class="section-sub">Cleared &amp; safe</p>
       </div>
     </div>
 
     {% if my_reports %}
       <div class="incident-grid">
         {% for rep in my_reports %}
-          <div class="clay-card" style="border-radius: 20px; padding: 1.15rem; display: flex; flex-direction: column; gap: .75rem;">
+          <div class="clay-card report-card">
             <div style="display: flex; justify-content: space-between; align-items: center; gap: .5rem; flex-wrap: wrap;">
               <span class="ticket-chip">{{ rep.ticketNumber }}</span>
-              <div style="display: flex; gap: .35rem;">
-                <span class="badge-pill badge-compact {% if rep.severity == 'critical' %}badge-critical{% elif rep.severity == 'high' %}badge-high{% else %}badge-medium{% endif %}">{{ rep.severity|upper }}</span>
+              <div style="display: flex; gap: .35rem; flex-wrap: wrap;">
+                <span class="badge-pill badge-compact {% if rep.severity == 'critical' %}badge-critical{% elif rep.severity == 'high' %}badge-high{% else %}badge-medium{% endif %}">{{ rep.severity|title }}</span>
                 <span class="badge-pill badge-compact {% if rep.status == 'resolved' %}badge-resolved{% elif rep.status == 'investigating' %}badge-high{% else %}badge-amber{% endif %}">{{ rep.status|title }}</span>
               </div>
             </div>
             <div>
-              <h3 style="font-size: .95rem; font-weight: 800; line-height: 1.35;">{{ rep.title }}</h3>
-              <p class="section-sub" style="margin-top: .25rem; display: flex; align-items: center; gap: .3rem;">
-                <i data-lucide="map-pin" style="width: 13px; height: 13px;"></i><span>Brgy. {{ rep.barangay }} · {{ rep.address }}</span>
+              <h3 style="font-size: .96rem; font-weight: 800; line-height: 1.35;">{{ rep.title }}</h3>
+              <p class="section-sub" style="margin-top: .3rem; display: flex; align-items: center; gap: .35rem;">
+                <i data-lucide="map-pin" style="width: 13px; height: 13px; flex-shrink: 0;"></i><span>Brgy. {{ rep.barangay }} · {{ rep.address }}</span>
               </p>
             </div>
-            <div class="clay-inset-box" style="font-size: .75rem; display: flex; flex-direction: column; gap: .25rem;">
-              <div style="display: flex; justify-content: space-between;"><span style="color: var(--muted);">Clearance</span><strong style="color: var(--red);">{{ rep.aiAnalysis.cableSagClearance }}</strong></div>
-              <div style="display: flex; justify-content: space-between;"><span style="color: var(--muted);">AI Confidence</span><strong style="color: var(--green);">{{ rep.aiAnalysis.confidence }}%</strong></div>
+            <div class="clay-inset-box" style="font-size: .78rem; display: flex; flex-direction: column; gap: .35rem;">
+              <div style="display: flex; justify-content: space-between; gap: .5rem;"><span style="color: var(--ink-2);">Clearance</span><strong class="report-meta-val" style="color: var(--red);">{{ rep.aiAnalysis.cableSagClearance }}</strong></div>
+              <div style="display: flex; justify-content: space-between; gap: .5rem;"><span style="color: var(--ink-2);">AI confidence</span><strong class="report-meta-val" style="color: var(--green);">{{ rep.aiAnalysis.confidence }}%</strong></div>
             </div>
-            <div style="display: flex; gap: .35rem; align-items: center; font-size: .68rem; font-weight: 700;">
-              <span class="badge-pill {% if rep.status == 'dispatched' or rep.status == 'investigating' or rep.status == 'resolved' %}badge-amber{% else %}badge-neutral{% endif %}">1. Dispatched</span>
-              <span style="color: var(--muted);">→</span>
-              <span class="badge-pill {% if rep.status == 'investigating' or rep.status == 'resolved' %}badge-high{% else %}badge-neutral{% endif %}">2. Investigating</span>
-              <span style="color: var(--muted);">→</span>
-              <span class="badge-pill {% if rep.status == 'resolved' %}badge-resolved{% else %}badge-neutral{% endif %}">3. Resolved</span>
+            <div class="report-stage-row">
+              <span class="badge-pill badge-compact {% if rep.status == 'dispatched' or rep.status == 'investigating' or rep.status == 'resolved' %}badge-amber{% else %}badge-neutral{% endif %}">1. Dispatched</span>
+              <span style="color: var(--ink-2);" aria-hidden="true">→</span>
+              <span class="badge-pill badge-compact {% if rep.status == 'investigating' or rep.status == 'resolved' %}badge-high{% else %}badge-neutral{% endif %}">2. Investigating</span>
+              <span style="color: var(--ink-2);" aria-hidden="true">→</span>
+              <span class="badge-pill badge-compact {% if rep.status == 'resolved' %}badge-resolved{% else %}badge-neutral{% endif %}">3. Resolved</span>
             </div>
-            <div style="padding-top: .6rem; border-top: 2px solid var(--clay-border); display: flex; justify-content: space-between; align-items: center; font-size: .72rem; color: var(--muted);">
+            <div class="report-card-footer">
               <span>Submitted {{ rep.reportedAt }}</span>
               <span>{{ rep.dispatchDetails.recipients|length }} agencies notified</span>
             </div>
@@ -120,13 +145,13 @@
         {% endfor %}
       </div>
     {% else %}
-      <div class="clay-card" style="padding: 2.4rem 1.5rem; text-align: center; border-radius: 22px;">
-        <img src="{% static 'images/mascot-sparrow.svg' %}" alt="Wiry" style="width: 110px; margin: 0 auto .75rem;" />
+      <div class="clay-card empty-reports-card">
+        <img src="{% static 'images/mascot-sparrow.svg' %}" alt="Wiry" class="mascot-peek" style="width: 110px; margin: 0 auto .75rem; display: block;" />
         <h2 style="font-size: 1.15rem; font-weight: 800;">You haven't submitted a wire report yet</h2>
-        <p class="section-sub" style="margin-top: .35rem; margin-bottom: 1rem;">Spot any sagging or tangled wires in Brgy. {{ current_user.barangay }}? Snap a photo from the Watch screen to auto-dispatch TIC &amp; VECO.</p>
+        <p class="section-sub" style="margin: .4rem auto 1.1rem; max-width: 460px;">Spot any sagging or tangled wires in Brgy. {{ current_user.barangay }}? Snap a photo from the Watch screen to auto-dispatch TIC &amp; VECO.</p>
         <a href="{% url 'home:home' %}" class="clay-btn-primary" style="display: inline-flex; width: auto; text-decoration: none;"><i data-lucide="camera" style="width: 15px; height: 15px;"></i><span>Go to Watch &amp; Report</span></a>
       </div>
     {% endif %}
-  </div>
+  </main>
 </div>
 {% endblock %}

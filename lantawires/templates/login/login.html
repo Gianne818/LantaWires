@@ -5,6 +5,35 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/login/login.css' %}">
+<style>
+  .auth-wrapper { padding: 5rem 1.25rem 3rem; }
+  .auth-card { border-radius: var(--r-lg); padding: 2rem; }
+  .auth-card-head { margin-bottom: 1.35rem; padding-top: .35rem; padding-right: 112px; }
+  .auth-mascot { position: absolute; top: -66px; right: 18px; width: 124px; pointer-events: none; }
+  .section-sub { color: var(--ink-2); line-height: 1.45; }
+  .auth-eyebrow { font-size: .78rem; font-weight: 700; color: var(--ink-2); letter-spacing: .01em; }
+  .quick-demo-row {
+    margin-top: 1.05rem; padding: .75rem .85rem;
+    background: var(--clay-card-2); border: 2px solid var(--clay-border); border-radius: 16px;
+    display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; justify-content: center;
+  }
+  .quick-demo-label { font-size: .76rem; color: var(--ink-2); font-weight: 700; margin-right: .15rem; }
+  .quick-demo-btn { font-size: .76rem; padding: .45rem .85rem; border-radius: 12px; }
+  .btn-primary:hover, .clay-btn-ghost:hover { transform: translateY(-2px); }
+  .mascot-peek:hover { transform: translateY(-2px); }
+  a:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid var(--peach); outline-offset: 2px; }
+  @media (max-width: 520px) {
+    .auth-wrapper { padding: 4.75rem 1rem 2.5rem; }
+    .auth-card { padding: 1.6rem 1.25rem; }
+    .auth-mascot { top: -54px; right: 14px; width: 100px; }
+    .auth-card-head { padding-right: 88px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .auth-wrapper::after { animation: none !important; }
+    .btn-primary, .clay-btn-ghost, .mascot-peek { transition: none !important; }
+    .btn-primary:hover, .clay-btn-ghost:hover, .mascot-peek:hover { transform: none !important; }
+  }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -16,41 +45,41 @@
       </div>
       <div>
         <h1 style="font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em;">LantaWires</h1>
-        <p style="font-size: .72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .08em;">Wire hazard watch · Cebu City</p>
+        <p class="auth-eyebrow">Wire hazard watch · Cebu City</p>
       </div>
     </div>
-    <p style="font-size: .95rem; font-weight: 600; color: var(--ink); line-height: 1.5; margin-bottom: .5rem;">
+    <p style="font-size: .96rem; font-weight: 600; color: var(--ink); line-height: 1.5; margin-bottom: .45rem;">
       Spot a sagging wire. Snap it. We handle the rest.
     </p>
-    <p class="section-sub" style="margin-bottom: 1.25rem;">AI clearance check + dispatch to TIC & VECO in seconds.</p>
-    <div style="display: flex; flex-direction: column; gap: .6rem;">
+    <p class="section-sub" style="margin-bottom: 1.25rem;">AI clearance check + dispatch to TIC &amp; VECO in seconds.</p>
+    <div style="display: flex; flex-direction: column; gap: .65rem;">
       <div class="auth-mini-feature">
         <div class="auth-mini-icon"><i data-lucide="cpu" style="width: 15px; height: 15px;"></i></div>
-        <div><p style="font-size: .8rem; font-weight: 700;">AI clearance check</p><p class="section-sub">Sag + density from one photo</p></div>
+        <div><p style="font-size: .82rem; font-weight: 700;">AI clearance check</p><p class="section-sub">Sag + density from one photo</p></div>
       </div>
       <div class="auth-mini-feature">
         <div class="auth-mini-icon"><i data-lucide="map-pin" style="width: 15px; height: 15px;"></i></div>
-        <div><p style="font-size: .8rem; font-weight: 700;">Barangay map</p><p class="section-sub">80 barangays, live pins</p></div>
+        <div><p style="font-size: .82rem; font-weight: 700;">Barangay map</p><p class="section-sub">80 barangays, live pins</p></div>
       </div>
       <div class="auth-mini-feature">
         <div class="auth-mini-icon"><i data-lucide="send" style="width: 15px; height: 15px;"></i></div>
-        <div><p style="font-size: .8rem; font-weight: 700;">Auto dispatch</p><p class="section-sub">TIC & VECO notified</p></div>
+        <div><p style="font-size: .82rem; font-weight: 700;">Auto dispatch</p><p class="section-sub">TIC &amp; VECO notified</p></div>
       </div>
     </div>
   </div>
 
   <div class="auth-card" style="position: relative;">
-    <img src="{% static 'images/mascot-sparrow-welcome.svg' %}" alt="Wiry welcomes you" class="mascot-peek" style="position: absolute; top: -72px; right: 18px; width: 130px;" />
-    <div style="margin-bottom: 1.25rem; padding-top: .5rem;">
+    <img src="{% static 'images/mascot-sparrow-welcome.svg' %}" alt="Wiry welcomes you" class="mascot-peek auth-mascot" />
+    <div class="auth-card-head">
       <span class="badge-pill badge-amber stamp-tilt" style="margin-bottom: .6rem;">Welcome back</span>
-      <h2 style="font-size: 1.4rem; font-weight: 800; letter-spacing: -0.02em;">Spot it. Snap it. Sorted.</h2>
-      <p class="section-sub">Login to your hazard dashboard.</p>
+      <h2 style="font-size: 1.45rem; font-weight: 800; letter-spacing: -0.02em;">Spot it. Snap it. Sorted.</h2>
+      <p class="section-sub" style="margin-top: .25rem;">Login to your hazard dashboard.</p>
     </div>
 
     {% if registered_notice %}
-      <div class="clay-tile" style="margin-bottom: 1rem; border-color: rgba(47,179,124,.3); display: flex; gap: .5rem; align-items: center;">
-        <i data-lucide="check-circle-2" style="width: 17px; height: 17px; color: var(--green);"></i>
-        <span style="font-size: .8rem;">{{ registered_notice }}</span>
+      <div class="clay-tile" style="margin-bottom: 1rem; border-color: rgba(47,179,124,.35); display: flex; gap: .55rem; align-items: center;">
+        <i data-lucide="check-circle-2" style="width: 17px; height: 17px; color: var(--green); flex-shrink: 0;"></i>
+        <span style="font-size: .82rem;">{{ registered_notice }}</span>
       </div>
     {% endif %}
 
@@ -60,19 +89,19 @@
         <label class="form-label" for="login-email-input">Email</label>
         <div class="input-container">
           <i data-lucide="mail" class="input-icon-left"></i>
-          <input id="login-email-input" name="email" type="email" value="{{ email|default:'' }}" placeholder="you@example.com" required class="input-field" />
+          <input id="login-email-input" name="email" type="email" value="{{ email|default:'' }}" placeholder="you@example.com" required class="input-field" autocomplete="email" />
         </div>
       </div>
       <div class="form-group">
         <label class="form-label" for="login-password-input">Password</label>
         <div class="input-container">
           <i data-lucide="lock" class="input-icon-left"></i>
-          <input id="login-password-input" name="password" type="password" placeholder="••••••••" required class="input-field" style="padding-right: 2.6rem;" />
-          <button type="button" id="toggle-password-btn" class="input-toggle-right" title="Show password"><i data-lucide="eye" id="password-eye-icon" style="width: 16px; height: 16px;"></i></button>
+          <input id="login-password-input" name="password" type="password" placeholder="••••••••" required class="input-field" style="padding-right: 2.75rem;" autocomplete="current-password" />
+          <button type="button" id="toggle-password-btn" class="input-toggle-right" title="Show password" aria-label="Show or hide password"><i data-lucide="eye" id="password-eye-icon" style="width: 16px; height: 16px;"></i></button>
         </div>
       </div>
-      <label style="display: flex; align-items: center; gap: .5rem; font-size: .78rem; color: var(--muted); margin: .25rem 0 1.1rem; cursor: pointer;">
-        <input id="login-remember-checkbox" name="remember_me" type="checkbox" checked style="accent-color: var(--peach); width: 15px; height: 15px;" />
+      <label style="display: flex; align-items: center; gap: .5rem; font-size: .8rem; color: var(--ink-2); margin: .35rem 0 1.15rem; cursor: pointer;">
+        <input id="login-remember-checkbox" name="remember_me" type="checkbox" checked style="accent-color: var(--peach); width: 16px; height: 16px;" />
         <span>Remember this device</span>
       </label>
       <button id="login-submit-btn" type="submit" class="btn-primary">
@@ -81,18 +110,18 @@
       </button>
     </form>
 
-    <div style="margin-top: .95rem; display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; justify-content: center;">
-      <span style="font-size: .72rem; color: var(--muted); font-weight: 700;">Quick demo:</span>
-      <button type="button" id="demo-citizen-btn" class="clay-btn-ghost" style="font-size: .72rem; padding: .35rem .7rem;">
-        <i data-lucide="user" style="width: 12px; height: 12px;"></i><span>Demo Citizen</span>
+    <div class="quick-demo-row">
+      <span class="quick-demo-label">Quick demo:</span>
+      <button type="button" id="demo-citizen-btn" class="clay-btn-ghost quick-demo-btn">
+        <i data-lucide="user" style="width: 13px; height: 13px;"></i><span>Demo Citizen</span>
       </button>
-      <button type="button" id="demo-resolver-btn" class="clay-btn-ghost" style="font-size: .72rem; padding: .35rem .7rem;">
-        <i data-lucide="shield-check" style="width: 12px; height: 12px;"></i><span>Demo Resolver</span>
+      <button type="button" id="demo-resolver-btn" class="clay-btn-ghost quick-demo-btn">
+        <i data-lucide="shield-check" style="width: 13px; height: 13px;"></i><span>Demo Resolver</span>
       </button>
     </div>
 
-    <div style="margin-top: 1.1rem; padding-top: 1rem; border-top: 2px solid var(--clay-border); text-align: center;">
-      <p style="font-size: .8rem; color: var(--muted);">New here? <a id="login-to-register-link" href="{% url 'register:register' %}" style="color: #c05c2a; font-weight: 800; text-decoration: none;">Create an account</a></p>
+    <div style="margin-top: 1.15rem; padding-top: 1rem; border-top: 2px solid var(--clay-border); text-align: center;">
+      <p style="font-size: .82rem; color: var(--ink-2);">New here? <a id="login-to-register-link" href="{% url 'register:register' %}" style="color: #c05c2a; font-weight: 800; text-decoration: none;">Create an account</a></p>
     </div>
   </div>
 </div>

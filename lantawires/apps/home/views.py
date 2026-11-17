@@ -310,6 +310,9 @@ def dispatches_view(request):
     barangay_breakdown = sorted(
         barangay_map.values(), key=lambda item: (item["active"], item["total"]), reverse=True
     )
+    max_brgy_total = max((item["total"] for item in barangay_breakdown), default=1) or 1
+    for item in barangay_breakdown:
+        item["width_pct"] = max(12, round((item["total"] / max_brgy_total) * 100))
 
     dispatch_stats = {
         "total_dispatches": len(dispatches) or sum(

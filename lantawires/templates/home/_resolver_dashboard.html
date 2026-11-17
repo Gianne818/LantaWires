@@ -10,7 +10,7 @@
         <span class="badge-pill badge-resolved" style="font-size: .62rem;">TIC / VECO Resolver</span>
       </div>
     </div>
-    <nav style="display: flex; align-items: center; gap: .3rem;">
+    <nav aria-label="Primary navigation" style="display: flex; align-items: center; gap: .3rem;">
       <a id="nav-link-home" href="{% url 'home:home' %}" class="nav-link active"><i data-lucide="shield-check" style="width: 15px; height: 15px;"></i><span>Triage Console</span></a>
       <a id="nav-link-dispatches" href="{% url 'home:dispatches' %}" class="nav-link"><i data-lucide="send" style="width: 15px; height: 15px;"></i><span>Dispatches</span></a>
       <a id="nav-link-profile" href="{% url 'profile:profile' %}" class="nav-link"><i data-lucide="user" style="width: 15px; height: 15px;"></i><span>Profile</span></a>
@@ -24,7 +24,7 @@
         </div>
         <div class="avatar-clay">{{ current_user.avatar|default:"LW" }}</div>
       </a>
-      <a id="home-sign-out-btn" href="{% url 'home:logout' %}" class="clay-btn-ghost" title="Sign out"><i data-lucide="log-out" style="width: 15px; height: 15px;"></i></a>
+      <a id="home-sign-out-btn" href="{% url 'home:logout' %}" class="clay-btn-ghost" title="Sign out" aria-label="Sign out"><i data-lucide="log-out" style="width: 15px; height: 15px;"></i></a>
     </div>
   </div>
 </header>
@@ -43,10 +43,10 @@
     </div>
   </div>
 
-  <div class="metrics-grid" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));">
+  <div class="metrics-grid" style="grid-template-columns: repeat(auto-fit, minmax(min(100%, 155px), 1fr));">
     <div class="metric-card">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: .5rem;">
-        <span style="font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);">Verified</span>
+        <span style="font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2);">Verified</span>
         <div class="metric-icon"><i data-lucide="check-circle-2" style="width: 16px; height: 16px;"></i></div>
       </div>
       <div class="metric-num" id="stat-total">{{ stats.total }}</div>
@@ -54,7 +54,7 @@
     </div>
     <div class="metric-card">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: .5rem;">
-        <span style="font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);">Dispatched</span>
+        <span style="font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2);">Dispatched</span>
         <div class="metric-icon"><i data-lucide="send" style="width: 16px; height: 16px;"></i></div>
       </div>
       <div class="metric-num" id="stat-dispatched">{{ stats.dispatched }}</div>
@@ -62,7 +62,7 @@
     </div>
     <div class="metric-card">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: .5rem;">
-        <span style="font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);">Investigating</span>
+        <span style="font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2);">Investigating</span>
         <div class="metric-icon" style="color: var(--peach);"><i data-lucide="wrench" style="width: 16px; height: 16px;"></i></div>
       </div>
       <div class="metric-num" style="color: var(--peach);" id="stat-investigating">{{ stats.investigating }}</div>
@@ -70,7 +70,7 @@
     </div>
     <div class="metric-card">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: .5rem;">
-        <span style="font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);">Critical</span>
+        <span style="font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2);">Critical</span>
         <div class="metric-icon" style="color: var(--red);"><i data-lucide="alert-triangle" style="width: 16px; height: 16px;"></i></div>
       </div>
       <div class="metric-num" style="color: var(--red);" id="stat-critical">{{ stats.critical }}</div>
@@ -78,7 +78,7 @@
     </div>
     <div class="metric-card">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: .5rem;">
-        <span style="font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);">Resolved</span>
+        <span style="font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2);">Resolved</span>
         <div class="metric-icon" style="color: var(--green);"><i data-lucide="zap" style="width: 16px; height: 16px;"></i></div>
       </div>
       <div class="metric-num" style="color: var(--green);" id="stat-resolved">{{ stats.resolved }}</div>

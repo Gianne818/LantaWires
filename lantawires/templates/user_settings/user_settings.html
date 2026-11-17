@@ -5,6 +5,23 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/user_settings/user_settings.css' %}">
+<style>
+  .app-header { padding: 0 1rem; }
+  .app-nav { flex-wrap: wrap; gap: .6rem 1rem; padding: .55rem .85rem; }
+  .app-nav nav { flex-wrap: wrap; }
+  .settings-container { max-width: 800px; margin: 1.15rem auto 0; padding: 0 1rem; }
+  .settings-card { padding: 1.75rem; border-radius: var(--r-lg); }
+  .settings-group-title { font-size: .8rem; text-transform: none; letter-spacing: -0.01em; color: var(--ink-2); font-weight: 800; margin-bottom: .75rem; }
+  .settings-row { border-radius: var(--r-md); padding: 1rem 1.15rem; transition: border-color .15s ease; }
+  .section-sub { color: var(--ink-2); line-height: 1.45; }
+  .clay-btn-primary:hover, .clay-btn-ghost:hover, .btn-secondary:hover { transform: translateY(-2px); }
+  .switch-toggle input:focus-visible + .slider-round { outline: 3px solid var(--peach); outline-offset: 2px; }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--peach); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) {
+    .clay-btn-primary, .clay-btn-ghost, .btn-secondary, .slider-round, .slider-round:before, .nav-link { transition: none !important; }
+    .clay-btn-primary:hover, .clay-btn-ghost:hover, .btn-secondary:hover { transform: none !important; }
+  }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -15,9 +32,9 @@
         <div style="width: 40px; height: 40px; border-radius: 14px; background: linear-gradient(180deg, var(--peach-soft), var(--peach)); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-btn);">
           <img src="{% static 'images/user_settings/settings-dial.svg' %}" alt="Settings" style="width: 24px; height: 24px;">
         </div>
-        <span style="font-size: 1.1rem; font-weight: 800;">LantaWires</span>
+        <span style="font-size: 1.1rem; font-weight: 800; letter-spacing: -0.02em;">LantaWires</span>
       </div>
-      <nav style="display: flex; align-items: center; gap: .3rem;">
+      <nav aria-label="Primary" style="display: flex; align-items: center; gap: .3rem;">
         {% if is_resolver %}
           <a id="nav-link-home" href="{% url 'home:home' %}" class="nav-link"><i data-lucide="shield-check" style="width: 15px; height: 15px;"></i><span>Triage Console</span></a>
           <a id="nav-link-dispatches" href="{% url 'home:dispatches' %}" class="nav-link"><i data-lucide="send" style="width: 15px; height: 15px;"></i><span>Dispatches</span></a>
@@ -33,8 +50,8 @@
   </header>
 
   <main class="settings-container">
-    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
-      <a href="{% url 'home:home' %}" style="color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: .35rem; font-size: .83rem; font-weight: 600;">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem;">
+      <a href="{% url 'home:home' %}" style="color: var(--ink-2); text-decoration: none; display: inline-flex; align-items: center; gap: .35rem; font-size: .84rem; font-weight: 700;">
         <i data-lucide="arrow-left" style="width: 15px; height: 15px;"></i><span>{% if is_resolver %}Triage Console{% else %}Watch{% endif %}</span>
       </a>
       {% if is_resolver %}
@@ -45,9 +62,9 @@
     </div>
 
     <div class="clay-card settings-card">
-      <div style="margin-bottom: 1.25rem;">
-        <h1 style="font-size: 1.3rem; font-weight: 800;">Preferences</h1>
-        <p class="section-sub">{% if is_resolver %}Theme, triage alerts, and agency dispatch routing.{% else %}Theme and neighborhood wire hazard notifications.{% endif %}</p>
+      <div style="margin-bottom: 1.35rem; padding-bottom: 1.1rem; border-bottom: 2px solid var(--clay-border);">
+        <h1 style="font-size: 1.4rem; font-weight: 800; letter-spacing: -0.02em;">Preferences</h1>
+        <p class="section-sub" style="margin-top: .25rem;">{% if is_resolver %}Theme, triage alerts, and agency dispatch routing.{% else %}Theme and neighborhood wire hazard notifications.{% endif %}</p>
       </div>
       <form method="post">
         {% csrf_token %}
@@ -56,10 +73,10 @@
           <div class="settings-row">
             <div style="display: flex; align-items: center; gap: .85rem;">
               <div class="metric-icon"><i data-lucide="moon" style="width: 18px; height: 18px;"></i></div>
-              <div><p style="font-size: .9rem; font-weight: 800;">Dark clay mode</p><p class="section-sub">Softer contrast for night checks.</p></div>
+              <div><p style="font-size: .92rem; font-weight: 800;">Dark clay mode</p><p class="section-sub">Softer contrast for night checks.</p></div>
             </div>
             <label class="switch-toggle">
-              <input type="checkbox" name="dark_mode" id="setting-dark-mode" class="settings-switch-input" {% if settings.dark_mode %}checked{% endif %}>
+              <input type="checkbox" name="dark_mode" id="setting-dark-mode" class="settings-switch-input" aria-label="Dark clay mode" {% if settings.dark_mode %}checked{% endif %}>
               <span class="slider-round"></span>
             </label>
           </div>
@@ -70,20 +87,20 @@
           <div class="settings-row {% if settings.email_notifications %}setting-active{% endif %}">
             <div style="display: flex; align-items: center; gap: .85rem;">
               <div class="metric-icon"><i data-lucide="mail" style="width: 18px; height: 18px;"></i></div>
-              <div><p style="font-size: .9rem; font-weight: 800;">{% if is_resolver %}Email receipts{% else %}Report status updates{% endif %}</p><p class="section-sub">{% if is_resolver %}When TIC or VECO resolves a report.{% else %}Notify when crews update your submitted wire reports.{% endif %}</p></div>
+              <div><p style="font-size: .92rem; font-weight: 800;">{% if is_resolver %}Email receipts{% else %}Report status updates{% endif %}</p><p class="section-sub">{% if is_resolver %}When TIC or VECO resolves a report.{% else %}Notify when crews update your submitted wire reports.{% endif %}</p></div>
             </div>
             <label class="switch-toggle">
-              <input type="checkbox" name="email_notifications" class="settings-switch-input" {% if settings.email_notifications %}checked{% endif %}>
+              <input type="checkbox" name="email_notifications" class="settings-switch-input" aria-label="{% if is_resolver %}Email receipts{% else %}Report status updates{% endif %}" {% if settings.email_notifications %}checked{% endif %}>
               <span class="slider-round"></span>
             </label>
           </div>
           <div class="settings-row {% if settings.hazard_alerts %}setting-active{% endif %}">
             <div style="display: flex; align-items: center; gap: .85rem;">
               <div class="metric-icon" style="color: var(--red);"><i data-lucide="radio" style="width: 18px; height: 18px;"></i></div>
-              <div><p style="font-size: .9rem; font-weight: 800;">Barangay alerts</p><p class="section-sub">New critical wires near you.</p></div>
+              <div><p style="font-size: .92rem; font-weight: 800;">Barangay alerts</p><p class="section-sub">New critical wires near you.</p></div>
             </div>
             <label class="switch-toggle">
-              <input type="checkbox" name="hazard_alerts" class="settings-switch-input" {% if settings.hazard_alerts %}checked{% endif %}>
+              <input type="checkbox" name="hazard_alerts" class="settings-switch-input" aria-label="Barangay alerts" {% if settings.hazard_alerts %}checked{% endif %}>
               <span class="slider-round"></span>
             </label>
           </div>
@@ -91,10 +108,10 @@
           <div class="settings-row {% if settings.auto_dispatch_updates %}setting-active{% endif %}">
             <div style="display: flex; align-items: center; gap: .85rem;">
               <div class="metric-icon" style="color: var(--green);"><i data-lucide="send" style="width: 18px; height: 18px;"></i></div>
-              <div><p style="font-size: .9rem; font-weight: 800;">Auto routing</p><p class="section-sub">Mirror tickets to agency desks.</p></div>
+              <div><p style="font-size: .92rem; font-weight: 800;">Auto routing</p><p class="section-sub">Mirror tickets to agency desks.</p></div>
             </div>
             <label class="switch-toggle">
-              <input type="checkbox" name="auto_dispatch_updates" class="settings-switch-input" {% if settings.auto_dispatch_updates %}checked{% endif %}>
+              <input type="checkbox" name="auto_dispatch_updates" class="settings-switch-input" aria-label="Auto routing" {% if settings.auto_dispatch_updates %}checked{% endif %}>
               <span class="slider-round"></span>
             </label>
           </div>
@@ -102,10 +119,10 @@
           <div class="settings-row {% if settings.sound_alerts %}setting-active{% endif %}">
             <div style="display: flex; align-items: center; gap: .85rem;">
               <div class="metric-icon"><i data-lucide="volume-2" style="width: 18px; height: 18px;"></i></div>
-              <div><p style="font-size: .9rem; font-weight: 800;">Sound chime</p><p class="section-sub">Tone for low-clearance pins.</p></div>
+              <div><p style="font-size: .92rem; font-weight: 800;">Sound chime</p><p class="section-sub">Tone for low-clearance pins.</p></div>
             </div>
             <label class="switch-toggle">
-              <input type="checkbox" name="sound_alerts" class="settings-switch-input" {% if settings.sound_alerts %}checked{% endif %}>
+              <input type="checkbox" name="sound_alerts" class="settings-switch-input" aria-label="Sound chime" {% if settings.sound_alerts %}checked{% endif %}>
               <span class="slider-round"></span>
             </label>
           </div>

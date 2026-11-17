@@ -19,7 +19,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'css/lantawires.css' %}?v=13">
+  <link rel="stylesheet" href="{% static 'css/lantawires.css' %}?v=16">
   {% block extra_css %}{% endblock %}
   <script src="https://unpkg.com/lucide@latest"></script>
   {% block extra_head %}{% endblock %}
@@ -64,10 +64,11 @@
         }, 4000);
       }
       const fab = document.getElementById("theme-toggle-fab");
-      const icon = document.getElementById("theme-toggle-icon");
       function syncIcon() {
         var theme = document.documentElement.getAttribute("data-theme") || "light";
-        if (icon) icon.setAttribute("data-lucide", theme === "dark" ? "sun" : "moon");
+        if (fab) {
+          fab.innerHTML = '<i data-lucide="' + (theme === "dark" ? "sun" : "moon") + '" style="width: 20px; height: 20px;"></i>';
+        }
         if (window.lucide) window.lucide.createIcons();
       }
       syncIcon();

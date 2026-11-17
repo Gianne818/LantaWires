@@ -5,6 +5,40 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/register/register.css' %}">
+<style>
+  .auth-wrapper { padding: 5rem 1.25rem 3rem; }
+  .auth-card { border-radius: var(--r-lg); padding: 2rem; max-width: 540px; }
+  .auth-card-head { margin-bottom: 1.35rem; padding-top: .35rem; padding-right: 112px; }
+  .auth-mascot { position: absolute; top: -66px; right: 18px; width: 124px; pointer-events: none; }
+  .section-sub { color: var(--ink-2); line-height: 1.45; }
+  .auth-eyebrow { font-size: .78rem; font-weight: 700; color: var(--ink-2); letter-spacing: .01em; }
+  .reg-grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: .8rem; }
+  .reg-select {
+    cursor: pointer;
+    padding-right: 2.25rem !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234a556e' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right .85rem center;
+    background-size: 15px 15px;
+  }
+  [data-theme="dark"] .reg-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23c6cbd6' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  }
+  .btn-primary:hover, .clay-btn-ghost:hover { transform: translateY(-2px); }
+  .mascot-peek:hover { transform: translateY(-2px); }
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--peach); outline-offset: 2px; }
+  @media (max-width: 520px) {
+    .auth-wrapper { padding: 4.75rem 1rem 2.5rem; }
+    .auth-card { padding: 1.6rem 1.25rem; }
+    .auth-mascot { top: -54px; right: 14px; width: 100px; }
+    .auth-card-head { padding-right: 88px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .auth-wrapper::after { animation: none !important; }
+    .btn-primary, .clay-btn-ghost, .mascot-peek { transition: none !important; }
+    .btn-primary:hover, .clay-btn-ghost:hover, .mascot-peek:hover { transform: none !important; }
+  }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -16,93 +50,93 @@
       </div>
       <div>
         <h1 style="font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em;">LantaWires</h1>
-        <p style="font-size: .72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .08em;">Wire hazard watch · Cebu City</p>
+        <p class="auth-eyebrow">Wire hazard watch · Cebu City</p>
       </div>
     </div>
-    <p style="font-size: .95rem; font-weight: 600; line-height: 1.5; margin-bottom: .5rem;">Join your barangay safety watch.</p>
+    <p style="font-size: .96rem; font-weight: 600; line-height: 1.5; margin-bottom: .45rem;">Join your barangay safety watch.</p>
     <p class="section-sub" style="margin-bottom: 1.25rem;">Report sagging wires, track clearing, keep streets safe.</p>
-    <div style="display: flex; flex-direction: column; gap: .6rem;">
+    <div style="display: flex; flex-direction: column; gap: .65rem;">
       <div class="auth-mini-feature">
         <div class="auth-mini-icon"><i data-lucide="camera" style="width: 15px; height: 15px;"></i></div>
-        <div><p style="font-size: .8rem; font-weight: 700;">Snap & submit</p><p class="section-sub">One photo is enough</p></div>
+        <div><p style="font-size: .82rem; font-weight: 700;">Snap &amp; submit</p><p class="section-sub">One photo is enough</p></div>
       </div>
       <div class="auth-mini-feature">
         <div class="auth-mini-icon"><i data-lucide="shield-check" style="width: 15px; height: 15px;"></i></div>
-        <div><p style="font-size: .8rem; font-weight: 700;">Verified reports</p><p class="section-sub">AI + community review</p></div>
+        <div><p style="font-size: .82rem; font-weight: 700;">Verified reports</p><p class="section-sub">AI + community review</p></div>
       </div>
     </div>
   </div>
 
-  <div class="auth-card" style="max-width: 520px; position: relative;">
-    <img src="{% static 'images/mascot-sparrow-welcome.svg' %}" alt="Wiry welcomes you" class="mascot-peek" style="position: absolute; top: -72px; right: 18px; width: 130px;" />
-    <div style="margin-bottom: 1.25rem; padding-top: .5rem;">
+  <div class="auth-card" style="position: relative;">
+    <img src="{% static 'images/mascot-sparrow-welcome.svg' %}" alt="Wiry welcomes you" class="mascot-peek auth-mascot" />
+    <div class="auth-card-head">
       <span class="badge-pill badge-amber stamp-tilt" style="margin-bottom: .6rem;">Join the watch</span>
-      <h2 style="font-size: 1.4rem; font-weight: 800;">Become a Brgy. Hero</h2>
-      <p class="section-sub">Report wires in your barangay.</p>
+      <h2 style="font-size: 1.45rem; font-weight: 800; letter-spacing: -0.02em;">Become a Brgy. Hero</h2>
+      <p class="section-sub" style="margin-top: .25rem;">Report wires in your barangay.</p>
     </div>
 
     <form id="register-form" action="{% url 'register:index' %}" method="POST">
       {% csrf_token %}
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: .75rem;">
+      <div class="reg-grid-2">
         <div class="form-group">
           <label class="form-label" for="register-name-input">Full name</label>
           <div class="input-container">
             <i data-lucide="user" class="input-icon-left"></i>
-            <input id="register-name-input" name="name" type="text" value="{{ name|default:'' }}" placeholder="e.g. Gianne Cruz" required class="input-field" />
+            <input id="register-name-input" name="name" type="text" value="{{ name|default:'' }}" placeholder="e.g. Gianne Cruz" required class="input-field" autocomplete="name" />
           </div>
         </div>
         <div class="form-group">
           <label class="form-label" for="register-phone-input">Mobile</label>
           <div class="input-container">
             <i data-lucide="phone" class="input-icon-left"></i>
-            <input id="register-phone-input" name="phone" type="tel" value="{{ phone|default:'' }}" placeholder="+63 9XX XXX XXXX" required class="input-field" />
+            <input id="register-phone-input" name="phone" type="tel" value="{{ phone|default:'' }}" placeholder="+63 9XX XXX XXXX" required class="input-field" autocomplete="tel" />
           </div>
         </div>
       </div>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: .75rem;">
+      <div class="reg-grid-2">
         <div class="form-group">
           <label class="form-label" for="register-email-input">Email</label>
           <div class="input-container">
             <i data-lucide="mail" class="input-icon-left"></i>
-            <input id="register-email-input" name="email" type="email" value="{{ email|default:'' }}" placeholder="you@cebucity.ph" required class="input-field" />
+            <input id="register-email-input" name="email" type="email" value="{{ email|default:'' }}" placeholder="you@cebucity.ph" required class="input-field" autocomplete="email" />
           </div>
         </div>
         <div class="form-group">
           <label class="form-label" for="register-barangay-select">Barangay</label>
-          <select id="register-barangay-select" name="barangay" class="input-field no-icon" style="cursor: pointer;">
+          <select id="register-barangay-select" name="barangay" class="input-field no-icon reg-select">
             {% for b in barangays %}
               <option value="{{ b }}" {% if b == selected_barangay or b == 'Tisa' %}selected{% endif %}>Brgy. {{ b }}</option>
             {% endfor %}
           </select>
         </div>
       </div>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: .75rem;">
+      <div class="reg-grid-2">
         <div class="form-group">
           <label class="form-label" for="register-password-input">Password</label>
           <div class="input-container">
             <i data-lucide="lock" class="input-icon-left"></i>
-            <input id="register-password-input" name="password" type="password" placeholder="Min. 6 characters" required class="input-field" style="padding-right: 2.6rem;" />
-            <button type="button" id="toggle-reg-password-btn" class="input-toggle-right"><i data-lucide="eye" id="reg-eye-icon" style="width: 16px; height: 16px;"></i></button>
+            <input id="register-password-input" name="password" type="password" placeholder="Min. 6 characters" required class="input-field" style="padding-right: 2.75rem;" autocomplete="new-password" />
+            <button type="button" id="toggle-reg-password-btn" class="input-toggle-right" title="Show password" aria-label="Show or hide password"><i data-lucide="eye" id="reg-eye-icon" style="width: 16px; height: 16px;"></i></button>
           </div>
         </div>
         <div class="form-group">
           <label class="form-label" for="register-confirm-password-input">Confirm</label>
           <div class="input-container">
             <i data-lucide="lock" class="input-icon-left"></i>
-            <input id="register-confirm-password-input" name="confirm_password" type="password" placeholder="Re-type password" required class="input-field" />
+            <input id="register-confirm-password-input" name="confirm_password" type="password" placeholder="Re-type password" required class="input-field" autocomplete="new-password" />
           </div>
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label" for="register-resolver-input">Resolver invite code <span style="font-weight: 500; color: var(--muted);">(optional)</span></label>
+        <label class="form-label" for="register-resolver-input">Resolver invite code <span style="font-weight: 600; color: var(--ink-2);">(optional)</span></label>
         <div class="input-container">
           <i data-lucide="key-round" class="input-icon-left"></i>
           <input id="register-resolver-input" name="resolver_code" type="text" placeholder="Citizens leave blank" class="input-field" autocomplete="off" />
         </div>
-        <p class="section-sub" style="margin-top: .3rem;">TIC / VECO responders enter their invite code to unlock status toggling.</p>
+        <p class="section-sub" style="margin-top: .35rem;">TIC / VECO responders enter their invite code to unlock status toggling.</p>
       </div>
-      <label style="display: flex; gap: .6rem; font-size: .76rem; color: var(--muted); cursor: pointer; background: var(--clay-card-2); border: 2px solid var(--clay-border); border-radius: 14px; padding: .7rem .8rem; margin: .25rem 0 1rem;">
-        <input id="register-terms-checkbox" name="agree_terms" type="checkbox" checked style="accent-color: var(--peach); width: 16px; height: 16px; margin-top: 2px;" />
+      <label style="display: flex; align-items: flex-start; gap: .6rem; font-size: .78rem; color: var(--ink-2); cursor: pointer; background: var(--clay-card-2); border: 2px solid var(--clay-border); border-radius: 14px; padding: .75rem .85rem; margin: .25rem 0 1.05rem;">
+        <input id="register-terms-checkbox" name="agree_terms" type="checkbox" checked style="accent-color: var(--peach); width: 16px; height: 16px; margin-top: 2px; flex-shrink: 0;" />
         <span>Reports reflect real wire conditions in Cebu City.</span>
       </label>
       <button id="register-submit-btn" type="submit" class="btn-primary">
@@ -112,7 +146,7 @@
     </form>
 
     <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 2px solid var(--clay-border); text-align: center;">
-      <p style="font-size: .8rem; color: var(--muted);">Have an account? <a id="register-to-login-link" href="{% url 'login:login' %}" style="color: #c05c2a; font-weight: 800; text-decoration: none;">Login</a></p>
+      <p style="font-size: .82rem; color: var(--ink-2);">Have an account? <a id="register-to-login-link" href="{% url 'login:login' %}" style="color: #c05c2a; font-weight: 800; text-decoration: none;">Login</a></p>
     </div>
   </div>
 </div>

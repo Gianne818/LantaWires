@@ -103,8 +103,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const feedCountEl = document.getElementById("feed-count");
   const cardsCountPill = document.getElementById("cards-count-pill");
 
-  // Preview elements
+  // Preview elements & role
+  const dashboardRoot = document.getElementById("home-dashboard-root");
   const previewCard = document.getElementById("selected-hotspot-preview");
+  const isResolver = (previewCard?.dataset.role || dashboardRoot?.dataset.role) === "resolver";
   const previewImage = document.getElementById("preview-image");
   const previewTicket = document.getElementById("preview-ticket");
   const previewSeverityBadge = document.getElementById("preview-severity-badge");
@@ -156,6 +158,16 @@ document.addEventListener("DOMContentLoaded", () => {
   function getCsrfToken() {
     const meta = document.querySelector('meta[name="csrf-token"]');
     return meta ? meta.getAttribute("content") : "";
+  }
+
+  // Helper: Escape HTML for safe template interpolation
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
   }
 
   // Helper: Map Coordinates projection
@@ -257,18 +269,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const popupHtml = `
           <div style="font-family: inherit; font-size: 0.8rem; min-width: 170px; line-height: 1.35; padding: 2px;">
-            <div style="font-weight: 800; font-size: 0.84rem; margin-bottom: 2px; color: var(--ink);">${report.title}</div>
-            <div style="color: var(--muted); font-size: 0.72rem; margin-bottom: 6px;">📍 Brgy. ${report.barangay}</div>
+            <div style="font-weight: 800; font-size: 0.84rem; margin-bottom: 2px; color: var(--ink);">${escapeHtml(report.title)}</div>
+            <div style="color: var(--ink-2); font-size: 0.72rem; margin-bottom: 6px;">Brgy. ${escapeHtml(report.barangay)}</div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
               <span class="badge-pill ${sevConfig.badgeClass}" style="font-size: 0.65rem; padding: 2px 7px;">${sevConfig.label}</span>
-              <span style="font-weight: 700; color: var(--red); font-size: 0.74rem;">${report.clearanceHeightMeters || 3.1}m clearance</span>
+              <span style="font-weight: 700; color: var(--red); font-size: 0.74rem; font-variant-numeric: tabular-nums;">${report.clearanceHeightMeters || 3.1}m clearance</span>
             </div>
           </div>
         `;
         marker.bindPopup(popupHtml);
 
         marker.on("click", () => {
-          selectReport(report, false);
+          selectReport(report, false, true);
         });
 
         marker.addTo(leafletMarkersGroup);
@@ -303,7 +315,7 @@ document.addEventListener("DOMContentLoaded", () => {
       `;
 
       pinEl.addEventListener("click", () => {
-        selectReport(report);
+        selectReport(report, true, true);
       });
 
       mapPinsContainer.appendChild(pinEl);
@@ -338,62 +350,51 @@ document.addEventListener("DOMContentLoaded", () => {
     filtered.slice(0, visibleCount).forEach(report => {
       const sevConfig = getSeverityConfig(report.severity);
       const statusConfig = getStatusConfig(report.status);
+      const clearanceText = (report.aiAnalysis?.cableSagClearance || "3.2m above road").split("(")[0].trim();
+      const confidenceValue = report.aiAnalysis?.confidence || 95.4;
 
       const card = document.createElement("div");
-      card.className = "clay-card";
-      card.style.cssText = `
-        border-radius: 20px;
-        padding: 1.1rem;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        cursor: pointer;
-        transition: transform 0.15s ease;
-      `;
-      card.addEventListener("mouseenter", () => {
-        card.style.transform = "translateY(-3px)";
-      });
-      card.addEventListener("mouseleave", () => {
-        card.style.transform = "translateY(0)";
-      });
+      card.className = "clay-card incident-card";
+      card.setAttribute("tabindex", "0");
+      card.setAttribute("role", "button");
+      card.setAttribute("aria-label", `${report.title} in Brgy. ${report.barangay}`);
+
+      const fallbackImg = "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80";
+      const thumbImg = report.imageUrl || fallbackImg;
 
       card.innerHTML = `
         <div>
-          <!-- Header Meta — severity + status only, no ticket ID -->
-          <div class="incident-meta-row" style="margin-bottom: 0.6rem;">
-            <span class="badge-pill badge-compact ${sevConfig.badgeClass}">${sevConfig.label}</span>
-            <span class="badge-pill badge-compact ${statusConfig.badgeClass}">${statusConfig.label}</span>
+          <div class="incident-card-thumb">
+            <img src="${escapeHtml(thumbImg)}" alt="${escapeHtml(report.title)}" loading="lazy" onerror="this.src='${fallbackImg}'" />
+            <div class="incident-card-thumb-badges">
+              <span class="badge-pill badge-compact ${sevConfig.badgeClass}">${sevConfig.label}</span>
+              <span class="badge-pill badge-compact ${statusConfig.badgeClass}">${statusConfig.label}</span>
+            </div>
           </div>
 
-          <!-- Title -->
-          <h3 style="font-size: 0.92rem; font-weight: 800; line-height: 1.35; margin-bottom: 0.3rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-            ${report.title}
-          </h3>
+          <h3 class="incident-card-title">${escapeHtml(report.title)}</h3>
 
-          <!-- Address -->
-          <p style="font-size: 0.75rem; color: var(--muted); display: flex; align-items: center; gap: 0.35rem;">
+          <p class="incident-card-address">
             <i data-lucide="map-pin" style="width: 13px; height: 13px; flex-shrink: 0;"></i>
-            <span>${report.address}</span>
+            <span>${escapeHtml(report.address)}</span>
           </p>
 
-          <!-- AI Telemetry Snippet Box -->
-          <div class="clay-inset-box" style="margin-top: 0.8rem; font-size: 0.72rem; display: flex; flex-direction: column; gap: 0.25rem;">
-            <div style="display: flex; justify-content: space-between;">
-              <span style="color: var(--muted);">Clearance:</span>
-              <span style="color: var(--red); font-weight: 700;">${(report.aiAnalysis?.cableSagClearance || "3.2m above road").split("(")[0]}</span>
+          <div class="clay-inset-box incident-telemetry">
+            <div class="incident-telemetry-row">
+              <span class="incident-telemetry-label">Clearance</span>
+              <span class="incident-telemetry-value is-clearance">${escapeHtml(clearanceText)}</span>
             </div>
-            <div style="display: flex; justify-content: space-between;">
-              <span style="color: var(--muted);">Confidence:</span>
-              <span style="color: var(--green); font-weight: 800;">${report.aiAnalysis?.confidence || 95.4}%</span>
+            <div class="incident-telemetry-row">
+              <span class="incident-telemetry-label">Confidence</span>
+              <span class="incident-telemetry-value is-confidence">${escapeHtml(confidenceValue)}%</span>
             </div>
           </div>
         </div>
 
-        <!-- Footer -->
-        <div style="margin-top: 0.9rem; padding-top: 0.7rem; border-top: 2px solid var(--clay-border); display: flex; align-items: center; justify-content: space-between; font-size: 0.72rem; color: var(--muted);">
-          <span>${report.reportedAt}</span>
-          <span style="color: #c05c2a; font-weight: 800; display: inline-flex; align-items: center; gap: 0.25rem;">
-            <span>Inspect</span>
+        <div class="incident-card-footer">
+          <span>${escapeHtml(report.reportedAt)}</span>
+          <span class="incident-card-action">
+            <span>${isResolver ? "Inspect" : "Safety details"}</span>
             <i data-lucide="chevron-right" style="width: 13px; height: 13px;"></i>
           </span>
         </div>
@@ -401,6 +402,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
       card.addEventListener("click", () => {
         openDetailModal(report);
+      });
+      card.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          openDetailModal(report);
+        }
       });
 
       incidentCardsContainer.appendChild(card);
@@ -429,7 +436,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Select Report on Map
-  function selectReport(report, panMap = true) {
+  function selectReport(report, panMap = true, showPreview = true) {
     currentSelectedReport = report;
 
     if (panMap && leafletMap && report && report.gpsCoordinates) {
@@ -437,22 +444,34 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (previewCard && report) {
-      previewCard.style.display = "flex";
+      previewCard.style.display = showPreview ? "flex" : "none";
       if (previewImage) {
         previewImage.onerror = function() {
           this.src = "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80";
         };
         previewImage.src = report.imageUrl || "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80";
       }
-      if (previewTicket) previewTicket.textContent = report.ticketNumber;
+      if (previewTicket) {
+        if (isResolver) {
+          previewTicket.style.display = "inline-flex";
+          previewTicket.textContent = report.ticketNumber;
+        } else {
+          previewTicket.style.display = "none";
+          previewTicket.textContent = "";
+        }
+      }
       if (previewBarangay) previewBarangay.textContent = `Brgy. ${report.barangay}`;
       if (previewTitle) previewTitle.textContent = report.title;
       if (previewAddress) previewAddress.textContent = report.address;
 
       const sevConfig = getSeverityConfig(report.severity);
       if (previewSeverityBadge) {
-        previewSeverityBadge.className = `badge-pill ${sevConfig.badgeClass}`;
+        previewSeverityBadge.className = `badge-pill badge-compact ${sevConfig.badgeClass}`;
         previewSeverityBadge.textContent = sevConfig.label;
+      }
+      if (previewInspectBtn) {
+        const inspectLabel = previewInspectBtn.querySelector("span");
+        if (inspectLabel) inspectLabel.textContent = isResolver ? "Inspect" : "Safety details";
       }
     }
   }
@@ -521,6 +540,8 @@ document.addEventListener("DOMContentLoaded", () => {
     syncStageSelectionUI(pendingSelectedStatus, report.status);
 
     detailModal.classList.add("open");
+    document.documentElement.classList.add("modal-open");
+    document.body.classList.add("modal-open");
     if (window.lucide) window.lucide.createIcons();
   }
 
@@ -548,13 +569,25 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function syncBodyModalLock() {
+    const anyOpen = (detailModal && detailModal.classList.contains("open")) || (reportModal && reportModal.classList.contains("open"));
+    document.documentElement.classList.toggle("modal-open", Boolean(anyOpen));
+    document.body.classList.toggle("modal-open", Boolean(anyOpen));
+  }
+
   function closeDetailModal() {
     pendingSelectedStatus = null;
     if (detailModal) detailModal.classList.remove("open");
+    syncBodyModalLock();
   }
 
   if (closeDetailModalBtn) closeDetailModalBtn.addEventListener("click", closeDetailModal);
   if (closeDetailFooterBtn) closeDetailFooterBtn.addEventListener("click", closeDetailModal);
+  if (detailModal) {
+    detailModal.addEventListener("click", (e) => {
+      if (e.target === detailModal) closeDetailModal();
+    });
+  }
 
   // 3-Stage Resolver Status Controls (select first, then Save status persists to DB)
   const statusStageButtons = document.querySelectorAll(".status-stage-btn");
@@ -652,12 +685,21 @@ document.addEventListener("DOMContentLoaded", () => {
     if (wizardAddressInput) wizardAddressInput.value = "";
     setWizardStep("input");
     reportModal.classList.add("open");
+    document.documentElement.classList.add("modal-open");
+    document.body.classList.add("modal-open");
     if (window.lucide) lucide.createIcons();
   }
 
   function closeReportModal() {
     if (!reportModal) return;
     reportModal.classList.remove("open");
+    syncBodyModalLock();
+  }
+
+  if (reportModal) {
+    reportModal.addEventListener("click", (e) => {
+      if (e.target === reportModal) closeReportModal();
+    });
   }
 
   function setWizardStep(step) {
@@ -826,7 +868,7 @@ document.addEventListener("DOMContentLoaded", () => {
           renderMapPins();
           renderIncidentCards(true);
           updateStats();
-          selectReport(newRep, false);
+          selectReport(newRep, false, isResolver);
           if (leafletMap && newRep.gpsCoordinates) {
             leafletMap.flyTo([newRep.gpsCoordinates.lat, newRep.gpsCoordinates.lng], 16, { duration: 1.0 });
           }
@@ -885,11 +927,19 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Escape key closes active modal
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      if (detailModal && detailModal.classList.contains("open")) closeDetailModal();
+      if (reportModal && reportModal.classList.contains("open")) closeReportModal();
+    }
+  });
+
   // Initial render
   initLeafletMap();
   renderMapPins();
   renderIncidentCards();
   if (reports.length > 0) {
-    selectReport(reports[0], false);
+    selectReport(reports[0], false, isResolver);
   }
 });

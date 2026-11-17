@@ -5,6 +5,34 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/profile/profile.css' %}">
+<style>
+  .app-header { padding: 0 1rem; }
+  .app-nav { flex-wrap: wrap; gap: .6rem 1rem; padding: .55rem .85rem; }
+  .app-nav nav { flex-wrap: wrap; }
+  .profile-container { max-width: 960px; margin: 1.15rem auto 0; padding: 0 1rem; }
+  .profile-card { padding: 1.75rem; border-radius: var(--r-lg); }
+  .profile-stat-box { border-radius: var(--r-md); padding: 1rem 1.05rem; display: flex; flex-direction: column; gap: .35rem; }
+  .profile-stat-label { font-size: .78rem; font-weight: 700; color: var(--ink-2); letter-spacing: -0.01em; }
+  .profile-stat-box .metric-num { font-variant-numeric: tabular-nums; line-height: 1; align-self: flex-start; margin: .15rem 0 .1rem; font-size: 1.55rem; height: 48px; min-width: 48px; }
+  .section-sub { color: var(--ink-2); line-height: 1.45; }
+  .profile-select {
+    padding-right: 2.25rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234a556e' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right .85rem center;
+    background-size: 15px 15px;
+  }
+  [data-theme="dark"] .profile-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23c6cbd6' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  }
+  .ticket-chip, .tabular-val { font-variant-numeric: tabular-nums; }
+  .clay-btn-primary:hover, .clay-btn-ghost:hover, .profile-btn-save:hover, .profile-btn-cancel:hover, .avatar-preset-btn:hover { transform: translateY(-2px); }
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid var(--peach); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) {
+    .clay-btn-primary, .clay-btn-ghost, .profile-btn-save, .profile-btn-cancel, .avatar-preset-btn, .nav-link { transition: none !important; }
+    .clay-btn-primary:hover, .clay-btn-ghost:hover, .profile-btn-save:hover, .profile-btn-cancel:hover, .avatar-preset-btn:hover { transform: none !important; }
+  }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -15,9 +43,9 @@
         <div style="width: 40px; height: 40px; border-radius: 14px; background: linear-gradient(180deg, var(--peach-soft), var(--peach)); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-btn);">
           <img src="{% static 'images/profile/profile-shield.svg' %}" alt="Profile" style="width: 24px; height: 24px; border-radius: 6px;">
         </div>
-        <span style="font-size: 1.1rem; font-weight: 800;">LantaWires</span>
+        <span style="font-size: 1.1rem; font-weight: 800; letter-spacing: -0.02em;">LantaWires</span>
       </div>
-      <nav style="display: flex; align-items: center; gap: .3rem;">
+      <nav aria-label="Primary" style="display: flex; align-items: center; gap: .3rem;">
         {% if is_resolver %}
           <a id="nav-link-home" href="{% url 'home:home' %}" class="nav-link"><i data-lucide="shield-check" style="width: 15px; height: 15px;"></i><span>Triage Console</span></a>
           <a id="nav-link-dispatches" href="{% url 'home:dispatches' %}" class="nav-link"><i data-lucide="send" style="width: 15px; height: 15px;"></i><span>Dispatches</span></a>
@@ -33,8 +61,8 @@
   </header>
 
   <main class="profile-container">
-    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
-      <a href="{% url 'home:home' %}" style="color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: .35rem; font-size: .83rem; font-weight: 600;">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem;">
+      <a href="{% url 'home:home' %}" style="color: var(--ink-2); text-decoration: none; display: inline-flex; align-items: center; gap: .35rem; font-size: .84rem; font-weight: 700;">
         <i data-lucide="arrow-left" style="width: 15px; height: 15px;"></i><span>{% if is_resolver %}Triage Console{% else %}Watch{% endif %}</span>
       </a>
       {% if is_resolver %}
@@ -45,12 +73,12 @@
     </div>
 
     <div class="clay-card profile-card">
-      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 1.1rem; padding-bottom: 1.25rem; border-bottom: 2px solid var(--clay-border);">
+      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 1.15rem; padding-bottom: 1.35rem; border-bottom: 2px solid var(--clay-border);">
         <div class="avatar-badge-xl" id="profile-avatar-preview">{{ current_user.avatar|default:"GC" }}</div>
         <div style="flex: 1; min-width: 220px;">
-          <h1 style="font-size: 1.45rem; font-weight: 800; letter-spacing: -0.02em;">{{ current_user.name|default:"Gianne Cruz" }}</h1>
-          <p class="section-sub" style="display: flex; align-items: center; gap: .4rem; margin-top: .2rem;">
-            <i data-lucide="map-pin" style="width: 13px; height: 13px;"></i><span>Brgy. {{ current_user.barangay|default:"Tisa" }} · {{ current_user.email|default:"gianne@cebucity.ph" }}</span>
+          <h1 style="font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;">{{ current_user.name|default:"Gianne Cruz" }}</h1>
+          <p class="section-sub" style="display: flex; align-items: center; gap: .4rem; margin-top: .25rem; flex-wrap: wrap;">
+            <i data-lucide="map-pin" style="width: 14px; height: 14px; flex-shrink: 0;"></i><span>Brgy. {{ current_user.barangay|default:"Tisa" }} · {{ current_user.email|default:"gianne@cebucity.ph" }}</span>
           </p>
         </div>
         <a href="{% url 'user_settings:settings' %}" class="clay-btn-ghost"><i data-lucide="sliders-horizontal" style="width: 15px; height: 15px;"></i><span>Preferences</span></a>
@@ -58,23 +86,23 @@
 
       <div class="profile-stats-grid">
         <div class="profile-stat-box">
-          <span class="section-sub" style="font-weight: 800; text-transform: uppercase; font-size: .68rem;">{% if is_resolver %}Queue Total{% else %}My Logged{% endif %}</span>
-          <div style="font-size: 1.6rem; font-weight: 800;">{{ profile_stats.logged }}</div>
+          <span class="profile-stat-label">{% if is_resolver %}Queue total{% else %}My logged{% endif %}</span>
+          <div class="metric-num">{{ profile_stats.logged }}</div>
           <p class="section-sub">{% if is_resolver %}City-wide reports{% else %}Submitted by you{% endif %}</p>
         </div>
         <div class="profile-stat-box">
-          <span class="section-sub" style="font-weight: 800; text-transform: uppercase; font-size: .68rem;">{% if is_resolver %}Active Queue{% else %}In Progress{% endif %}</span>
-          <div style="font-size: 1.6rem; font-weight: 800;">{{ profile_stats.active }}</div>
+          <span class="profile-stat-label">{% if is_resolver %}Active queue{% else %}In progress{% endif %}</span>
+          <div class="metric-num">{{ profile_stats.active }}</div>
           <p class="section-sub">TIC &amp; VECO alerts</p>
         </div>
         <div class="profile-stat-box">
-          <span class="section-sub" style="font-weight: 800; text-transform: uppercase; font-size: .68rem;">Resolved</span>
-          <div style="font-size: 1.6rem; font-weight: 800; color: var(--green);">{{ profile_stats.resolved }}</div>
+          <span class="profile-stat-label">Resolved</span>
+          <div class="metric-num" style="color: var(--green);">{{ profile_stats.resolved }}</div>
           <p class="section-sub">Cleared &amp; bundled</p>
         </div>
         <div class="profile-stat-box">
-          <span class="section-sub" style="font-weight: 800; text-transform: uppercase; font-size: .68rem;">Zone</span>
-          <div style="font-size: 1.15rem; font-weight: 800; color: #c05c2a;">Brgy. {{ current_user.barangay|default:"Tisa" }}</div>
+          <span class="profile-stat-label">Zone</span>
+          <div class="tabular-val" style="font-size: 1.15rem; font-weight: 800; color: #c05c2a; line-height: 1.3; margin: .25rem 0;">Brgy. {{ current_user.barangay|default:"Tisa" }}</div>
           <p class="section-sub">{{ district }}</p>
         </div>
       </div>
@@ -83,11 +111,11 @@
         {% csrf_token %}
         <div class="profile-form-card">
           <h3 class="profile-form-title"><i data-lucide="edit-3" style="width: 17px; height: 17px; color: var(--peach);"></i><span>Edit profile</span></h3>
-          <div style="margin-bottom: 1.1rem;">
+          <div style="margin-bottom: 1.15rem;">
             <label class="profile-label" style="margin-bottom: .5rem;">Avatar</label>
             <div style="display: flex; gap: .5rem; flex-wrap: wrap;">
               {% for av in avatar_presets %}
-                <button type="button" class="avatar-preset-btn {% if profile.avatar == av %}selected-avatar{% endif %}" data-avatar="{{ av }}">{{ av }}</button>
+                <button type="button" class="avatar-preset-btn {% if profile.avatar == av %}selected-avatar{% endif %}" data-avatar="{{ av }}" aria-label="Select avatar {{ av }}">{{ av }}</button>
               {% endfor %}
             </div>
             <input type="hidden" name="avatar" id="profile-avatar-input" value="{{ profile.avatar|default:'GC' }}">
@@ -104,7 +132,7 @@
               <label class="profile-label" for="profile-phone-input">Mobile</label>
               <div class="profile-input-wrap">
                 <i data-lucide="phone" class="profile-input-icon"></i>
-                <input id="profile-phone-input" type="text" name="phone" class="profile-input" value="{{ profile.phone|default:'+63 917 554 8921' }}" required />
+                <input id="profile-phone-input" type="text" name="phone" class="profile-input tabular-val" value="{{ profile.phone|default:'+63 917 554 8921' }}" required />
               </div>
             </div>
             <div class="profile-field-group">
@@ -128,29 +156,31 @@
         </div>
       </form>
 
-      <div class="profile-form-card" style="margin-top: 1.25rem;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: .85rem; flex-wrap: wrap; gap: .5rem;">
+      <div class="profile-form-card" style="margin-top: 1.35rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: .9rem; flex-wrap: wrap; gap: .5rem;">
           <h3 class="profile-form-title" style="margin-bottom: 0;">
             <i data-lucide="clock" style="width: 17px; height: 17px; color: var(--peach);"></i>
             <span>{% if is_resolver %}Recent Queue Activity{% else %}My Recent Hazard Reports{% endif %}</span>
           </h3>
           {% if is_resolver %}
-            <a href="{% url 'home:dispatches' %}" class="clay-btn-ghost" style="font-size: .74rem; padding: .35rem .7rem; text-decoration: none;">Open Dispatches →</a>
+            <a href="{% url 'home:dispatches' %}" class="clay-btn-ghost" style="font-size: .76rem; padding: .4rem .8rem; text-decoration: none;">Open Dispatches →</a>
           {% else %}
-            <a href="{% url 'home:my_reports' %}" class="clay-btn-ghost" style="font-size: .74rem; padding: .35rem .7rem; text-decoration: none;">View All My Reports →</a>
+            <a href="{% url 'home:my_reports' %}" class="clay-btn-ghost" style="font-size: .76rem; padding: .4rem .8rem; text-decoration: none;">View All My Reports →</a>
           {% endif %}
         </div>
         {% if recent_reports %}
-          <div style="display: flex; flex-direction: column; gap: .55rem;">
+          <div style="display: flex; flex-direction: column; gap: .6rem;">
             {% for rep in recent_reports %}
-              <div class="clay-inset-box" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .5rem;">
-                <div>
-                  <span class="ticket-chip">{{ rep.ticketNumber }}</span>
-                  <strong style="font-size: .84rem; margin-left: .4rem;">{{ rep.title }}</strong>
-                  <p class="section-sub" style="font-size: .72rem; margin-top: .15rem;">Brgy. {{ rep.barangay }} · {{ rep.reportedAt }}</p>
+              <div class="clay-inset-box" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .6rem;">
+                <div style="min-width: 0; flex: 1;">
+                  <div style="display: flex; align-items: center; flex-wrap: wrap; gap: .45rem;">
+                    <span class="ticket-chip">{{ rep.ticketNumber }}</span>
+                    <strong style="font-size: .86rem;">{{ rep.title }}</strong>
+                  </div>
+                  <p class="section-sub tabular-val" style="font-size: .74rem; margin-top: .25rem;">Brgy. {{ rep.barangay }} · {{ rep.reportedAt }}</p>
                 </div>
-                <div style="display: flex; gap: .35rem;">
-                  <span class="badge-pill badge-compact {% if rep.severity == 'critical' %}badge-critical{% elif rep.severity == 'high' %}badge-high{% else %}badge-medium{% endif %}">{{ rep.severity|upper }}</span>
+                <div style="display: flex; gap: .35rem; flex-wrap: wrap;">
+                  <span class="badge-pill badge-compact {% if rep.severity == 'critical' %}badge-critical{% elif rep.severity == 'high' %}badge-high{% else %}badge-medium{% endif %}">{{ rep.severity|title }}</span>
                   <span class="badge-pill badge-compact {% if rep.status == 'resolved' %}badge-resolved{% elif rep.status == 'investigating' %}badge-high{% else %}badge-amber{% endif %}">{{ rep.status|title }}</span>
                 </div>
               </div>
