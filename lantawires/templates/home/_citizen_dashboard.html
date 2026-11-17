@@ -12,6 +12,7 @@
     </div>
     <nav style="display: flex; align-items: center; gap: .3rem;">
       <a id="nav-link-home" href="{% url 'home:home' %}" class="nav-link active"><i data-lucide="radar" style="width: 15px; height: 15px;"></i><span>Watch</span></a>
+      <a id="nav-link-my-reports" href="{% url 'home:my_reports' %}" class="nav-link"><i data-lucide="file-text" style="width: 15px; height: 15px;"></i><span>My Reports</span></a>
       <a id="nav-link-profile" href="{% url 'profile:profile' %}" class="nav-link"><i data-lucide="user" style="width: 15px; height: 15px;"></i><span>Profile</span></a>
       <a id="nav-link-settings" href="{% url 'user_settings:settings' %}" class="nav-link"><i data-lucide="settings" style="width: 15px; height: 15px;"></i><span>Settings</span></a>
     </nav>

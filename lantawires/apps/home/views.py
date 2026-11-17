@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth import logout
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
+from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from .data import CEBU_BARANGAYS, INITIAL_REPORTS, SAMPLE_HAZARD_PRESETS
@@ -120,7 +121,8 @@ def get_session_reports(request):
             combined.append(r)
     return combined
 
-def home_view(request):
+def _resolve_session_user(request):
+    """Return (current_user_dict, role) from session or authenticated User, or (None, None)."""
     current_user = request.session.get("current_user")
     if not current_user and request.user.is_authenticated:
         profile = getattr(request.user, "profile", None)
@@ -140,22 +142,33 @@ def home_view(request):
         request.session.save()
 
     if not current_user and not request.user.is_authenticated:
+        return None, None
+
+    role = (current_user or {}).get("role")
+    if role not in ("citizen", "resolver"):
+        if request.user.is_authenticated:
+            try:
+                role = request.user.profile.role
+                current_user["role"] = role
+                request.session["current_user"] = current_user
+            except Exception:
+                role = "citizen"
+        else:
+            role = "citizen"
+
+    return current_user or DEFAULT_GUEST, role
+
+
+def home_view(request):
+    user_obj, role = _resolve_session_user(request)
+    if user_obj is None:
         messages.warning(request, "Please log in to access the home screen.")
         return redirect("login:login")
 
-    role = (current_user or {}).get("role", "citizen")
-    if role not in ("citizen", "resolver") and request.user.is_authenticated:
-        try:
-            role = request.user.profile.role
-            current_user["role"] = role
-            request.session["current_user"] = current_user
-        except Exception:
-            role = "citizen"
     is_resolver = role == "resolver"
     can_toggle = is_resolver
 
     reports = get_session_reports(request)
-    user_obj = current_user or DEFAULT_GUEST
     user_name = (user_obj.get("name") or "").strip().lower()
     user_barangay = (user_obj.get("barangay") or "Tisa").strip().lower()
 
@@ -207,6 +220,119 @@ def home_view(request):
     }
 
     return render(request, "home/home.html", context)
+
+
+def my_reports_view(request):
+    """Citizen-focused view showing reports submitted by the logged-in user."""
+    user_obj, role = _resolve_session_user(request)
+    if user_obj is None:
+        messages.warning(request, "Please log in to view your reports.")
+        return redirect("login:login")
+
+    is_resolver = role == "resolver"
+    reports = get_session_reports(request)
+    user_name = (user_obj.get("name") or "").strip().lower()
+    my_reports = [
+        r for r in reports if (r.get("reporterName") or "").strip().lower() == user_name
+    ]
+
+    my_stats = {
+        "total": len(my_reports),
+        "dispatched": sum(1 for r in my_reports if r.get("status") == "dispatched"),
+        "investigating": sum(1 for r in my_reports if r.get("status") == "investigating"),
+        "resolved": sum(1 for r in my_reports if r.get("status") == "resolved"),
+    }
+
+    return render(
+        request,
+        "home/my_reports.html",
+        {
+            "current_user": user_obj,
+            "is_resolver": is_resolver,
+            "my_reports": my_reports,
+            "my_stats": my_stats,
+        },
+    )
+
+
+def dispatches_view(request):
+    """Resolver-only console for utility agency dispatches and barangay hazard analytics."""
+    user_obj, role = _resolve_session_user(request)
+    if user_obj is None:
+        messages.warning(request, "Please log in to access the dispatches console.")
+        return redirect("login:login")
+
+    if role != "resolver":
+        messages.warning(request, "Dispatches console is restricted to resolver accounts.")
+        return redirect("home:home")
+
+    reports = get_session_reports(request)
+
+    agencies = list(UtilityAgency.objects.all())
+    if not agencies:
+        agencies = [
+            {
+                "agency_name": "Cebu City Technical Infrastructure Committee (TIC)",
+                "department": "Spaghetti Wire Eradication Task Force",
+                "contact_email": "tic-dispatch@cebucity.gov.ph",
+                "hotline_number": "(032) 411-0115",
+                "agency_type": "LGU",
+            },
+            {
+                "agency_name": "Visayan Electric (VECO)",
+                "department": "Distribution Line Safety Dispatch",
+                "contact_email": "emergency.hotline@veco.com.ph",
+                "hotline_number": "(032) 230-8326",
+                "agency_type": "Power",
+            },
+        ]
+
+    dispatches = list(
+        HazardDispatch.objects.select_related("report", "report__barangay", "agency")
+        .order_by("-dispatched_at")[:30]
+    )
+
+    # Barangay breakdown computed from live reports list
+    barangay_map = {}
+    for r in reports:
+        brgy = r.get("barangay") or "Tisa"
+        entry = barangay_map.setdefault(
+            brgy, {"name": brgy, "total": 0, "critical": 0, "active": 0, "resolved": 0}
+        )
+        entry["total"] += 1
+        if r.get("severity") == "critical":
+            entry["critical"] += 1
+        if r.get("status") == "resolved":
+            entry["resolved"] += 1
+        else:
+            entry["active"] += 1
+
+    barangay_breakdown = sorted(
+        barangay_map.values(), key=lambda item: (item["active"], item["total"]), reverse=True
+    )
+
+    dispatch_stats = {
+        "total_dispatches": len(dispatches) or sum(
+            len(r.get("dispatchDetails", {}).get("recipients", [])) for r in reports
+        ),
+        "agencies_count": len(agencies),
+        "open_incidents": sum(1 for r in reports if r.get("status") != "resolved"),
+        "resolved_incidents": sum(1 for r in reports if r.get("status") == "resolved"),
+    }
+
+    return render(
+        request,
+        "home/dispatches.html",
+        {
+            "current_user": user_obj,
+            "is_resolver": True,
+            "agencies": agencies,
+            "dispatches": dispatches,
+            "fallback_reports": reports[:10],
+            "barangay_breakdown": barangay_breakdown,
+            "dispatch_stats": dispatch_stats,
+        },
+    )
 
 def logout_view(request):
     logout(request)
@@ -462,5 +588,57 @@ def update_status_api(request):
         request.session["custom_reports"] = custom_reports
         request.session.modified = True
         return JsonResponse({"status": "ok", "reportId": report_id, "newStatus": new_status})
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=400)
+
+
+@require_POST
+def update_dispatch_api(request):
+    """Resolver-only API to update a HazardDispatch delivery status and resolution notes."""
+    _, role = _resolve_session_user(request)
+    if role != "resolver":
+        return JsonResponse({"status": "error", "message": "Resolver role required."}, status=403)
+
+    try:
+        data = json.loads(request.body)
+        dispatch_id = data.get("dispatchId")
+        delivery_status = data.get("deliveryStatus")
+        resolution_notes = (data.get("resolutionNotes") or "").strip()
+
+        valid_delivery = ("Delivered", "Acknowledged", "En Route", "Resolved", "Failed")
+        if delivery_status not in valid_delivery:
+            return JsonResponse({"status": "error", "message": "Invalid delivery status."}, status=400)
+
+        dispatch_obj = HazardDispatch.objects.select_related("report").filter(id=dispatch_id).first()
+        if not dispatch_obj:
+            return JsonResponse({"status": "error", "message": "Dispatch record not found."}, status=404)
+
+        dispatch_obj.delivery_status = delivery_status
+        if resolution_notes:
+            dispatch_obj.resolution_notes = resolution_notes
+        if delivery_status in ("Acknowledged", "En Route", "Resolved") and not dispatch_obj.acknowledged_at:
+            dispatch_obj.acknowledged_at = timezone.now()
+        dispatch_obj.save()
+
+        # Sync parent HazardReport status cleanly
+        report = dispatch_obj.report
+        if delivery_status == "En Route" and report.status == "dispatched":
+            report.status = "investigating"
+            report.save(update_fields=["status", "updated_at"])
+        elif delivery_status == "Resolved":
+            remaining_open = HazardDispatch.objects.filter(report=report).exclude(delivery_status="Resolved").exists()
+            if not remaining_open:
+                report.status = "resolved"
+                report.save(update_fields=["status", "updated_at"])
+
+        return JsonResponse(
+            {
+                "status": "ok",
+                "dispatchId": dispatch_obj.id,
+                "deliveryStatus": dispatch_obj.delivery_status,
+                "reportStatus": report.status,
+                "resolutionNotes": dispatch_obj.resolution_notes or "",
+            }
+        )
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)}, status=400)

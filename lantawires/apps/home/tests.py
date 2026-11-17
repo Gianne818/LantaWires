@@ -133,6 +133,77 @@ class HomeScreenTests(TestCase):
         )
         self.assertEqual(res_bad.status_code, 400)
 
+    def test_my_reports_and_dispatches_role_access(self):
+        # Citizen can view My Reports
+        my_res = self.client.get(reverse("home:my_reports"))
+        self.assertEqual(my_res.status_code, 200)
+        self.assertTemplateUsed(my_res, "home/my_reports.html")
+        self.assertContains(my_res, "My Submitted Hazard Reports")
+
+        # Citizen cannot view Dispatches console (redirects back to home)
+        blocked_res = self.client.get(reverse("home:dispatches"))
+        self.assertEqual(blocked_res.status_code, 302)
+        self.assertRedirects(blocked_res, reverse("home:home"))
+
+        # Resolver can view Dispatches console
+        session = self.client.session
+        user = dict(session["current_user"])
+        user["role"] = "resolver"
+        session["current_user"] = user
+        session.save()
+        ok_res = self.client.get(reverse("home:dispatches"))
+        self.assertEqual(ok_res.status_code, 200)
+        self.assertTemplateUsed(ok_res, "home/dispatches.html")
+        self.assertContains(ok_res, "Agency Dispatches")
+
+    def test_update_dispatch_api_role_guard_and_persistence(self):
+        from apps.home.models import HazardCategory, HazardDispatch, HazardReport, UtilityAgency
+        from apps.profile.models import CebuBarangay
+
+        brgy = CebuBarangay.objects.create(
+            name="Tisa", district="South District", zip_code="6000", center_lat=10.2982, center_lng=123.8741
+        )
+        cat = HazardCategory.objects.create(
+            code="SAGGING_CABLE", category_name="Sagging Cable", min_clearance=4.5, default_severity="critical"
+        )
+        rep = HazardReport.objects.create(
+            ticket_number="LW-TEST-0001", title="Test Wire", barangay=brgy, category=cat, address="Tisa Main"
+        )
+        agency = UtilityAgency.objects.create(
+            agency_name="Visayan Electric (VECO)", department="Safety", contact_email="veco@test.ph", hotline_number="230", agency_type="Power"
+        )
+        disp = HazardDispatch.objects.create(report=rep, agency=agency, delivery_status="Delivered")
+
+        # Citizen rejected with 403
+        res_forbidden = self.client.post(
+            reverse("home:update_dispatch"),
+            data=json.dumps({"dispatchId": disp.id, "deliveryStatus": "Resolved"}),
+            content_type="application/json",
+        )
+        self.assertEqual(res_forbidden.status_code, 403)
+
+        # Resolver updates dispatch & report syncs to resolved
+        session = self.client.session
+        user = dict(session["current_user"])
+        user["role"] = "resolver"
+        session["current_user"] = user
+        session.save()
+        res_ok = self.client.post(
+            reverse("home:update_dispatch"),
+            data=json.dumps({
+                "dispatchId": disp.id,
+                "deliveryStatus": "Resolved",
+                "resolutionNotes": "Line re-tensioned by VECO crew",
+            }),
+            content_type="application/json",
+        )
+        self.assertEqual(res_ok.status_code, 200)
+        disp.refresh_from_db()
+        rep.refresh_from_db()
+        self.assertEqual(disp.delivery_status, "Resolved")
+        self.assertEqual(disp.resolution_notes, "Line re-tensioned by VECO crew")
+        self.assertEqual(rep.status, "resolved")
+
     def test_logout_clears_session_and_redirects_to_login(self):
         response = self.client.get(reverse("home:logout"))
         self.assertEqual(response.status_code, 302)
