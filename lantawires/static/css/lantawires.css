@@ -253,12 +253,12 @@ select.clay-input, select.input-field { appearance: none; cursor: pointer; paddi
 .toast-message {
   display: flex; align-items: center; gap: .7rem; padding: .9rem 1.1rem;
   border-radius: 18px; font-size: .84rem; font-weight: 600;
-  background: var(--clay-card); border: 3px solid var(--clay-card);
+  background: var(--clay-card); border: 2px solid var(--clay-border);
   box-shadow: var(--shadow-clay-sm); color: var(--ink);
-  animation: slideIn .3s ease; border-left: 6px solid var(--peach);
+  animation: slideIn .3s ease;
 }
-.toast-message.success { border-left-color: var(--green); }
-.toast-message.error { border-left-color: var(--red); }
+.toast-message.success { border-color: var(--clay-border); }
+.toast-message.error { border-color: rgba(255,107,107,.4); }
 @keyframes slideIn { from { transform: translateX(40px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
 /* auth */

@@ -517,10 +517,21 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
+    pendingSelectedStatus = report.status;
+    syncStageSelectionUI(pendingSelectedStatus, report.status);
+
+    detailModal.classList.add("open");
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  let pendingSelectedStatus = null;
+  const saveStatusBtn = document.getElementById("save-incident-status-btn");
+
+  function syncStageSelectionUI(selectedStatus, savedStatus) {
     const stageButtons = document.querySelectorAll(".status-stage-btn");
     stageButtons.forEach(btn => {
       const btnStatus = btn.getAttribute("data-status");
-      if (btnStatus === report.status) {
+      if (btnStatus === selectedStatus) {
         btn.style.borderColor = "var(--peach)";
         btn.style.background = "var(--peach-bg)";
       } else {
@@ -528,22 +539,31 @@ document.addEventListener("DOMContentLoaded", () => {
         btn.style.background = "";
       }
     });
-
-    detailModal.classList.add("open");
-    if (window.lucide) window.lucide.createIcons();
+    if (saveStatusBtn) {
+      const hasChange = Boolean(selectedStatus && selectedStatus !== savedStatus);
+      saveStatusBtn.disabled = !hasChange;
+      saveStatusBtn.style.opacity = hasChange ? "1" : "0.5";
+      saveStatusBtn.innerHTML = `<i data-lucide="save" style="width: 14px; height: 14px;"></i><span>${hasChange ? "Save status" : "Save status"}</span>`;
+      if (window.lucide) window.lucide.createIcons();
+    }
   }
 
   function closeDetailModal() {
+    pendingSelectedStatus = null;
     if (detailModal) detailModal.classList.remove("open");
   }
 
   if (closeDetailModalBtn) closeDetailModalBtn.addEventListener("click", closeDetailModal);
   if (closeDetailFooterBtn) closeDetailFooterBtn.addEventListener("click", closeDetailModal);
 
-  // 3-Stage Resolver Status Controls
+  // 3-Stage Resolver Status Controls (select first, then Save status persists to DB)
   const statusStageButtons = document.querySelectorAll(".status-stage-btn");
   async function updateReportStatus(nextStatus) {
     if (!currentSelectedReport || !nextStatus) return;
+    if (saveStatusBtn) {
+      saveStatusBtn.disabled = true;
+      saveStatusBtn.innerHTML = `<span>Saving...</span>`;
+    }
     try {
       const res = await fetch("/home/api/status/", {
         method: "POST",
@@ -563,23 +583,31 @@ document.addEventListener("DOMContentLoaded", () => {
         renderMapPins();
         renderIncidentCards(false);
         updateStats();
+        if (saveStatusBtn) {
+          saveStatusBtn.innerHTML = `<i data-lucide="check" style="width: 14px; height: 14px;"></i><span>Saved</span>`;
+          if (window.lucide) window.lucide.createIcons();
+        }
       }
     } catch (err) {
       console.error("Status update error:", err);
+      syncStageSelectionUI(pendingSelectedStatus, currentSelectedReport.status);
     }
   }
 
   if (statusStageButtons.length > 0) {
     statusStageButtons.forEach(btn => {
       btn.addEventListener("click", () => {
-        const nextStatus = btn.getAttribute("data-status");
-        updateReportStatus(nextStatus);
+        if (!currentSelectedReport) return;
+        pendingSelectedStatus = btn.getAttribute("data-status");
+        syncStageSelectionUI(pendingSelectedStatus, currentSelectedReport.status);
       });
     });
-  } else if (toggleStatusBtn) {
-    toggleStatusBtn.addEventListener("click", () => {
-      const nextStatus = currentSelectedReport?.status === "resolved" ? "dispatched" : "resolved";
-      updateReportStatus(nextStatus);
+  }
+  if (saveStatusBtn) {
+    saveStatusBtn.addEventListener("click", () => {
+      if (!currentSelectedReport || !pendingSelectedStatus) return;
+      if (pendingSelectedStatus === currentSelectedReport.status) return;
+      updateReportStatus(pendingSelectedStatus);
     });
   }
 

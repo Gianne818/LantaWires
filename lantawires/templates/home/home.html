@@ -223,10 +223,11 @@
           <button type="button" class="clay-btn-ghost status-stage-btn" data-status="investigating" style="font-size: .76rem; padding: .45rem .75rem;"><i data-lucide="wrench" style="width: 13px; height: 13px;"></i><span>Investigating</span></button>
           <button type="button" id="toggle-incident-status-btn" class="clay-btn-ghost status-stage-btn" data-status="resolved" style="font-size: .76rem; padding: .45rem .75rem; color: var(--green);"><i data-lucide="check-circle-2" style="width: 13px; height: 13px;"></i><span>Resolved</span></button>
         </div>
+        <button type="button" id="save-incident-status-btn" class="clay-btn-primary" style="width: auto; opacity: 0.5;" disabled><i data-lucide="save" style="width: 14px; height: 14px;"></i><span>Save status</span></button>
         {% else %}
         <span class="section-sub" style="margin-right: auto;">Status updates are handled by TIC &amp; VECO resolver accounts.</span>
         {% endif %}
-        <button type="button" id="close-detail-footer-btn" class="clay-btn-primary" style="width: auto;">Done</button>
+        <button type="button" id="close-detail-footer-btn" class="clay-btn-ghost" style="width: auto;">Done</button>
       </div>
     </div>
   </div>
@@ -237,5 +238,5 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script id="reports-data" type="application/json">{{ reports_json|safe }}</script>
 <script id="presets-data" type="application/json">{{ presets_json|safe }}</script>
-<script src="{% static 'js/home/home.js' %}?v=14"></script>
+<script src="{% static 'js/home/home.js' %}?v=15"></script>
 {% endblock %}
