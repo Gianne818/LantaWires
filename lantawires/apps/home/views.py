@@ -151,24 +151,51 @@ def home_view(request):
             request.session["current_user"] = current_user
         except Exception:
             role = "citizen"
-    can_toggle = role == "resolver"
+    is_resolver = role == "resolver"
+    can_toggle = is_resolver
 
     reports = get_session_reports(request)
+    user_obj = current_user or DEFAULT_GUEST
+    user_name = (user_obj.get("name") or "").strip().lower()
+    user_barangay = (user_obj.get("barangay") or "Tisa").strip().lower()
 
     total_verified = len(reports)
     critical_count = sum(1 for r in reports if r.get("severity") == "critical")
     dispatched_count = sum(1 for r in reports if r.get("status") == "dispatched")
+    investigating_count = sum(1 for r in reports if r.get("status") == "investigating")
     resolved_count = sum(1 for r in reports if r.get("status") == "resolved")
 
     stats = {
         "total": total_verified,
         "critical": critical_count,
         "dispatched": dispatched_count,
+        "investigating": investigating_count,
         "resolved": resolved_count,
     }
 
+    citizen_stats = {
+        "my_reports": sum(
+            1 for r in reports if (r.get("reporterName") or "").strip().lower() == user_name
+        ),
+        "barangay_active": sum(
+            1
+            for r in reports
+            if (r.get("barangay") or "").strip().lower() == user_barangay
+            and r.get("status") != "resolved"
+        ),
+        "barangay_critical": sum(
+            1
+            for r in reports
+            if (r.get("barangay") or "").strip().lower() == user_barangay
+            and r.get("severity") == "critical"
+            and r.get("status") != "resolved"
+        ),
+        "city_resolved": resolved_count,
+    }
+
     context = {
-        "current_user": current_user or DEFAULT_GUEST,
+        "current_user": user_obj,
+        "is_resolver": is_resolver,
         "can_toggle": can_toggle,
         "reports": reports,
         "reports_json": json.dumps(reports),
@@ -176,6 +203,7 @@ def home_view(request):
         "presets": SAMPLE_HAZARD_PRESETS,
         "presets_json": json.dumps(SAMPLE_HAZARD_PRESETS),
         "stats": stats,
+        "citizen_stats": citizen_stats,
     }
 
     return render(request, "home/home.html", context)
@@ -385,6 +413,18 @@ def update_status_api(request):
         report_id = data.get("reportId")
         new_status = data.get("newStatus")
 
+        valid_statuses = ("dispatched", "investigating", "resolved")
+        if new_status not in valid_statuses:
+            return JsonResponse(
+                {"status": "error", "message": "Invalid status value."}, status=400
+            )
+
+        dispatch_status_map = {
+            "dispatched": "Delivered",
+            "investigating": "En Route",
+            "resolved": "Resolved",
+        }
+
         # Update in database if exists (CRUZ_ERD: home_hazardreport & hazard_dispatches)
         try:
             report_qs = HazardReport.objects.filter(ticket_number=report_id)
@@ -397,7 +437,7 @@ def update_status_api(request):
             report_qs.update(status=new_status)
             for rep in report_qs:
                 HazardDispatch.objects.filter(report=rep).update(
-                    delivery_status="Resolved" if new_status == "resolved" else "Delivered"
+                    delivery_status=dispatch_status_map[new_status]
                 )
         except Exception as e:
             print("Database status update warning:", e)

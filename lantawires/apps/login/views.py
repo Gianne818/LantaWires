@@ -13,6 +13,7 @@ DEFAULT_USERS = [
         "phone": "+63 917 554 8921",
         "barangay": "Tisa",
         "avatar": "GC",
+        "role": "resolver",
     },
     {
         "id": "usr-02",
@@ -21,6 +22,7 @@ DEFAULT_USERS = [
         "phone": "+63 920 882 1042",
         "barangay": "Lahug",
         "avatar": "EM",
+        "role": "citizen",
     },
     {
         "id": "usr-03",
@@ -29,6 +31,7 @@ DEFAULT_USERS = [
         "phone": "+63 918 331 4455",
         "barangay": "Guadalupe",
         "avatar": "LA",
+        "role": "citizen",
     },
 ]
 
@@ -95,6 +98,7 @@ def login_view(request):
                     "phone": demo_match["phone"],
                     "barangay": barangay_obj,
                     "avatar": demo_match["avatar"],
+                    "role": demo_match.get("role", "citizen"),
                 }
             )
             login(request, user)

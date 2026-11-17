@@ -95,6 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const searchInput = document.getElementById("search-incidents-input");
   const barangaySelect = document.getElementById("filter-barangay-select");
   const severitySelect = document.getElementById("filter-severity-select");
+  const statusSelect = document.getElementById("filter-status-select");
   const viewMapBtn = document.getElementById("view-map-btn");
   const viewListBtn = document.getElementById("view-list-btn");
   const mapViewSection = document.getElementById("map-view-section");
@@ -190,7 +191,8 @@ document.addEventListener("DOMContentLoaded", () => {
       case "dispatched":
         return { label: "Dispatched", badgeClass: "badge-amber" };
       case "under_inspection":
-        return { label: "Inspecting", badgeClass: "badge-high" };
+      case "investigating":
+        return { label: "Investigating", badgeClass: "badge-high" };
       case "resolved":
         return { label: "Resolved", badgeClass: "badge-resolved" };
       default:
@@ -203,10 +205,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const query = searchInput ? searchInput.value.toLowerCase().trim() : "";
     const selectedBarangay = barangaySelect ? barangaySelect.value : "all";
     const selectedSeverity = severitySelect ? severitySelect.value : "all";
+    const selectedStatus = statusSelect ? statusSelect.value : "all";
 
     return reports.filter(r => {
       if (selectedBarangay !== "all" && r.barangay !== selectedBarangay) return false;
       if (selectedSeverity !== "all" && r.severity !== selectedSeverity) return false;
+      if (selectedStatus !== "all" && r.status !== selectedStatus) return false;
       if (query) {
         const titleMatch = (r.title || "").toLowerCase().includes(query);
         const ticketMatch = (r.ticketNumber || "").toLowerCase().includes(query);
@@ -513,6 +517,18 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
+    const stageButtons = document.querySelectorAll(".status-stage-btn");
+    stageButtons.forEach(btn => {
+      const btnStatus = btn.getAttribute("data-status");
+      if (btnStatus === report.status) {
+        btn.style.borderColor = "var(--peach)";
+        btn.style.background = "var(--peach-bg)";
+      } else {
+        btn.style.borderColor = "";
+        btn.style.background = "";
+      }
+    });
+
     detailModal.classList.add("open");
     if (window.lucide) window.lucide.createIcons();
   }
@@ -524,37 +540,46 @@ document.addEventListener("DOMContentLoaded", () => {
   if (closeDetailModalBtn) closeDetailModalBtn.addEventListener("click", closeDetailModal);
   if (closeDetailFooterBtn) closeDetailFooterBtn.addEventListener("click", closeDetailModal);
 
-  // Status Toggle
-  if (toggleStatusBtn) {
-    toggleStatusBtn.addEventListener("click", async () => {
-      if (!currentSelectedReport) return;
-      const nextStatus = currentSelectedReport.status === "resolved" ? "dispatched" : "resolved";
-      
-      try {
-        const res = await fetch("/api/status/", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": getCsrfToken(),
-          },
-          body: JSON.stringify({
-            reportId: currentSelectedReport.id,
-            newStatus: nextStatus,
-          }),
-        });
-        if (res.ok) {
-          currentSelectedReport.status = nextStatus;
-          reports = reports.map(r => r.id === currentSelectedReport.id ? { ...r, status: nextStatus } : r);
-          
-          // Re-render
-          openDetailModal(currentSelectedReport);
-          renderMapPins();
-          renderIncidentCards(false);
-          updateStats();
-        }
-      } catch (err) {
-        console.error("Status toggle error:", err);
+  // 3-Stage Resolver Status Controls
+  const statusStageButtons = document.querySelectorAll(".status-stage-btn");
+  async function updateReportStatus(nextStatus) {
+    if (!currentSelectedReport || !nextStatus) return;
+    try {
+      const res = await fetch("/home/api/status/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCsrfToken(),
+        },
+        body: JSON.stringify({
+          reportId: currentSelectedReport.id,
+          newStatus: nextStatus,
+        }),
+      });
+      if (res.ok) {
+        currentSelectedReport.status = nextStatus;
+        reports = reports.map(r => r.id === currentSelectedReport.id ? { ...r, status: nextStatus } : r);
+        openDetailModal(currentSelectedReport);
+        renderMapPins();
+        renderIncidentCards(false);
+        updateStats();
       }
+    } catch (err) {
+      console.error("Status update error:", err);
+    }
+  }
+
+  if (statusStageButtons.length > 0) {
+    statusStageButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const nextStatus = btn.getAttribute("data-status");
+        updateReportStatus(nextStatus);
+      });
+    });
+  } else if (toggleStatusBtn) {
+    toggleStatusBtn.addEventListener("click", () => {
+      const nextStatus = currentSelectedReport?.status === "resolved" ? "dispatched" : "resolved";
+      updateReportStatus(nextStatus);
     });
   }
 
@@ -562,16 +587,19 @@ document.addEventListener("DOMContentLoaded", () => {
     const total = reports.length;
     const critical = reports.filter(r => r.severity === "critical").length;
     const dispatched = reports.filter(r => r.status === "dispatched").length;
+    const investigating = reports.filter(r => r.status === "investigating").length;
     const resolved = reports.filter(r => r.status === "resolved").length;
 
     const elTotal = document.getElementById("stat-total");
     const elCrit = document.getElementById("stat-critical");
     const elDisp = document.getElementById("stat-dispatched");
+    const elInv = document.getElementById("stat-investigating");
     const elRes = document.getElementById("stat-resolved");
 
     if (elTotal) elTotal.textContent = total;
     if (elCrit) elCrit.textContent = critical;
     if (elDisp) elDisp.textContent = dispatched;
+    if (elInv) elInv.textContent = investigating;
     if (elRes) elRes.textContent = resolved;
   }
 
@@ -738,7 +766,7 @@ document.addEventListener("DOMContentLoaded", () => {
       };
 
       try {
-        const response = await fetch("/api/report/", {
+        const response = await fetch("/home/api/report/", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -803,6 +831,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderIncidentCards(true);
   });
   if (severitySelect) severitySelect.addEventListener("change", () => { renderMapPins(); renderIncidentCards(true); });
+  if (statusSelect) statusSelect.addEventListener("change", () => { renderMapPins(); renderIncidentCards(true); });
 
   // View Switcher Tabs
   if (viewMapBtn && viewListBtn) {

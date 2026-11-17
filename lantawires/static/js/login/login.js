@@ -2,29 +2,37 @@
 
 document.addEventListener("DOMContentLoaded", () => {
   const autofillBtn = document.getElementById("login-autofill-btn");
+  const demoCitizenBtn = document.getElementById("demo-citizen-btn");
+  const demoResolverBtn = document.getElementById("demo-resolver-btn");
   const emailInput = document.getElementById("login-email-input");
   const passwordInput = document.getElementById("login-password-input");
   const togglePassBtn = document.getElementById("toggle-password-btn");
   const loginForm = document.getElementById("login-form");
   const submitBtn = document.getElementById("login-submit-btn");
 
+  function fillCredentials(email, password) {
+    if (emailInput) emailInput.value = email;
+    if (passwordInput) passwordInput.value = password;
+    [emailInput, passwordInput].forEach(el => {
+      if (!el) return;
+      el.style.borderColor = "#fbbf24";
+      el.style.boxShadow = "0 0 0 3px rgba(245, 158, 11, 0.3)";
+      setTimeout(() => {
+        el.style.borderColor = "";
+        el.style.boxShadow = "";
+      }, 600);
+    });
+  }
+
   // Autofill sample credentials
   if (autofillBtn) {
-    autofillBtn.addEventListener("click", () => {
-      if (emailInput) emailInput.value = "gianne@cebucity.ph";
-      if (passwordInput) passwordInput.value = "cebuwirehazard2026";
-      
-      // Flash input effect
-      [emailInput, passwordInput].forEach(el => {
-        if (!el) return;
-        el.style.borderColor = "#fbbf24";
-        el.style.boxShadow = "0 0 0 3px rgba(245, 158, 11, 0.3)";
-        setTimeout(() => {
-          el.style.borderColor = "";
-          el.style.boxShadow = "";
-        }, 600);
-      });
-    });
+    autofillBtn.addEventListener("click", () => fillCredentials("gianne@cebucity.ph", "cebuwirehazard2026"));
+  }
+  if (demoCitizenBtn) {
+    demoCitizenBtn.addEventListener("click", () => fillCredentials("morales.cebu@gmail.com", "cebuwirehazard2026"));
+  }
+  if (demoResolverBtn) {
+    demoResolverBtn.addEventListener("click", () => fillCredentials("gianne@cebucity.ph", "cebuwirehazard2026"));
   }
 
   // Password visibility toggle

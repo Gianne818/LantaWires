@@ -1,0 +1,90 @@
+{% load static %}
+<header class="app-header">
+  <div class="app-nav">
+    <div style="display: flex; align-items: center; gap: .7rem;">
+      <div style="width: 40px; height: 40px; border-radius: 14px; background: linear-gradient(180deg, var(--green), #219365); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-btn);">
+        <img src="{% static 'images/home/hazard-radar.svg' %}" alt="Radar" style="width: 24px; height: 24px;">
+      </div>
+      <div style="display: flex; align-items: center; gap: .45rem;">
+        <span style="font-size: 1.1rem; font-weight: 800; letter-spacing: -0.02em;">LantaWires</span>
+        <span class="badge-pill badge-resolved" style="font-size: .62rem;">TIC / VECO Resolver</span>
+      </div>
+    </div>
+    <nav style="display: flex; align-items: center; gap: .3rem;">
+      <a id="nav-link-home" href="{% url 'home:home' %}" class="nav-link active"><i data-lucide="shield-check" style="width: 15px; height: 15px;"></i><span>Triage Console</span></a>
+      <a id="nav-link-profile" href="{% url 'profile:profile' %}" class="nav-link"><i data-lucide="user" style="width: 15px; height: 15px;"></i><span>Profile</span></a>
+      <a id="nav-link-settings" href="{% url 'user_settings:settings' %}" class="nav-link"><i data-lucide="settings" style="width: 15px; height: 15px;"></i><span>Settings</span></a>
+    </nav>
+    <div style="display: flex; align-items: center; gap: .6rem;">
+      <a href="{% url 'profile:profile' %}" style="display: flex; align-items: center; gap: .6rem; text-decoration: none;">
+        <div style="text-align: right;" class="desktop-user-meta">
+          <p style="font-size: .8rem; font-weight: 800; color: var(--ink); line-height: 1.2;" id="current-user-name">{{ current_user.name }}</p>
+          <p style="font-size: .7rem; color: var(--green); font-weight: 700;">Brgy. {{ current_user.barangay }} · Resolver</p>
+        </div>
+        <div class="avatar-clay">{{ current_user.avatar|default:"LW" }}</div>
+      </a>
+      <a id="home-sign-out-btn" href="{% url 'home:logout' %}" class="clay-btn-ghost" title="Sign out"><i data-lucide="log-out" style="width: 15px; height: 15px;"></i></a>
+    </div>
+  </div>
+</header>
+
+<div class="container-7xl" style="margin-top: 0.85rem; display: flex; flex-direction: column; gap: 1rem;">
+  <div class="clay-card home-hero" style="border-left: 5px solid var(--green);">
+    <div style="max-width: 600px;">
+      <span class="badge-pill badge-resolved" style="margin-bottom: .6rem;"><i data-lucide="radio" style="width: 13px; height: 13px;"></i><span>Resolver Operations Console · Cebu City</span></span>
+      <h1 style="font-size: 1.55rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2;">TIC &amp; VECO Triage Queue</h1>
+      <p class="section-sub" style="margin-top: .35rem;">Inspect citizen wire reports, update field crew stages (Dispatched → Investigating → Resolved), and coordinate utility clearance.</p>
+      <div style="display: flex; flex-wrap: wrap; gap: .45rem; margin-top: .75rem;">
+        <span class="badge-pill badge-amber">{{ stats.dispatched }} awaiting crew</span>
+        <span class="badge-pill badge-high">{{ stats.investigating }} investigating</span>
+        <span class="badge-pill badge-critical">{{ stats.critical }} critical &lt; 3.5m</span>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: .65rem;">
+      <button type="button" id="report-hazard-hero-btn" class="clay-btn-ghost"><i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i><span>Log field report</span></button>
+    </div>
+  </div>
+
+  <div class="metrics-grid" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));">
+    <div class="metric-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: .5rem;">
+        <span style="font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);">Verified</span>
+        <div class="metric-icon"><i data-lucide="check-circle-2" style="width: 16px; height: 16px;"></i></div>
+      </div>
+      <div class="metric-num" id="stat-total">{{ stats.total }}</div>
+      <p class="section-sub" style="margin-top: .4rem;">All active &amp; closed</p>
+    </div>
+    <div class="metric-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: .5rem;">
+        <span style="font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);">Dispatched</span>
+        <div class="metric-icon"><i data-lucide="send" style="width: 16px; height: 16px;"></i></div>
+      </div>
+      <div class="metric-num" id="stat-dispatched">{{ stats.dispatched }}</div>
+      <p class="section-sub" style="margin-top: .4rem;">Queued for field crew</p>
+    </div>
+    <div class="metric-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: .5rem;">
+        <span style="font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);">Investigating</span>
+        <div class="metric-icon" style="color: var(--peach);"><i data-lucide="wrench" style="width: 16px; height: 16px;"></i></div>
+      </div>
+      <div class="metric-num" style="color: var(--peach);" id="stat-investigating">{{ stats.investigating }}</div>
+      <p class="section-sub" style="margin-top: .4rem;">Crew on site</p>
+    </div>
+    <div class="metric-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: .5rem;">
+        <span style="font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);">Critical</span>
+        <div class="metric-icon" style="color: var(--red);"><i data-lucide="alert-triangle" style="width: 16px; height: 16px;"></i></div>
+      </div>
+      <div class="metric-num" style="color: var(--red);" id="stat-critical">{{ stats.critical }}</div>
+      <p class="section-sub" style="margin-top: .4rem;">Under 3.5m clearance</p>
+    </div>
+    <div class="metric-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: .5rem;">
+        <span style="font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);">Resolved</span>
+        <div class="metric-icon" style="color: var(--green);"><i data-lucide="zap" style="width: 16px; height: 16px;"></i></div>
+      </div>
+      <div class="metric-num" style="color: var(--green);" id="stat-resolved">{{ stats.resolved }}</div>
+      <p class="section-sub" style="margin-top: .4rem;">Cleared &amp; bundled</p>
+    </div>
+  </div>
+</div>

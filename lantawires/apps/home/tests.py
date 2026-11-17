@@ -89,6 +89,50 @@ class HomeScreenTests(TestCase):
         self.assertEqual(data["status"], "ok")
         self.assertEqual(data["newStatus"], "resolved")
 
+    def test_citizen_and_resolver_home_screens_differ(self):
+        # Default session has no role -> Citizen Watch view
+        citizen_res = self.client.get(reverse("home:index"))
+        self.assertEqual(citizen_res.status_code, 200)
+        self.assertTemplateUsed(citizen_res, "home/_citizen_dashboard.html")
+        self.assertContains(citizen_res, "Citizen Watch")
+        self.assertContains(citizen_res, "Neighborhood Hazards")
+
+        # Resolver role -> TIC & VECO Triage Console view
+        session = self.client.session
+        user = dict(session["current_user"])
+        user["role"] = "resolver"
+        session["current_user"] = user
+        session.save()
+        resolver_res = self.client.get(reverse("home:index"))
+        self.assertEqual(resolver_res.status_code, 200)
+        self.assertTemplateUsed(resolver_res, "home/_resolver_dashboard.html")
+        self.assertContains(resolver_res, "TIC &amp; VECO Triage Queue")
+        self.assertContains(resolver_res, "Triage Queue")
+
+    def test_update_status_api_supports_three_stages_and_validates(self):
+        session = self.client.session
+        user = dict(session["current_user"])
+        user["role"] = "resolver"
+        session["current_user"] = user
+        session.save()
+
+        # Investigating stage
+        res_inv = self.client.post(
+            reverse("home:update_status"),
+            data=json.dumps({"reportId": "rep-001", "newStatus": "investigating"}),
+            content_type="application/json",
+        )
+        self.assertEqual(res_inv.status_code, 200)
+        self.assertEqual(res_inv.json()["newStatus"], "investigating")
+
+        # Invalid status rejected
+        res_bad = self.client.post(
+            reverse("home:update_status"),
+            data=json.dumps({"reportId": "rep-001", "newStatus": "bogus"}),
+            content_type="application/json",
+        )
+        self.assertEqual(res_bad.status_code, 400)
+
     def test_logout_clears_session_and_redirects_to_login(self):
         response = self.client.get(reverse("home:logout"))
         self.assertEqual(response.status_code, 302)

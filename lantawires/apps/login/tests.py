@@ -34,3 +34,12 @@ class LoginScreenTests(TestCase):
         self.assertRedirects(response, reverse("home:index"))
         self.assertEqual(self.client.session["current_user"]["name"], "Gianne Cruz")
         self.assertEqual(self.client.session["current_user"]["barangay"], "Tisa")
+        self.assertEqual(self.client.session["current_user"]["role"], "resolver")
+
+    def test_demo_citizen_login_assigns_citizen_role(self):
+        response = self.client.post(reverse("login:index"), {
+            "email": "morales.cebu@gmail.com",
+            "password": "cebuwirehazard2026",
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(self.client.session["current_user"]["role"], "citizen")

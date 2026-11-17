@@ -81,7 +81,17 @@
       </button>
     </form>
 
-    <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 2px solid var(--clay-border); text-align: center;">
+    <div style="margin-top: .95rem; display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; justify-content: center;">
+      <span style="font-size: .72rem; color: var(--muted); font-weight: 700;">Quick demo:</span>
+      <button type="button" id="demo-citizen-btn" class="clay-btn-ghost" style="font-size: .72rem; padding: .35rem .7rem;">
+        <i data-lucide="user" style="width: 12px; height: 12px;"></i><span>Demo Citizen</span>
+      </button>
+      <button type="button" id="demo-resolver-btn" class="clay-btn-ghost" style="font-size: .72rem; padding: .35rem .7rem;">
+        <i data-lucide="shield-check" style="width: 12px; height: 12px;"></i><span>Demo Resolver</span>
+      </button>
+    </div>
+
+    <div style="margin-top: 1.1rem; padding-top: 1rem; border-top: 2px solid var(--clay-border); text-align: center;">
       <p style="font-size: .8rem; color: var(--muted);">New here? <a id="login-to-register-link" href="{% url 'register:register' %}" style="color: #c05c2a; font-weight: 800; text-decoration: none;">Create an account</a></p>
     </div>
   </div>
