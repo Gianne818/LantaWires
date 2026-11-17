@@ -1,5 +1,9 @@
 from django.contrib import messages
+from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
+
+from apps.profile.models import CebuBarangay, Profile
+from apps.user_settings.models import UserSettings
 
 CEBU_BARANGAYS = [
     "Tisa",
@@ -27,7 +31,6 @@ CEBU_BARANGAYS = [
     "Apas",
 ]
 
-from apps.profile.models import CebuBarangay
 
 def register_view(request):
     db_barangays = list(CebuBarangay.objects.values_list("name", flat=True))
@@ -84,10 +87,6 @@ def register_view(request):
                 messages.error(request, "Invalid resolver invite code. Leave it blank for a citizen account.")
                 return render(request, "register/register.html", context)
             role = "resolver"
-
-        from django.contrib.auth.models import User
-        from apps.profile.models import CebuBarangay, Profile
-        from apps.user_settings.models import UserSettings
 
         # Check if email is already registered
         if User.objects.filter(username__iexact=email).exists() or User.objects.filter(email__iexact=email).exists():
