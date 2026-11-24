@@ -528,6 +528,132 @@ class HomeScreenTests(TestCase):
         self.assertContains(my_res, "my-report-edit-btn")
         self.assertContains(my_res, "my-report-delete-btn")
 
+    def test_create_dispatch_api_multi_agency_and_duplicate_guard(self):
+        from apps.home.models import HazardCategory, HazardDispatch, HazardReport, UtilityAgency
+        from apps.profile.models import CebuBarangay
+
+        brgy = CebuBarangay.objects.create(
+            name="Lahug", district="North District", zip_code="6000", center_lat=10.3298, center_lng=123.9056
+        )
+        cat = HazardCategory.objects.create(
+            code="TANGLED_SPAGHETTI", category_name="Overcrowded Spaghetti Cluster", min_clearance=4.0, default_severity="high"
+        )
+        rep = HazardReport.objects.create(
+            ticket_number="LW-DISP-0001", title="Spaghetti Cluster", barangay=brgy, category=cat, address="Salinas Dr."
+        )
+        pldt = UtilityAgency.objects.create(
+            agency_name="PLDT-Smart Network Operations",
+            department="Overhead Cable Maintenance",
+            contact_email="fieldops@pldt.com.ph",
+            hotline_number="171",
+            agency_type="Telco",
+        )
+
+        create_url = reverse("home:create_dispatch")
+        payload = json.dumps({"reportId": rep.id, "agencyId": pldt.id, "resolutionNotes": "Prune dead drop lines"})
+
+        self.assertEqual(Client().post(create_url, data=payload, content_type="application/json").status_code, 401)
+        self.assertEqual(self.client.post(create_url, data=payload, content_type="application/json").status_code, 403)
+
+        session = self.client.session
+        user = dict(session["current_user"])
+        user["role"] = "resolver"
+        session["current_user"] = user
+        session.save()
+
+        res_ok = self.client.post(create_url, data=payload, content_type="application/json")
+        self.assertEqual(res_ok.status_code, 201)
+        self.assertEqual(HazardDispatch.objects.count(), 1)
+        self.assertEqual(res_ok.json()["dispatch"]["agencyName"], "PLDT-Smart Network Operations")
+
+        # Duplicate dispatch for same report + agency rejected with 409
+        res_dup = self.client.post(create_url, data=payload, content_type="application/json")
+        self.assertEqual(res_dup.status_code, 409)
+
+    def test_export_dispatches_csv_role_guard_and_filtering(self):
+        from apps.home.models import HazardCategory, HazardDispatch, HazardReport, UtilityAgency
+        from apps.profile.models import CebuBarangay
+
+        brgy = CebuBarangay.objects.create(
+            name="Tisa", district="South District", zip_code="6000", center_lat=10.2982, center_lng=123.8741
+        )
+        cat = HazardCategory.objects.create(
+            code="SAGGING_CABLE", category_name="Sagging Overhead Cable", min_clearance=4.5, default_severity="critical"
+        )
+        rep1 = HazardReport.objects.create(
+            ticket_number="LW-CSV-0001", title="Open Wire", barangay=brgy, category=cat, address="Tisa Rd", status="dispatched"
+        )
+        rep2 = HazardReport.objects.create(
+            ticket_number="LW-CSV-0002", title="Cleared Wire", barangay=brgy, category=cat, address="Katipunan", status="resolved"
+        )
+        agency = UtilityAgency.objects.create(
+            agency_name="Globe Telecom Quick Response",
+            department="Wire Elevation",
+            contact_email="wireclearance@globe.com.ph",
+            hotline_number="211",
+            agency_type="Telco",
+        )
+        HazardDispatch.objects.create(report=rep1, agency=agency, delivery_status="Delivered")
+        HazardDispatch.objects.create(report=rep2, agency=agency, delivery_status="Resolved")
+
+        export_url = reverse("home:export_dispatches_csv")
+        blocked = self.client.get(export_url)
+        self.assertEqual(blocked.status_code, 302)
+        self.assertRedirects(blocked, reverse("home:home"))
+
+        session = self.client.session
+        user = dict(session["current_user"])
+        user["role"] = "resolver"
+        session["current_user"] = user
+        session.save()
+
+        csv_res = self.client.get(export_url)
+        self.assertEqual(csv_res.status_code, 200)
+        self.assertTrue(csv_res["Content-Type"].startswith("text/csv"))
+        self.assertIn("lantawires_dispatches_report.csv", csv_res["Content-Disposition"])
+        body = csv_res.content.decode("utf-8")
+        self.assertIn("Dispatch ID,Ticket Number,Incident Title", body)
+        self.assertIn("LW-CSV-0001", body)
+        self.assertIn("LW-CSV-0002", body)
+
+        filtered_res = self.client.get(f"{export_url}?status=Resolved")
+        filtered_body = filtered_res.content.decode("utf-8")
+        self.assertNotIn("LW-CSV-0001", filtered_body)
+        self.assertIn("LW-CSV-0002", filtered_body)
+
+    def test_dispatches_page_renders_multi_agency_form_filters_and_export(self):
+        from apps.home.models import HazardCategory, HazardReport, UtilityAgency
+        from apps.profile.models import CebuBarangay
+
+        brgy = CebuBarangay.objects.create(
+            name="Tisa", district="South District", zip_code="6000", center_lat=10.2982, center_lng=123.8741
+        )
+        cat = HazardCategory.objects.create(
+            code="SAGGING_CABLE", category_name="Sagging Overhead Cable", min_clearance=4.5, default_severity="critical"
+        )
+        HazardReport.objects.create(
+            ticket_number="LW-UI-0001", title="Open Wire", barangay=brgy, category=cat, address="Tisa St.", status="dispatched"
+        )
+        UtilityAgency.objects.create(
+            agency_name="Cebu City TIC", department="Task Force", contact_email="tic@test.ph", hotline_number="411", agency_type="LGU"
+        )
+        UtilityAgency.objects.create(
+            agency_name="Globe Telecom", department="Wire Retrieval", contact_email="globe@test.ph", hotline_number="211", agency_type="Telco"
+        )
+
+        session = self.client.session
+        user = dict(session["current_user"])
+        user["role"] = "resolver"
+        session["current_user"] = user
+        session.save()
+
+        res = self.client.get(reverse("home:dispatches"))
+        self.assertEqual(res.status_code, 200)
+        self.assertContains(res, "export-dispatches-csv-btn")
+        self.assertContains(res, "new-dispatch-report-select")
+        self.assertContains(res, "new-dispatch-agency-select")
+        self.assertContains(res, "Globe Telecom")
+
     def test_logout_clears_session_and_redirects_to_login(self):
         response = self.client.get(reverse("home:logout"))
         self.assertEqual(response.status_code, 302)

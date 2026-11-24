@@ -1,4 +1,5 @@
 import base64
+import csv
 import json
 import re
 import time
@@ -9,7 +10,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.db.models import Subquery
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
@@ -432,7 +433,13 @@ def dispatches_view(request):
 
     dispatches = list(
         HazardDispatch.objects.select_related("report", "report__barangay", "agency")
-        .order_by("-dispatched_at")[:30]
+        .order_by("-dispatched_at")[:50]
+    )
+    db_agencies = list(UtilityAgency.objects.all())
+    open_db_reports = list(
+        HazardReport.objects.select_related("barangay")
+        .exclude(status="resolved")
+        .order_by("-created_at")
     )
     
     active_hazard_barangay_ids = (
@@ -483,6 +490,9 @@ def dispatches_view(request):
             "current_user": user_obj,
             "is_resolver": True,
             "agencies": agencies,
+            "db_agencies": db_agencies,
+            "open_db_reports": open_db_reports,
+            "delivery_statuses": ["Delivered", "Acknowledged", "En Route", "Resolved", "Failed"],
             "dispatches": dispatches,
             "active_hotspot_barangays": active_hotspot_barangays,
             "total_barangays_count": total_barangays_count,
@@ -811,6 +821,14 @@ def update_dispatch_api(request):
                 report.status = "resolved"
                 report.save(update_fields=["status", "updated_at"])
 
+        open_incidents = HazardReport.objects.exclude(status="resolved").count()
+        resolved_incidents = HazardReport.objects.filter(status="resolved").count()
+        active_hotspot_count = CebuBarangay.objects.filter(
+            id__in=Subquery(
+                HazardReport.objects.exclude(status="resolved").values("barangay_id")
+            )
+        ).count()
+
         return JsonResponse(
             {
                 "status": "ok",
@@ -818,10 +836,153 @@ def update_dispatch_api(request):
                 "deliveryStatus": dispatch_obj.delivery_status,
                 "reportStatus": report.status,
                 "resolutionNotes": dispatch_obj.resolution_notes or "",
+                "openIncidents": open_incidents,
+                "resolvedIncidents": resolved_incidents,
+                "activeHotspotCount": active_hotspot_count,
             }
         )
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
+
+
+def _csv_safe(value):
+    """Sanitize cell text against CSV formula injection and embedded newlines."""
+    text = "" if value is None else str(value)
+    text = text.replace("\r", " ").replace("\n", " ")
+    if text.startswith(("=", "+", "-", "@", "\t")):
+        return "'" + text
+    return text
+
+
+@require_POST
+def create_dispatch_api(request):
+    """Resolver-only API to dispatch an open HazardReport to any UtilityAgency."""
+    user_obj, role = _resolve_session_user(request)
+    if user_obj is None:
+        return JsonResponse({"status": "error", "message": "Authentication required."}, status=401)
+    if role != "resolver":
+        return JsonResponse({"status": "error", "message": "Resolver role required."}, status=403)
+
+    try:
+        data = json.loads(request.body)
+        try:
+            report_id = int(data.get("reportId"))
+            agency_id = int(data.get("agencyId"))
+        except (TypeError, ValueError):
+            return JsonResponse({"status": "error", "message": "Valid report and agency IDs are required."}, status=400)
+
+        resolution_notes = (data.get("resolutionNotes") or "").strip()
+
+        report_obj = HazardReport.objects.select_related("barangay").filter(id=report_id).first()
+        if not report_obj:
+            return JsonResponse({"status": "error", "message": "Hazard report not found."}, status=404)
+
+        agency_obj = UtilityAgency.objects.filter(id=agency_id).first()
+        if not agency_obj:
+            return JsonResponse({"status": "error", "message": "Utility agency not found."}, status=404)
+
+        if HazardDispatch.objects.filter(report=report_obj, agency=agency_obj).exists():
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "message": f"{agency_obj.agency_name} is already dispatched to {report_obj.ticket_number}.",
+                },
+                status=409,
+            )
+
+        disp = HazardDispatch.objects.create(
+            report=report_obj,
+            agency=agency_obj,
+            turnaround_seconds=28,
+            delivery_status="Delivered",
+            resolution_notes=resolution_notes or f"Manual resolver dispatch to {agency_obj.agency_name}",
+        )
+
+        return JsonResponse(
+            {
+                "status": "ok",
+                "dispatch": {
+                    "id": disp.id,
+                    "ticketNumber": report_obj.ticket_number,
+                    "reportTitle": report_obj.title,
+                    "barangayName": report_obj.barangay.name,
+                    "agencyId": agency_obj.id,
+                    "agencyName": agency_obj.agency_name,
+                    "turnaroundSeconds": disp.turnaround_seconds,
+                    "deliveryStatus": disp.delivery_status,
+                    "resolutionNotes": disp.resolution_notes or "",
+                },
+                "totalDispatches": HazardDispatch.objects.count(),
+            },
+            status=201,
+        )
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=400)
+
+
+def export_dispatches_csv(request):
+    """Resolver-only CSV export of utility dispatch records joined across ERD tables."""
+    user_obj, role = _resolve_session_user(request)
+    if user_obj is None:
+        messages.warning(request, "Please log in to export dispatch reports.")
+        return redirect("login:login")
+    if role != "resolver":
+        messages.warning(request, "CSV export is restricted to resolver accounts.")
+        return redirect("home:home")
+
+    qs = HazardDispatch.objects.select_related(
+        "report", "report__barangay", "report__category", "agency"
+    ).order_by("-dispatched_at")
+
+    agency_filter = (request.GET.get("agency") or "").strip()
+    if agency_filter.isdigit():
+        qs = qs.filter(agency_id=int(agency_filter))
+
+    status_filter = (request.GET.get("status") or "").strip()
+    valid_delivery = ("Delivered", "Acknowledged", "En Route", "Resolved", "Failed")
+    if status_filter in valid_delivery:
+        qs = qs.filter(delivery_status=status_filter)
+
+    response = HttpResponse(content_type="text/csv; charset=utf-8")
+    response["Content-Disposition"] = 'attachment; filename="lantawires_dispatches_report.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow([
+        "Dispatch ID",
+        "Ticket Number",
+        "Incident Title",
+        "Barangay",
+        "District",
+        "Category",
+        "Severity",
+        "Report Status",
+        "Utility Agency",
+        "Agency Type",
+        "Delivery Status",
+        "Turnaround (s)",
+        "Dispatched At",
+        "Resolution Notes",
+    ])
+
+    for d in qs:
+        writer.writerow([
+            d.id,
+            _csv_safe(d.report.ticket_number),
+            _csv_safe(d.report.title),
+            _csv_safe(d.report.barangay.name if d.report.barangay_id else ""),
+            _csv_safe(d.report.barangay.district if d.report.barangay_id else ""),
+            _csv_safe(d.report.category.category_name if d.report.category_id else ""),
+            _csv_safe(d.report.severity),
+            _csv_safe(d.report.status),
+            _csv_safe(d.agency.agency_name),
+            _csv_safe(d.agency.agency_type),
+            _csv_safe(d.delivery_status),
+            d.turnaround_seconds,
+            d.dispatched_at.strftime("%Y-%m-%d %H:%M:%S") if d.dispatched_at else "",
+            _csv_safe(d.resolution_notes or ""),
+        ])
+
+    return response
 
 
 @require_POST
