@@ -204,6 +204,52 @@ class HomeScreenTests(TestCase):
         self.assertEqual(disp.resolution_notes, "Line re-tensioned by VECO crew")
         self.assertEqual(rep.status, "resolved")
 
+    def test_dispatches_active_hotspot_barangays_subquery(self):
+        from django.db.models import Subquery
+        from apps.home.models import HazardCategory, HazardReport
+        from apps.profile.models import CebuBarangay
+
+        brgy_active = CebuBarangay.objects.create(
+            name="Tisa", district="South District", zip_code="6000", center_lat=10.2982, center_lng=123.8741, hotline_number="(032) 261-0412"
+        )
+        brgy_resolved = CebuBarangay.objects.create(
+            name="Guadalupe", district="South District", zip_code="6000", center_lat=10.3223, center_lng=123.8812, hotline_number="(032) 254-4411"
+        )
+        CebuBarangay.objects.create(
+            name="Apas", district="North District", zip_code="6000", center_lat=10.3341, center_lng=123.9085, hotline_number="(032) 231-5511"
+        )
+        cat = HazardCategory.objects.create(
+            code="SAGGING_CABLE", category_name="Sagging Cable", min_clearance=4.5, default_severity="critical"
+        )
+        HazardReport.objects.create(
+            ticket_number="LW-SUB-0001", title="Active Sag", barangay=brgy_active, category=cat, address="Tisa Rd", status="dispatched"
+        )
+        HazardReport.objects.create(
+            ticket_number="LW-SUB-0002", title="Cleared Wire", barangay=brgy_resolved, category=cat, address="Guadalupe Rd", status="resolved"
+        )
+
+        # Verify Django ORM generates a genuine SQL Subquery
+        inner_qs = HazardReport.objects.exclude(status="resolved").values("barangay_id")
+        outer_qs = CebuBarangay.objects.filter(id__in=Subquery(inner_qs)).order_by("name")
+        self.assertIn("IN (SELECT", str(outer_qs.query))
+        self.assertEqual([b.name for b in outer_qs], ["Tisa"])
+
+        # Verify resolver view renders only active hotspot barangays
+        session = self.client.session
+        user = dict(session["current_user"])
+        user["role"] = "resolver"
+        session["current_user"] = user
+        session.save()
+
+        res = self.client.get(reverse("home:dispatches"))
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual([b.name for b in res.context["active_hotspot_barangays"]], ["Tisa"])
+        self.assertEqual(res.context["total_barangays_count"], 3)
+        self.assertContains(res, "Active Hotspot Barangays")
+        self.assertContains(res, "(032) 261-0412")
+        self.assertNotContains(res, "(032) 254-4411")
+        self.assertNotContains(res, "(032) 231-5511")
+
     def test_logout_clears_session_and_redirects_to_login(self):
         response = self.client.get(reverse("home:logout"))
         self.assertEqual(response.status_code, 302)
