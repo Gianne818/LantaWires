@@ -6,165 +6,39 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/home/home.css' %}">
 <style>
-  .app-header {
-    padding: 0 1rem;
-  }
-
-  .app-nav {
-    flex-wrap: wrap;
-    gap: .6rem 1rem;
-    padding: .55rem .85rem;
-  }
-
-  .app-nav nav {
-    flex-wrap: wrap;
-  }
-
-  .lw-page-stack {
-    margin-top: 1.15rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1.15rem;
-  }
-
-  .home-hero {
-    border-radius: var(--r-lg);
-    padding: 1.5rem 1.6rem;
-  }
-
-  .metrics-grid {
-    margin-top: 0;
-    gap: 1rem;
-  }
-
-  .metric-card {
-    border-radius: var(--r-md);
-    padding: 1.2rem;
-    display: flex;
-    flex-direction: column;
-    gap: .35rem;
-  }
-
-  .metric-label {
-    font-size: .8rem;
-    font-weight: 700;
-    color: var(--ink-2);
-    letter-spacing: -0.01em;
-  }
-
-  .metric-num {
-    font-variant-numeric: tabular-nums;
-    line-height: 1;
-    align-self: flex-start;
-    margin: .2rem 0 .1rem;
-  }
-
-  .section-sub {
-    color: var(--ink-2);
-    line-height: 1.45;
-  }
-
-  .section-title-clean {
-    font-size: .98rem;
-    font-weight: 800;
-    letter-spacing: -0.01em;
-    text-transform: none;
-    color: var(--ink);
-    display: flex;
-    align-items: center;
-    gap: .55rem;
-  }
-
-  .panel-card {
-    padding: 1.35rem;
-    border-radius: var(--r-lg);
-  }
-
-  .ticket-chip,
-  .tabular-val {
-    font-variant-numeric: tabular-nums;
-  }
-
-  .brgy-bar-track {
-    width: 100%;
-    height: 10px;
-    border-radius: 9999px;
-    background: var(--clay-card);
-    border: 1px solid var(--clay-border);
-    overflow: hidden;
-    display: flex;
-    gap: 2px;
-  }
-
-  .brgy-counts {
-    display: inline-flex;
-    align-items: center;
-    gap: .45rem;
-    flex-wrap: wrap;
-    font-size: .74rem;
-    color: var(--ink-2);
-    font-variant-numeric: tabular-nums;
-  }
-
-  .dispatch-row {
-    display: flex;
-    flex-direction: column;
-    gap: .75rem;
-    padding: 1rem 1.05rem;
-    border-radius: var(--r-md);
-  }
-
-  .dispatch-row-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    flex-wrap: wrap;
-    gap: .6rem;
-  }
-
-  .dispatch-controls {
-    display: flex;
-    flex-wrap: wrap;
-    gap: .6rem;
-    align-items: center;
-  }
-
+  .app-header { padding: 0 1rem; }
+  .app-nav { flex-wrap: wrap; gap: .6rem 1rem; padding: .55rem .85rem; }
+  .app-nav nav { flex-wrap: wrap; }
+  .lw-page-stack { margin-top: 1.15rem; display: flex; flex-direction: column; gap: 1.15rem; }
+  .home-hero { border-radius: var(--r-lg); padding: 1.5rem 1.6rem; }
+  .metrics-grid { margin-top: 0; gap: 1rem; }
+  .metric-card { border-radius: var(--r-md); padding: 1.2rem; display: flex; flex-direction: column; gap: .35rem; }
+  .metric-label { font-size: .8rem; font-weight: 700; color: var(--ink-2); letter-spacing: -0.01em; }
+  .metric-num { font-variant-numeric: tabular-nums; line-height: 1; align-self: flex-start; margin: .2rem 0 .1rem; }
+  .section-sub { color: var(--ink-2); line-height: 1.45; }
+  .section-title-clean { font-size: .98rem; font-weight: 800; letter-spacing: -0.01em; text-transform: none; color: var(--ink); display: flex; align-items: center; gap: .55rem; }
+  .panel-card { padding: 1.35rem; border-radius: var(--r-lg); }
+  .ticket-chip, .tabular-val { font-variant-numeric: tabular-nums; }
+  .brgy-bar-track { width: 100%; height: 10px; border-radius: 9999px; background: var(--clay-card); border: 1px solid var(--clay-border); overflow: hidden; display: flex; gap: 2px; }
+  .brgy-counts { display: inline-flex; align-items: center; gap: .45rem; flex-wrap: wrap; font-size: .74rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .dispatch-row { display: flex; flex-direction: column; gap: .75rem; padding: 1rem 1.05rem; border-radius: var(--r-md); }
+  .dispatch-row-head { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: .6rem; }
+  .dispatch-controls { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
   .dispatch-status-select {
-    max-width: 180px;
-    min-width: 150px;
+    max-width: 180px; min-width: 150px;
     padding: .55rem 2.25rem .55rem .85rem;
-    font-size: .8rem;
-    font-weight: 600;
+    font-size: .8rem; font-weight: 600;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234a556e' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right .75rem center;
     background-size: 15px 15px;
   }
-
   [data-theme="dark"] .dispatch-status-select {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23c6cbd6' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   }
-
-  .dispatch-notes-input {
-    flex: 1;
-    min-width: 220px;
-    padding: .55rem .85rem;
-    font-size: .8rem;
-  }
-
-  .dispatch-save-btn {
-    width: auto;
-    padding: .55rem 1rem;
-    font-size: .8rem;
-    border-radius: 14px;
-  }
-
-  .dispatch-save-btn.is-saved {
-    background: linear-gradient(180deg, #4cc38a, #2fb37c);
-    color: #ffffff;
-    box-shadow: 0 6px 14px rgba(47, 179, 124, .3);
-  }
-
+  .dispatch-notes-input { flex: 1; min-width: 220px; padding: .55rem .85rem; font-size: .8rem; }
+  .dispatch-save-btn { width: auto; padding: .55rem 1rem; font-size: .8rem; border-radius: 14px; }
+  .dispatch-save-btn.is-saved { background: linear-gradient(180deg, #4cc38a, #2fb37c); color: #ffffff; box-shadow: 0 6px 14px rgba(47, 179, 124, .3); }
   .hotspot-table-wrapper {
     overflow: auto;
     max-inline-size: 100%;
@@ -174,7 +48,6 @@
     border: 1px solid var(--clay-border);
     background: var(--clay-card);
   }
-
   .hotspot-table {
     width: 100%;
     border-collapse: separate;
@@ -186,14 +59,12 @@
     --label-5: "Emergency Hotline";
     --label-6: "GPS Centroid";
   }
-
   .hotspot-table thead {
     position: sticky;
     inset-block-start: 0;
     z-index: 1;
     background: var(--clay-card-2);
   }
-
   .hotspot-table thead th {
     text-align: left;
     padding: .75rem .95rem;
@@ -203,7 +74,6 @@
     border-bottom: 1px solid var(--clay-border);
     white-space: nowrap;
   }
-
   .hotspot-table tbody th,
   .hotspot-table tbody td {
     padding: .78rem .95rem;
@@ -212,12 +82,8 @@
     white-space: nowrap;
     vertical-align: middle;
   }
-
   .hotspot-table tbody tr:last-child th,
-  .hotspot-table tbody tr:last-child td {
-    border-bottom: none;
-  }
-
+  .hotspot-table tbody tr:last-child td { border-bottom: none; }
   .hotspot-table tbody th {
     position: sticky;
     inset-inline-start: 0;
@@ -225,22 +91,14 @@
     text-align: left;
     font-weight: 800;
   }
-
   @container (width < 600px) {
-
     .hotspot-table,
     .hotspot-table thead,
     .hotspot-table tbody,
     .hotspot-table tr,
     .hotspot-table th,
-    .hotspot-table td {
-      display: block;
-    }
-
-    .hotspot-table thead {
-      display: none;
-    }
-
+    .hotspot-table td { display: block; }
+    .hotspot-table thead { display: none; }
     .hotspot-table tbody tr {
       margin: .75rem;
       border: 1px solid var(--clay-border);
@@ -248,7 +106,6 @@
       overflow: hidden;
       background: var(--clay-card);
     }
-
     .hotspot-table tbody th {
       position: sticky;
       inset-block-start: 0;
@@ -256,68 +113,27 @@
       background: var(--clay-card-2);
       border-bottom: 1px solid var(--clay-border);
     }
-
     .hotspot-table tbody td {
       display: flex;
       justify-content: space-between;
       gap: .75rem;
       white-space: normal;
     }
-
     .hotspot-table tbody td::before {
       font-weight: 700;
       color: var(--ink-2);
     }
-
-    .hotspot-table tbody td:nth-child(2)::before {
-      content: var(--label-2) ": ";
-    }
-
-    .hotspot-table tbody td:nth-child(3)::before {
-      content: var(--label-3) ": ";
-    }
-
-    .hotspot-table tbody td:nth-child(4)::before {
-      content: var(--label-4) ": ";
-    }
-
-    .hotspot-table tbody td:nth-child(5)::before {
-      content: var(--label-5) ": ";
-    }
-
-    .hotspot-table tbody td:nth-child(6)::before {
-      content: var(--label-6) ": ";
-    }
+    .hotspot-table tbody td:nth-child(2)::before { content: var(--label-2) ": "; }
+    .hotspot-table tbody td:nth-child(3)::before { content: var(--label-3) ": "; }
+    .hotspot-table tbody td:nth-child(4)::before { content: var(--label-4) ": "; }
+    .hotspot-table tbody td:nth-child(5)::before { content: var(--label-5) ": "; }
+    .hotspot-table tbody td:nth-child(6)::before { content: var(--label-6) ": "; }
   }
-
-  .clay-btn-primary:hover,
-  .clay-btn-ghost:hover,
-  .metric-card:hover {
-    transform: translateY(-2px);
-  }
-
-  a:focus-visible,
-  button:focus-visible,
-  input:focus-visible,
-  select:focus-visible {
-    outline: 3px solid var(--peach);
-    outline-offset: 2px;
-  }
-
+  .clay-btn-primary:hover, .clay-btn-ghost:hover, .metric-card:hover { transform: translateY(-2px); }
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--peach); outline-offset: 2px; }
   @media (prefers-reduced-motion: reduce) {
-
-    .clay-btn-primary,
-    .clay-btn-ghost,
-    .metric-card,
-    .nav-link {
-      transition: none !important;
-    }
-
-    .clay-btn-primary:hover,
-    .clay-btn-ghost:hover,
-    .metric-card:hover {
-      transform: none !important;
-    }
+    .clay-btn-primary, .clay-btn-ghost, .metric-card, .nav-link { transition: none !important; }
+    .clay-btn-primary:hover, .clay-btn-ghost:hover, .metric-card:hover { transform: none !important; }
   }
 </style>
 {% endblock %}
@@ -327,8 +143,7 @@
   <header class="app-header">
     <div class="app-nav">
       <div style="display: flex; align-items: center; gap: .7rem;">
-        <div
-          style="width: 40px; height: 40px; border-radius: 14px; background: linear-gradient(180deg, var(--peach-soft), var(--peach)); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-btn);">
+        <div style="width: 40px; height: 40px; border-radius: 14px; background: linear-gradient(180deg, var(--peach-soft), var(--peach)); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-btn);">
           <img src="{% static 'images/home/hazard-radar.svg' %}" alt="Radar" style="width: 24px; height: 24px;">
         </div>
         <div style="display: flex; align-items: center; gap: .45rem;">
@@ -337,28 +152,20 @@
         </div>
       </div>
       <nav aria-label="Primary" style="display: flex; align-items: center; gap: .3rem;">
-        <a id="nav-link-home" href="{% url 'home:home' %}" class="nav-link"><i data-lucide="shield-check"
-            style="width: 15px; height: 15px;"></i><span>Triage Console</span></a>
-        <a id="nav-link-dispatches" href="{% url 'home:dispatches' %}" class="nav-link active"><i data-lucide="send"
-            style="width: 15px; height: 15px;"></i><span>Dispatches</span></a>
-        <a id="nav-link-profile" href="{% url 'profile:profile' %}" class="nav-link"><i data-lucide="user"
-            style="width: 15px; height: 15px;"></i><span>Profile</span></a>
-        <a id="nav-link-settings" href="{% url 'user_settings:settings' %}" class="nav-link"><i data-lucide="settings"
-            style="width: 15px; height: 15px;"></i><span>Settings</span></a>
+        <a id="nav-link-home" href="{% url 'home:home' %}" class="nav-link"><i data-lucide="shield-check" style="width: 15px; height: 15px;"></i><span>Triage Console</span></a>
+        <a id="nav-link-dispatches" href="{% url 'home:dispatches' %}" class="nav-link active"><i data-lucide="send" style="width: 15px; height: 15px;"></i><span>Dispatches</span></a>
+        <a id="nav-link-profile" href="{% url 'profile:profile' %}" class="nav-link"><i data-lucide="user" style="width: 15px; height: 15px;"></i><span>Profile</span></a>
+        <a id="nav-link-settings" href="{% url 'user_settings:settings' %}" class="nav-link"><i data-lucide="settings" style="width: 15px; height: 15px;"></i><span>Settings</span></a>
       </nav>
       <div style="display: flex; align-items: center; gap: .6rem;">
-        <a href="{% url 'profile:profile' %}"
-          style="display: flex; align-items: center; gap: .6rem; text-decoration: none;">
+        <a href="{% url 'profile:profile' %}" style="display: flex; align-items: center; gap: .6rem; text-decoration: none;">
           <div style="text-align: right;" class="desktop-user-meta">
-            <p style="font-size: .8rem; font-weight: 800; color: var(--ink); line-height: 1.2;">{{ current_user.name }}
-            </p>
-            <p style="font-size: .72rem; color: var(--green); font-weight: 700;">Brgy. {{ current_user.barangay }} ·
-              Resolver</p>
+            <p style="font-size: .8rem; font-weight: 800; color: var(--ink); line-height: 1.2;">{{ current_user.name }}</p>
+            <p style="font-size: .72rem; color: var(--green); font-weight: 700;">Brgy. {{ current_user.barangay }} · Resolver</p>
           </div>
           <div class="avatar-clay">{{ current_user.avatar|default:"LW" }}</div>
         </a>
-        <a id="dispatches-sign-out-btn" href="{% url 'home:logout' %}" class="clay-btn-ghost" title="Sign out"
-          aria-label="Sign out"><i data-lucide="log-out" style="width: 15px; height: 15px;"></i></a>
+        <a id="dispatches-sign-out-btn" href="{% url 'home:logout' %}" class="clay-btn-ghost" title="Sign out" aria-label="Sign out"><i data-lucide="log-out" style="width: 15px; height: 15px;"></i></a>
       </div>
     </div>
   </header>
@@ -366,19 +173,13 @@
   <main class="container-7xl lw-page-stack">
     <div class="clay-card home-hero">
       <div style="max-width: 620px;">
-        <span class="badge-pill badge-resolved" style="margin-bottom: .55rem;"><i data-lucide="building-2"
-            style="width: 13px; height: 13px;"></i><span>Resolver-only · Utility agency coordination</span></span>
-        <h1 style="font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;">Agency Dispatches &amp; Barangay
-          Analytics</h1>
-        <p class="section-sub" style="margin-top: .35rem;">Update TIC, VECO, and telco crew delivery states, log field
-          resolution notes, and monitor hotspot density per barangay.</p>
+        <span class="badge-pill badge-resolved" style="margin-bottom: .55rem;"><i data-lucide="building-2" style="width: 13px; height: 13px;"></i><span>Resolver-only · Utility agency coordination</span></span>
+        <h1 style="font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;">Agency Dispatches &amp; Barangay Analytics</h1>
+        <p class="section-sub" style="margin-top: .35rem;">Update TIC, VECO, and telco crew delivery states, log field resolution notes, and monitor hotspot density per barangay.</p>
       </div>
       <div style="display: flex; flex-wrap: wrap; gap: .6rem; align-items: center;">
-        <a id="export-dispatches-csv-btn" href="{% url 'home:export_dispatches_csv' %}" class="clay-btn-primary"
-          style="text-decoration: none; width: auto;"><i data-lucide="download"
-            style="width: 15px; height: 15px;"></i><span>Export CSV</span></a>
-        <a href="{% url 'home:home' %}" class="clay-btn-ghost" style="text-decoration: none;"><i
-            data-lucide="arrow-left" style="width: 15px; height: 15px;"></i><span>Back to Triage</span></a>
+        <a id="export-dispatches-csv-btn" href="{% url 'home:export_dispatches_csv' %}" class="clay-btn-primary" style="text-decoration: none; width: auto;"><i data-lucide="download" style="width: 15px; height: 15px;"></i><span>Export CSV</span></a>
+        <a href="{% url 'home:home' %}" class="clay-btn-ghost" style="text-decoration: none;"><i data-lucide="arrow-left" style="width: 15px; height: 15px;"></i><span>Back to Triage</span></a>
       </div>
     </div>
 
@@ -402,272 +203,216 @@
       <div class="metric-card">
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <span class="metric-label">Open hazards</span>
-          <div class="metric-icon" style="color: var(--peach);"><i data-lucide="alert-triangle"
-              style="width: 16px; height: 16px;"></i></div>
+          <div class="metric-icon" style="color: var(--peach);"><i data-lucide="alert-triangle" style="width: 16px; height: 16px;"></i></div>
         </div>
-        <div class="metric-num" id="kpi-open-incidents" style="color: var(--peach);">{{ dispatch_stats.open_incidents }}
-        </div>
+        <div class="metric-num" id="kpi-open-incidents" style="color: var(--peach);">{{ dispatch_stats.open_incidents }}</div>
         <p class="section-sub">Awaiting resolution</p>
       </div>
       <div class="metric-card">
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <span class="metric-label">Resolved</span>
-          <div class="metric-icon" style="color: var(--green);"><i data-lucide="check-circle-2"
-              style="width: 16px; height: 16px;"></i></div>
+          <div class="metric-icon" style="color: var(--green);"><i data-lucide="check-circle-2" style="width: 16px; height: 16px;"></i></div>
         </div>
-        <div class="metric-num" id="kpi-resolved-incidents" style="color: var(--green);">{{
-          dispatch_stats.resolved_incidents }}</div>
+        <div class="metric-num" id="kpi-resolved-incidents" style="color: var(--green);">{{ dispatch_stats.resolved_incidents }}</div>
         <p class="section-sub">Cleared corridors</p>
       </div>
     </div>
 
-    <div
-      style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.15rem; align-items: start;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.15rem; align-items: start;">
       <div class="clay-card panel-card">
-        <h2 class="section-title-clean" style="margin-bottom: .9rem;"><i data-lucide="phone-call"
-            style="width: 17px; height: 17px; color: var(--green);"></i><span>Utility agency directory</span></h2>
+        <h2 class="section-title-clean" style="margin-bottom: .9rem;"><i data-lucide="phone-call" style="width: 17px; height: 17px; color: var(--green);"></i><span>Utility agency directory</span></h2>
         <div style="display: flex; flex-direction: column; gap: .7rem;">
           {% for ag in agencies %}
-          <div class="clay-tile" style="display: flex; flex-direction: column; gap: .3rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; gap: .5rem;">
-              <strong style="font-size: .86rem;">{{ ag.agency_name }}</strong>
-              <span class="badge-pill badge-neutral" style="font-size: .66rem; color: var(--ink-2);">{{ ag.agency_type
-                }}</span>
+            <div class="clay-tile" style="display: flex; flex-direction: column; gap: .3rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: .5rem;">
+                <strong style="font-size: .86rem;">{{ ag.agency_name }}</strong>
+                <span class="badge-pill badge-neutral" style="font-size: .66rem; color: var(--ink-2);">{{ ag.agency_type }}</span>
+              </div>
+              <p class="section-sub" style="font-size: .75rem;">{{ ag.department }}</p>
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .4rem; font-size: .74rem; color: var(--ink-2); margin-top: .2rem;">
+                <span>{{ ag.contact_email }}</span>
+                <strong class="tabular-val" style="color: var(--ink);">{{ ag.hotline_number }}</strong>
+              </div>
             </div>
-            <p class="section-sub" style="font-size: .75rem;">{{ ag.department }}</p>
-            <div
-              style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .4rem; font-size: .74rem; color: var(--ink-2); margin-top: .2rem;">
-              <span>{{ ag.contact_email }}</span>
-              <strong class="tabular-val" style="color: var(--ink);">{{ ag.hotline_number }}</strong>
-            </div>
-          </div>
           {% endfor %}
         </div>
       </div>
 
       <div class="clay-card panel-card">
-        <h2 class="section-title-clean" style="margin-bottom: .9rem;"><i data-lucide="bar-chart-3"
-            style="width: 17px; height: 17px; color: var(--peach);"></i><span>Barangay hazard breakdown</span></h2>
+        <h2 class="section-title-clean" style="margin-bottom: .9rem;"><i data-lucide="bar-chart-3" style="width: 17px; height: 17px; color: var(--peach);"></i><span>Barangay hazard breakdown</span></h2>
         <div style="display: flex; flex-direction: column; gap: .7rem;">
           {% for brgy in barangay_breakdown %}
-          <div class="clay-inset-box" style="display: flex; flex-direction: column; gap: .45rem;">
-            <div
-              style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .4rem; font-size: .82rem;">
-              <strong>Brgy. {{ brgy.name }}</strong>
-              <div class="brgy-counts">
-                <span>{{ brgy.total }} total</span>
-                <span aria-hidden="true">·</span>
-                <span class="badge-pill badge-compact badge-critical">{{ brgy.critical }} critical</span>
-                <span class="badge-pill badge-compact badge-resolved">{{ brgy.resolved }} resolved</span>
+            <div class="clay-inset-box" style="display: flex; flex-direction: column; gap: .45rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .4rem; font-size: .82rem;">
+                <strong>Brgy. {{ brgy.name }}</strong>
+                <div class="brgy-counts">
+                  <span>{{ brgy.total }} total</span>
+                  <span aria-hidden="true">·</span>
+                  <span class="badge-pill badge-compact badge-critical">{{ brgy.critical }} critical</span>
+                  <span class="badge-pill badge-compact badge-resolved">{{ brgy.resolved }} resolved</span>
+                </div>
+              </div>
+              <div class="brgy-bar-track" role="img" aria-label="Brgy. {{ brgy.name }}: {{ brgy.active }} active, {{ brgy.resolved }} resolved" style="justify-content: flex-start;">
+                <div style="width: {{ brgy.width_pct }}%; height: 100%; display: flex; gap: 2px; border-radius: 9999px; overflow: hidden;">
+                  {% if brgy.active > 0 %}
+                    <div style="flex: {{ brgy.active }}; background: var(--peach); border-radius: 9999px;"></div>
+                  {% endif %}
+                  {% if brgy.resolved > 0 %}
+                    <div style="flex: {{ brgy.resolved }}; background: var(--green); border-radius: 9999px;"></div>
+                  {% endif %}
+                </div>
               </div>
             </div>
-            <div class="brgy-bar-track" role="img"
-              aria-label="Brgy. {{ brgy.name }}: {{ brgy.active }} active, {{ brgy.resolved }} resolved"
-              style="justify-content: flex-start;">
-              <div
-                style="width: {{ brgy.width_pct }}%; height: 100%; display: flex; gap: 2px; border-radius: 9999px; overflow: hidden;">
-                {% if brgy.active > 0 %}
-                <div style="flex: {{ brgy.active }}; background: var(--peach); border-radius: 9999px;"></div>
-                {% endif %}
-                {% if brgy.resolved > 0 %}
-                <div style="flex: {{ brgy.resolved }}; background: var(--green); border-radius: 9999px;"></div>
-                {% endif %}
-              </div>
-            </div>
-          </div>
           {% endfor %}
         </div>
       </div>
     </div>
 
     <div class="clay-card panel-card">
-      <div
-        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: .5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: .5rem;">
         <div>
-          <h2 id="hotspot-barangays-heading" class="section-title-clean"><i data-lucide="map-pin"
-              style="width: 17px; height: 17px; color: var(--peach);"></i><span>Active Hotspot Barangays — Emergency
-              Coordination</span></h2>
-          <p class="section-sub" style="font-size: .78rem; margin-top: .2rem;">Cebu City barangays with unresolved wire
-            hazards (dispatched or investigating) requiring Barangay Hall hotline coordination.</p>
+          <h2 id="hotspot-barangays-heading" class="section-title-clean"><i data-lucide="map-pin" style="width: 17px; height: 17px; color: var(--peach);"></i><span>Active Hotspot Barangays — Emergency Coordination</span></h2>
+          <p class="section-sub" style="font-size: .78rem; margin-top: .2rem;">Cebu City barangays with unresolved wire hazards (dispatched or investigating) requiring Barangay Hall hotline coordination.</p>
         </div>
-        <span id="hotspot-active-badge" class="badge-pill badge-amber tabular-val">{{ active_hotspot_barangays|length }}
-          of {{ total_barangays_count }} barangays active</span>
+        <span id="hotspot-active-badge" class="badge-pill badge-amber tabular-val">{{ active_hotspot_barangays|length }} of {{ total_barangays_count }} barangays active</span>
       </div>
 
       {% if active_hotspot_barangays %}
-      <div tabindex="0" role="region" aria-labelledby="hotspot-barangays-heading" class="hotspot-table-wrapper">
-        <table class="hotspot-table">
-          <thead>
-            <tr>
-              <th scope="col">Barangay</th>
-              <th scope="col">Barangay ID</th>
-              <th scope="col">District</th>
-              <th scope="col">ZIP Code</th>
-              <th scope="col">Emergency Hotline</th>
-              <th scope="col">GPS Centroid</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for brgy in active_hotspot_barangays %}
-            <tr>
-              <th scope="row">Brgy. {{ brgy.name }}</th>
-              <td class="tabular-val">#{{ brgy.id }}</td>
-              <td><span class="badge-pill badge-compact badge-neutral" style="color: var(--ink-2);">{{ brgy.district
-                  }}</span></td>
-              <td class="tabular-val">{{ brgy.zip_code }}</td>
-              <td class="tabular-val"><strong>{{ brgy.hotline_number|default:"Not listed" }}</strong></td>
-              <td class="tabular-val" style="color: var(--ink-2);">{{ brgy.center_lat|floatformat:4 }}, {{
-                brgy.center_lng|floatformat:4 }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+        <div tabindex="0" role="region" aria-labelledby="hotspot-barangays-heading" class="hotspot-table-wrapper">
+          <table class="hotspot-table">
+            <thead>
+              <tr>
+                <th scope="col">Barangay</th>
+                <th scope="col">Barangay ID</th>
+                <th scope="col">District</th>
+                <th scope="col">ZIP Code</th>
+                <th scope="col">Emergency Hotline</th>
+                <th scope="col">GPS Centroid</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for brgy in active_hotspot_barangays %}
+                <tr>
+                  <th scope="row">Brgy. {{ brgy.name }}</th>
+                  <td class="tabular-val">#{{ brgy.id }}</td>
+                  <td><span class="badge-pill badge-compact badge-neutral" style="color: var(--ink-2);">{{ brgy.district }}</span></td>
+                  <td class="tabular-val">{{ brgy.zip_code }}</td>
+                  <td class="tabular-val"><strong>{{ brgy.hotline_number|default:"Not listed" }}</strong></td>
+                  <td class="tabular-val" style="color: var(--ink-2);">{{ brgy.center_lat|floatformat:4 }}, {{ brgy.center_lng|floatformat:4 }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       {% else %}
-      <div class="clay-inset-box" style="text-align: center; padding: 1.5rem;">
-        <p class="section-sub">All Cebu City barangays are currently clear of unresolved wire hazards.</p>
-      </div>
+        <div class="clay-inset-box" style="text-align: center; padding: 1.5rem;">
+          <p class="section-sub">All Cebu City barangays are currently clear of unresolved wire hazards.</p>
+        </div>
       {% endif %}
     </div>
 
     <div id="multi-agency-dispatch-panel" class="clay-card panel-card">
-      <div
-        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: .9rem; flex-wrap: wrap; gap: .5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: .9rem; flex-wrap: wrap; gap: .5rem;">
         <div>
-          <h2 class="section-title-clean"><i data-lucide="plus-circle"
-              style="width: 17px; height: 17px; color: var(--peach);"></i><span>Dispatch Additional Utility
-              Agency</span></h2>
-          <p class="section-sub" style="font-size: .78rem; margin-top: .2rem;">Route an open hazard ticket to partner
-            agencies such as PLDT-Smart, Globe Telecom, or CCDRRMO.</p>
+          <h2 class="section-title-clean"><i data-lucide="plus-circle" style="width: 17px; height: 17px; color: var(--peach);"></i><span>Dispatch Additional Utility Agency</span></h2>
+          <p class="section-sub" style="font-size: .78rem; margin-top: .2rem;">Route an open hazard ticket to partner agencies such as PLDT-Smart, Globe Telecom, or CCDRRMO.</p>
         </div>
       </div>
       {% if open_db_reports and db_agencies %}
-      <form id="create-dispatch-form"
-        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: .65rem; align-items: end;">
-        <div class="form-group" style="margin-bottom: 0;">
-          <label class="form-label" for="new-dispatch-report-select">Open hazard ticket</label>
-          <select id="new-dispatch-report-select" class="clay-input no-icon">
-            {% for r in open_db_reports %}<option value="{{ r.id }}">{{ r.ticket_number }} — {{ r.title|truncatechars:42
-              }} (Brgy. {{ r.barangay.name }})</option>{% endfor %}
-          </select>
-        </div>
-        <div class="form-group" style="margin-bottom: 0;">
-          <label class="form-label" for="new-dispatch-agency-select">Partner utility agency</label>
-          <select id="new-dispatch-agency-select" class="clay-input no-icon">
-            {% for ag in db_agencies %}<option value="{{ ag.id }}">{{ ag.agency_name }} ({{ ag.agency_type }})</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div class="form-group" style="margin-bottom: 0;">
-          <label class="form-label" for="new-dispatch-notes-input">Crew instruction (optional)</label>
-          <input type="text" id="new-dispatch-notes-input" class="clay-input no-icon"
-            placeholder="e.g. Bundle fiber drop &amp; inspect span" />
-        </div>
-        <button type="submit" id="create-dispatch-btn" class="clay-btn-primary"
-          style="width: auto; justify-self: start;"><i data-lucide="send"
-            style="width: 14px; height: 14px;"></i><span>Dispatch agency</span></button>
-      </form>
-      <p id="create-dispatch-feedback" style="display: none; font-size: .78rem; font-weight: 700; margin-top: .6rem;">
-      </p>
+        <form id="create-dispatch-form" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: .65rem; align-items: end;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="new-dispatch-report-select">Open hazard ticket</label>
+            <select id="new-dispatch-report-select" class="clay-input no-icon">
+              {% for r in open_db_reports %}<option value="{{ r.id }}">{{ r.ticket_number }} — {{ r.title|truncatechars:42 }} (Brgy. {{ r.barangay.name }})</option>{% endfor %}
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="new-dispatch-agency-select">Partner utility agency</label>
+            <select id="new-dispatch-agency-select" class="clay-input no-icon">
+              {% for ag in db_agencies %}<option value="{{ ag.id }}">{{ ag.agency_name }} ({{ ag.agency_type }})</option>{% endfor %}
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="new-dispatch-notes-input">Crew instruction (optional)</label>
+            <input type="text" id="new-dispatch-notes-input" class="clay-input no-icon" placeholder="e.g. Bundle fiber drop &amp; inspect span" />
+          </div>
+          <button type="submit" id="create-dispatch-btn" class="clay-btn-primary" style="width: auto; justify-self: start;"><i data-lucide="send" style="width: 14px; height: 14px;"></i><span>Dispatch agency</span></button>
+        </form>
+        <p id="create-dispatch-feedback" style="display: none; font-size: .78rem; font-weight: 700; margin-top: .6rem;"></p>
       {% else %}
-      <div class="clay-inset-box" style="padding: .9rem 1rem;">
-        <p class="section-sub" style="font-size: .78rem;">All database hazard reports are resolved or no utility
-          agencies are seeded yet.</p>
-      </div>
+        <div class="clay-inset-box" style="padding: .9rem 1rem;">
+          <p class="section-sub" style="font-size: .78rem;">All database hazard reports are resolved or no utility agencies are seeded yet.</p>
+        </div>
       {% endif %}
     </div>
 
     <div class="clay-card panel-card">
-      <div
-        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: .9rem; flex-wrap: wrap; gap: .5rem;">
-        <h2 class="section-title-clean"><i data-lucide="truck"
-            style="width: 17px; height: 17px; color: var(--green);"></i><span>Live utility dispatch queue</span></h2>
-        <span id="dispatch-visible-count" class="badge-pill badge-neutral tabular-val">{{ dispatches|length }}
-          shown</span>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: .9rem; flex-wrap: wrap; gap: .5rem;">
+        <h2 class="section-title-clean"><i data-lucide="truck" style="width: 17px; height: 17px; color: var(--green);"></i><span>Live utility dispatch queue</span></h2>
+        <span id="dispatch-visible-count" class="badge-pill badge-neutral tabular-val">{{ dispatches|length }} shown</span>
       </div>
 
       {% if dispatches %}
-      <div style="display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; margin-bottom: 1rem;">
-        <div style="position: relative; flex: 1; min-width: 200px;">
-          <i data-lucide="search"
-            style="position: absolute; left: .85rem; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: var(--muted);"></i>
-          <input id="dispatch-search-input" type="text" placeholder="Filter by ticket, title, barangay, notes…"
-            aria-label="Search dispatches" class="clay-input home-filter" />
+        <div style="display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; margin-bottom: 1rem;">
+          <div style="position: relative; flex: 1; min-width: 200px;">
+            <i data-lucide="search" style="position: absolute; left: .85rem; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: var(--muted);"></i>
+            <input id="dispatch-search-input" type="text" placeholder="Filter by ticket, title, barangay, notes…" aria-label="Search dispatches" class="clay-input home-filter" />
+          </div>
+          <select id="dispatch-agency-filter" aria-label="Filter by utility agency" class="clay-input home-select" style="max-width: 240px;">
+            <option value="all">All agencies</option>
+            {% for ag in agencies %}<option value="{{ ag.id|default:ag.agency_name }}" data-name="{{ ag.agency_name }}">{{ ag.agency_name }}</option>{% endfor %}
+          </select>
+          <select id="dispatch-status-filter" aria-label="Filter by delivery status" class="clay-input home-select" style="max-width: 175px;">
+            <option value="all">All statuses</option>
+            {% for st in delivery_statuses %}<option value="{{ st }}">{{ st }}</option>{% endfor %}
+          </select>
         </div>
-        <select id="dispatch-agency-filter" aria-label="Filter by utility agency" class="clay-input home-select"
-          style="max-width: 240px;">
-          <option value="all">All agencies</option>
-          {% for ag in agencies %}<option value="{{ ag.id|default:ag.agency_name }}" data-name="{{ ag.agency_name }}">{{
-            ag.agency_name }}</option>{% endfor %}
-        </select>
-        <select id="dispatch-status-filter" aria-label="Filter by delivery status" class="clay-input home-select"
-          style="max-width: 175px;">
-          <option value="all">All statuses</option>
-          {% for st in delivery_statuses %}<option value="{{ st }}">{{ st }}</option>{% endfor %}
-        </select>
-      </div>
 
-      <div id="dispatch-queue-list" style="display: flex; flex-direction: column; gap: .8rem;">
-        {% for d in dispatches %}
-        <div class="clay-tile dispatch-row" data-dispatch-id="{{ d.id }}" data-agency-id="{{ d.agency.id }}"
-          data-agency-name="{{ d.agency.agency_name }}" data-status="{{ d.delivery_status }}"
-          data-search="{{ d.report.ticket_number }} {{ d.report.title }} {{ d.report.barangay.name }} {{ d.agency.agency_name }} {{ d.resolution_notes|default:'' }}">
-          <div class="dispatch-row-head">
-            <div style="min-width: 0; flex: 1;">
-              <div style="display: flex; align-items: center; flex-wrap: wrap; gap: .45rem;">
-                <span class="ticket-chip">{{ d.report.ticket_number }}</span>
-                <strong style="font-size: .9rem;">{{ d.report.title }}</strong>
+        <div id="dispatch-queue-list" style="display: flex; flex-direction: column; gap: .8rem;">
+          {% for d in dispatches %}
+            <div class="clay-tile dispatch-row" data-dispatch-id="{{ d.id }}" data-agency-id="{{ d.agency.id }}" data-agency-name="{{ d.agency.agency_name }}" data-status="{{ d.delivery_status }}" data-search="{{ d.report.ticket_number }} {{ d.report.title }} {{ d.report.barangay.name }} {{ d.agency.agency_name }} {{ d.resolution_notes|default:'' }}">
+              <div class="dispatch-row-head">
+                <div style="min-width: 0; flex: 1;">
+                  <div style="display: flex; align-items: center; flex-wrap: wrap; gap: .45rem;">
+                    <span class="ticket-chip">{{ d.report.ticket_number }}</span>
+                    <strong style="font-size: .9rem;">{{ d.report.title }}</strong>
+                  </div>
+                  <p class="section-sub tabular-val" style="font-size: .76rem; margin-top: .3rem;">Brgy. {{ d.report.barangay.name }} → <strong>{{ d.agency.agency_name }}</strong> · {{ d.turnaround_seconds }}s turnaround</p>
+                </div>
+                <span class="badge-pill dispatch-status-badge {% if d.delivery_status == 'Resolved' %}badge-resolved{% elif d.delivery_status == 'En Route' or d.delivery_status == 'Acknowledged' %}badge-high{% else %}badge-amber{% endif %}">{{ d.delivery_status }}</span>
               </div>
-              <p class="section-sub tabular-val" style="font-size: .76rem; margin-top: .3rem;">Brgy. {{
-                d.report.barangay.name }} → <strong>{{ d.agency.agency_name }}</strong> · {{ d.turnaround_seconds }}s
-                turnaround</p>
+              <div class="dispatch-controls">
+                <select class="clay-input dispatch-status-select" aria-label="Delivery status for {{ d.report.ticket_number }}">
+                  <option value="Delivered" {% if d.delivery_status == 'Delivered' %}selected{% endif %}>Delivered</option>
+                  <option value="Acknowledged" {% if d.delivery_status == 'Acknowledged' %}selected{% endif %}>Acknowledged</option>
+                  <option value="En Route" {% if d.delivery_status == 'En Route' %}selected{% endif %}>En Route</option>
+                  <option value="Resolved" {% if d.delivery_status == 'Resolved' %}selected{% endif %}>Resolved</option>
+                  <option value="Failed" {% if d.delivery_status == 'Failed' %}selected{% endif %}>Failed</option>
+                </select>
+                <input type="text" class="clay-input no-icon dispatch-notes-input" value="{{ d.resolution_notes|default:'' }}" placeholder="Add crew dispatch / resolution note…" aria-label="Resolution notes for {{ d.report.ticket_number }}" />
+                <button type="button" class="clay-btn-primary dispatch-save-btn"><i data-lucide="save" style="width: 14px; height: 14px;"></i><span>Update</span></button>
+              </div>
             </div>
-            <span
-              class="badge-pill dispatch-status-badge {% if d.delivery_status == 'Resolved' %}badge-resolved{% elif d.delivery_status == 'En Route' or d.delivery_status == 'Acknowledged' %}badge-high{% else %}badge-amber{% endif %}">{{
-              d.delivery_status }}</span>
-          </div>
-          <div class="dispatch-controls">
-            <select class="clay-input dispatch-status-select"
-              aria-label="Delivery status for {{ d.report.ticket_number }}">
-              <option value="Delivered" {% if d.delivery_status=='Delivered' %}selected{% endif %}>Delivered</option>
-              <option value="Acknowledged" {% if d.delivery_status=='Acknowledged' %}selected{% endif %}>Acknowledged
-              </option>
-              <option value="En Route" {% if d.delivery_status=='En Route' %}selected{% endif %}>En Route</option>
-              <option value="Resolved" {% if d.delivery_status=='Resolved' %}selected{% endif %}>Resolved</option>
-              <option value="Failed" {% if d.delivery_status=='Failed' %}selected{% endif %}>Failed</option>
-            </select>
-            <input type="text" class="clay-input no-icon dispatch-notes-input"
-              value="{{ d.resolution_notes|default:'' }}" placeholder="Add crew dispatch / resolution note…"
-              aria-label="Resolution notes for {{ d.report.ticket_number }}" />
-            <button type="button" class="clay-btn-primary dispatch-save-btn"><i data-lucide="save"
-                style="width: 14px; height: 14px;"></i><span>Update</span></button>
-          </div>
+          {% endfor %}
         </div>
-        {% endfor %}
-      </div>
-      <div id="dispatch-filter-empty" class="clay-inset-box"
-        style="display: none; text-align: center; padding: 1.25rem;">
-        <p class="section-sub">No dispatch records match your current filters.</p>
-      </div>
+        <div id="dispatch-filter-empty" class="clay-inset-box" style="display: none; text-align: center; padding: 1.25rem;">
+          <p class="section-sub">No dispatch records match your current filters.</p>
+        </div>
       {% else %}
-      <div style="display: flex; flex-direction: column; gap: .7rem;">
-        {% for rep in fallback_reports %}
-        <div class="clay-tile"
-          style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .5rem; border-radius: var(--r-md);">
-          <div>
-            <div style="display: flex; align-items: center; flex-wrap: wrap; gap: .45rem;">
-              <span class="ticket-chip">{{ rep.ticketNumber }}</span>
-              <strong style="font-size: .88rem;">{{ rep.title }}</strong>
+        <div style="display: flex; flex-direction: column; gap: .7rem;">
+          {% for rep in fallback_reports %}
+            <div class="clay-tile" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .5rem; border-radius: var(--r-md);">
+              <div>
+                <div style="display: flex; align-items: center; flex-wrap: wrap; gap: .45rem;">
+                  <span class="ticket-chip">{{ rep.ticketNumber }}</span>
+                  <strong style="font-size: .88rem;">{{ rep.title }}</strong>
+                </div>
+                <p class="section-sub" style="font-size: .75rem; margin-top: .25rem;">Brgy. {{ rep.barangay }} · Routed to TIC &amp; VECO</p>
+              </div>
+              <span class="badge-pill {% if rep.status == 'resolved' %}badge-resolved{% elif rep.status == 'investigating' %}badge-high{% else %}badge-amber{% endif %}">{{ rep.status|title }}</span>
             </div>
-            <p class="section-sub" style="font-size: .75rem; margin-top: .25rem;">Brgy. {{ rep.barangay }} · Routed to
-              TIC &amp; VECO</p>
-          </div>
-          <span
-            class="badge-pill {% if rep.status == 'resolved' %}badge-resolved{% elif rep.status == 'investigating' %}badge-high{% else %}badge-amber{% endif %}">{{
-            rep.status|title }}</span>
+          {% endfor %}
         </div>
-        {% endfor %}
-      </div>
       {% endif %}
     </div>
   </main>
@@ -676,161 +421,161 @@
 
 {% block extra_js %}
 <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
-    const csrf = csrfMeta ? csrfMeta.getAttribute("content") : "";
-    const exportBtn = document.getElementById("export-dispatches-csv-btn");
-    const exportBaseUrl = exportBtn ? exportBtn.getAttribute("href") : "{% url 'home:export_dispatches_csv' %}";
-    const searchInput = document.getElementById("dispatch-search-input");
-    const agencyFilter = document.getElementById("dispatch-agency-filter");
-    const statusFilter = document.getElementById("dispatch-status-filter");
-    const visibleCountEl = document.getElementById("dispatch-visible-count");
-    const emptyNotice = document.getElementById("dispatch-filter-empty");
-    const queueList = document.getElementById("dispatch-queue-list");
-    const totalBarangaysCount = Number("{{ total_barangays_count|default:23 }}");
+document.addEventListener("DOMContentLoaded", () => {
+  const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+  const csrf = csrfMeta ? csrfMeta.getAttribute("content") : "";
+  const exportBtn = document.getElementById("export-dispatches-csv-btn");
+  const exportBaseUrl = exportBtn ? exportBtn.getAttribute("href") : "{% url 'home:export_dispatches_csv' %}";
+  const searchInput = document.getElementById("dispatch-search-input");
+  const agencyFilter = document.getElementById("dispatch-agency-filter");
+  const statusFilter = document.getElementById("dispatch-status-filter");
+  const visibleCountEl = document.getElementById("dispatch-visible-count");
+  const emptyNotice = document.getElementById("dispatch-filter-empty");
+  const queueList = document.getElementById("dispatch-queue-list");
+  const totalBarangaysCount = Number("{{ total_barangays_count|default:23 }}");
 
-    function esc(v) {
-      return String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  function esc(v) {
+    return String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  function applyQueueFilters() {
+    const rows = document.querySelectorAll("#dispatch-queue-list .dispatch-row");
+    const q = (searchInput ? searchInput.value : "").trim().toLowerCase();
+    const selAgency = agencyFilter ? agencyFilter.value : "all";
+    const selStatus = statusFilter ? statusFilter.value : "all";
+
+    let shown = 0;
+    rows.forEach(row => {
+      const hay = (row.getAttribute("data-search") || "").toLowerCase();
+      const rowAgencyId = row.getAttribute("data-agency-id") || "";
+      const rowAgencyName = row.getAttribute("data-agency-name") || "";
+      const rowStatus = row.getAttribute("data-status") || "";
+
+      const matchQuery = !q || hay.includes(q);
+      const matchAgency = selAgency === "all" || rowAgencyId === selAgency || rowAgencyName === selAgency;
+      const matchStatus = selStatus === "all" || rowStatus === selStatus;
+      const visible = matchQuery && matchAgency && matchStatus;
+      row.style.display = visible ? "flex" : "none";
+      if (visible) shown++;
+    });
+
+    if (visibleCountEl) {
+      visibleCountEl.textContent = rows.length ? `${shown} of ${rows.length} shown` : "0 shown";
     }
-
-    function applyQueueFilters() {
-      const rows = document.querySelectorAll("#dispatch-queue-list .dispatch-row");
-      const q = (searchInput ? searchInput.value : "").trim().toLowerCase();
-      const selAgency = agencyFilter ? agencyFilter.value : "all";
-      const selStatus = statusFilter ? statusFilter.value : "all";
-
-      let shown = 0;
-      rows.forEach(row => {
-        const hay = (row.getAttribute("data-search") || "").toLowerCase();
-        const rowAgencyId = row.getAttribute("data-agency-id") || "";
-        const rowAgencyName = row.getAttribute("data-agency-name") || "";
-        const rowStatus = row.getAttribute("data-status") || "";
-
-        const matchQuery = !q || hay.includes(q);
-        const matchAgency = selAgency === "all" || rowAgencyId === selAgency || rowAgencyName === selAgency;
-        const matchStatus = selStatus === "all" || rowStatus === selStatus;
-        const visible = matchQuery && matchAgency && matchStatus;
-        row.style.display = visible ? "flex" : "none";
-        if (visible) shown++;
-      });
-
-      if (visibleCountEl) {
-        visibleCountEl.textContent = rows.length ? `${shown} of ${rows.length} shown` : "0 shown";
-      }
-      if (emptyNotice) {
-        emptyNotice.style.display = rows.length > 0 && shown === 0 ? "block" : "none";
-      }
-      if (exportBtn) {
-        const params = new URLSearchParams();
-        if (selAgency !== "all" && /^\d+$/.test(selAgency)) params.set("agency", selAgency);
-        if (selStatus !== "all") params.set("status", selStatus);
-        const qs = params.toString();
-        exportBtn.setAttribute("href", qs ? `${exportBaseUrl}?${qs}` : exportBaseUrl);
-      }
+    if (emptyNotice) {
+      emptyNotice.style.display = rows.length > 0 && shown === 0 ? "block" : "none";
     }
+    if (exportBtn) {
+      const params = new URLSearchParams();
+      if (selAgency !== "all" && /^\d+$/.test(selAgency)) params.set("agency", selAgency);
+      if (selStatus !== "all") params.set("status", selStatus);
+      const qs = params.toString();
+      exportBtn.setAttribute("href", qs ? `${exportBaseUrl}?${qs}` : exportBaseUrl);
+    }
+  }
 
-    function bindDispatchSaveButton(btn) {
-      const defaultHtml = '<i data-lucide="save" style="width: 14px; height: 14px;"></i><span>Update</span>';
-      let resetTimer = null;
+  function bindDispatchSaveButton(btn) {
+    const defaultHtml = '<i data-lucide="save" style="width: 14px; height: 14px;"></i><span>Update</span>';
+    let resetTimer = null;
 
-      btn.addEventListener("click", async () => {
-        const row = btn.closest(".dispatch-row");
-        const dispatchId = Number(row.getAttribute("data-dispatch-id"));
-        const deliveryStatus = row.querySelector(".dispatch-status-select").value;
-        const resolutionNotes = row.querySelector(".dispatch-notes-input").value;
-        const badge = row.querySelector(".dispatch-status-badge");
+    btn.addEventListener("click", async () => {
+      const row = btn.closest(".dispatch-row");
+      const dispatchId = Number(row.getAttribute("data-dispatch-id"));
+      const deliveryStatus = row.querySelector(".dispatch-status-select").value;
+      const resolutionNotes = row.querySelector(".dispatch-notes-input").value;
+      const badge = row.querySelector(".dispatch-status-badge");
 
-        btn.disabled = true;
-        btn.classList.remove("is-saved");
-        if (resetTimer) clearTimeout(resetTimer);
-        try {
-          const res = await fetch("{% url 'home:update_dispatch' %}", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "X-CSRFToken": csrf },
-            body: JSON.stringify({ dispatchId, deliveryStatus, resolutionNotes })
-          });
-          if (res.ok) {
-            const data = await res.json();
-            badge.textContent = data.deliveryStatus;
-            badge.className = "badge-pill dispatch-status-badge " + (
-              data.deliveryStatus === "Resolved" ? "badge-resolved" :
-                (data.deliveryStatus === "En Route" || data.deliveryStatus === "Acknowledged") ? "badge-high" : "badge-amber"
-            );
-            row.setAttribute("data-status", data.deliveryStatus);
-            const ticket = row.querySelector(".ticket-chip")?.textContent || "";
-            const brgyAgency = row.querySelector("p.section-sub")?.textContent || "";
-            row.setAttribute("data-search", `${ticket} ${brgyAgency} ${data.resolutionNotes || ""}`);
+      btn.disabled = true;
+      btn.classList.remove("is-saved");
+      if (resetTimer) clearTimeout(resetTimer);
+      try {
+        const res = await fetch("{% url 'home:update_dispatch' %}", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-CSRFToken": csrf },
+          body: JSON.stringify({ dispatchId, deliveryStatus, resolutionNotes })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          badge.textContent = data.deliveryStatus;
+          badge.className = "badge-pill dispatch-status-badge " + (
+            data.deliveryStatus === "Resolved" ? "badge-resolved" :
+            (data.deliveryStatus === "En Route" || data.deliveryStatus === "Acknowledged") ? "badge-high" : "badge-amber"
+          );
+          row.setAttribute("data-status", data.deliveryStatus);
+          const ticket = row.querySelector(".ticket-chip")?.textContent || "";
+          const brgyAgency = row.querySelector("p.section-sub")?.textContent || "";
+          row.setAttribute("data-search", `${ticket} ${brgyAgency} ${data.resolutionNotes || ""}`);
 
-            const openEl = document.getElementById("kpi-open-incidents");
-            const resEl = document.getElementById("kpi-resolved-incidents");
-            const hotEl = document.getElementById("hotspot-active-badge");
-            if (openEl && typeof data.openIncidents === "number") openEl.textContent = data.openIncidents;
-            if (resEl && typeof data.resolvedIncidents === "number") resEl.textContent = data.resolvedIncidents;
-            if (hotEl && typeof data.activeHotspotCount === "number") {
-              hotEl.textContent = `${data.activeHotspotCount} of ${totalBarangaysCount} barangays active`;
-            }
-            applyQueueFilters();
-
-            btn.classList.add("is-saved");
-            btn.innerHTML = '<i data-lucide="check" style="width: 14px; height: 14px;"></i><span>Saved!</span>';
-            if (window.lucide) window.lucide.createIcons({ attrs: {}, nameAttr: "data-lucide" });
-            resetTimer = setTimeout(() => {
-              btn.classList.remove("is-saved");
-              btn.innerHTML = defaultHtml;
-              if (window.lucide) window.lucide.createIcons();
-            }, 1800);
+          const openEl = document.getElementById("kpi-open-incidents");
+          const resEl = document.getElementById("kpi-resolved-incidents");
+          const hotEl = document.getElementById("hotspot-active-badge");
+          if (openEl && typeof data.openIncidents === "number") openEl.textContent = data.openIncidents;
+          if (resEl && typeof data.resolvedIncidents === "number") resEl.textContent = data.resolvedIncidents;
+          if (hotEl && typeof data.activeHotspotCount === "number") {
+            hotEl.textContent = `${data.activeHotspotCount} of ${totalBarangaysCount} barangays active`;
           }
-        } finally {
-          btn.disabled = false;
+          applyQueueFilters();
+
+          btn.classList.add("is-saved");
+          btn.innerHTML = '<i data-lucide="check" style="width: 14px; height: 14px;"></i><span>Saved!</span>';
+          if (window.lucide) window.lucide.createIcons({ attrs: {}, nameAttr: "data-lucide" });
+          resetTimer = setTimeout(() => {
+            btn.classList.remove("is-saved");
+            btn.innerHTML = defaultHtml;
+            if (window.lucide) window.lucide.createIcons();
+          }, 1800);
         }
-      });
-    }
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  }
 
-    document.querySelectorAll(".dispatch-save-btn").forEach(bindDispatchSaveButton);
-    if (searchInput) searchInput.addEventListener("input", applyQueueFilters);
-    if (agencyFilter) agencyFilter.addEventListener("change", applyQueueFilters);
-    if (statusFilter) statusFilter.addEventListener("change", applyQueueFilters);
-    applyQueueFilters();
+  document.querySelectorAll(".dispatch-save-btn").forEach(bindDispatchSaveButton);
+  if (searchInput) searchInput.addEventListener("input", applyQueueFilters);
+  if (agencyFilter) agencyFilter.addEventListener("change", applyQueueFilters);
+  if (statusFilter) statusFilter.addEventListener("change", applyQueueFilters);
+  applyQueueFilters();
 
-    const createForm = document.getElementById("create-dispatch-form");
-    const createBtn = document.getElementById("create-dispatch-btn");
-    const createFeedback = document.getElementById("create-dispatch-feedback");
-    if (createForm) {
-      createForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const reportId = Number(document.getElementById("new-dispatch-report-select")?.value);
-        const agencyId = Number(document.getElementById("new-dispatch-agency-select")?.value);
-        const resolutionNotes = (document.getElementById("new-dispatch-notes-input")?.value || "").trim();
-        if (!reportId || !agencyId) return;
+  const createForm = document.getElementById("create-dispatch-form");
+  const createBtn = document.getElementById("create-dispatch-btn");
+  const createFeedback = document.getElementById("create-dispatch-feedback");
+  if (createForm) {
+    createForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const reportId = Number(document.getElementById("new-dispatch-report-select")?.value);
+      const agencyId = Number(document.getElementById("new-dispatch-agency-select")?.value);
+      const resolutionNotes = (document.getElementById("new-dispatch-notes-input")?.value || "").trim();
+      if (!reportId || !agencyId) return;
 
-        if (createBtn) createBtn.disabled = true;
-        if (createFeedback) createFeedback.style.display = "none";
+      if (createBtn) createBtn.disabled = true;
+      if (createFeedback) createFeedback.style.display = "none";
 
-        try {
-          const res = await fetch("{% url 'home:create_dispatch' %}", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "X-CSRFToken": csrf },
-            body: JSON.stringify({ reportId, agencyId, resolutionNotes })
-          });
-          const data = await res.json().catch(() => ({}));
-          if (!res.ok) {
-            if (createFeedback) {
-              createFeedback.textContent = data.message || "Unable to dispatch agency.";
-              createFeedback.style.color = "var(--red)";
-              createFeedback.style.display = "block";
-            }
-            return;
+      try {
+        const res = await fetch("{% url 'home:create_dispatch' %}", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-CSRFToken": csrf },
+          body: JSON.stringify({ reportId, agencyId, resolutionNotes })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          if (createFeedback) {
+            createFeedback.textContent = data.message || "Unable to dispatch agency.";
+            createFeedback.style.color = "var(--red)";
+            createFeedback.style.display = "block";
           }
-          const d = data.dispatch;
-          if (queueList && d) {
-            const row = document.createElement("div");
-            row.className = "clay-tile dispatch-row";
-            row.setAttribute("data-dispatch-id", d.id);
-            row.setAttribute("data-agency-id", d.agencyId);
-            row.setAttribute("data-agency-name", d.agencyName);
-            row.setAttribute("data-status", d.deliveryStatus);
-            row.setAttribute("data-search", `${d.ticketNumber} ${d.reportTitle} ${d.barangayName} ${d.agencyName} ${d.resolutionNotes}`);
-            row.innerHTML = `
+          return;
+        }
+        const d = data.dispatch;
+        if (queueList && d) {
+          const row = document.createElement("div");
+          row.className = "clay-tile dispatch-row";
+          row.setAttribute("data-dispatch-id", d.id);
+          row.setAttribute("data-agency-id", d.agencyId);
+          row.setAttribute("data-agency-name", d.agencyName);
+          row.setAttribute("data-status", d.deliveryStatus);
+          row.setAttribute("data-search", `${d.ticketNumber} ${d.reportTitle} ${d.barangayName} ${d.agencyName} ${d.resolutionNotes}`);
+          row.innerHTML = `
             <div class="dispatch-row-head">
               <div style="min-width: 0; flex: 1;">
                 <div style="display: flex; align-items: center; flex-wrap: wrap; gap: .45rem;">
@@ -853,28 +598,28 @@
               <button type="button" class="clay-btn-primary dispatch-save-btn"><i data-lucide="save" style="width: 14px; height: 14px;"></i><span>Update</span></button>
             </div>
           `;
-            queueList.prepend(row);
-            const newSaveBtn = row.querySelector(".dispatch-save-btn");
-            if (newSaveBtn) bindDispatchSaveButton(newSaveBtn);
-            if (window.lucide) window.lucide.createIcons();
-          }
-          const totalEl = document.getElementById("kpi-total-dispatches");
-          if (totalEl && typeof data.totalDispatches === "number") {
-            totalEl.textContent = data.totalDispatches;
-          }
-          const notesInput = document.getElementById("new-dispatch-notes-input");
-          if (notesInput) notesInput.value = "";
-          if (createFeedback) {
-            createFeedback.textContent = `Dispatched ${d.agencyName} to ${d.ticketNumber}.`;
-            createFeedback.style.color = "var(--green)";
-            createFeedback.style.display = "block";
-          }
-          applyQueueFilters();
-        } finally {
-          if (createBtn) createBtn.disabled = false;
+          queueList.prepend(row);
+          const newSaveBtn = row.querySelector(".dispatch-save-btn");
+          if (newSaveBtn) bindDispatchSaveButton(newSaveBtn);
+          if (window.lucide) window.lucide.createIcons();
         }
-      });
-    }
-  });
+        const totalEl = document.getElementById("kpi-total-dispatches");
+        if (totalEl && typeof data.totalDispatches === "number") {
+          totalEl.textContent = data.totalDispatches;
+        }
+        const notesInput = document.getElementById("new-dispatch-notes-input");
+        if (notesInput) notesInput.value = "";
+        if (createFeedback) {
+          createFeedback.textContent = `Dispatched ${d.agencyName} to ${d.ticketNumber}.`;
+          createFeedback.style.color = "var(--green)";
+          createFeedback.style.display = "block";
+        }
+        applyQueueFilters();
+      } finally {
+        if (createBtn) createBtn.disabled = false;
+      }
+    });
+  }
+});
 </script>
 {% endblock %}
