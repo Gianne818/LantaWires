@@ -2,6 +2,7 @@ import json
 import time
 from django.contrib import messages
 from django.contrib.auth import logout
+from django.db.models import Subquery
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
@@ -291,6 +292,16 @@ def dispatches_view(request):
         HazardDispatch.objects.select_related("report", "report__barangay", "agency")
         .order_by("-dispatched_at")[:30]
     )
+    
+    active_hazard_barangay_ids = (
+        HazardReport.objects.exclude(status="resolved").values("barangay_id")
+    )
+    active_hotspot_barangays = list(
+        CebuBarangay.objects.filter(
+            id__in=Subquery(active_hazard_barangay_ids)
+        ).order_by("name")
+    )
+    total_barangays_count = CebuBarangay.objects.count()
 
     # Barangay breakdown computed from live reports list
     barangay_map = {}
@@ -331,6 +342,8 @@ def dispatches_view(request):
             "is_resolver": True,
             "agencies": agencies,
             "dispatches": dispatches,
+            "active_hotspot_barangays": active_hotspot_barangays,
+            "total_barangays_count": total_barangays_count,
             "fallback_reports": reports[:10],
             "barangay_breakdown": barangay_breakdown,
             "dispatch_stats": dispatch_stats,

@@ -39,6 +39,96 @@
   .dispatch-notes-input { flex: 1; min-width: 220px; padding: .55rem .85rem; font-size: .8rem; }
   .dispatch-save-btn { width: auto; padding: .55rem 1rem; font-size: .8rem; border-radius: 14px; }
   .dispatch-save-btn.is-saved { background: linear-gradient(180deg, #4cc38a, #2fb37c); color: #ffffff; box-shadow: 0 6px 14px rgba(47, 179, 124, .3); }
+  .hotspot-table-wrapper {
+    overflow: auto;
+    max-inline-size: 100%;
+    max-block-size: min(460px, 75vh);
+    container-type: inline-size;
+    border-radius: var(--r-md);
+    border: 1px solid var(--clay-border);
+    background: var(--clay-card);
+  }
+  .hotspot-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: .82rem;
+    --label-2: "Barangay ID";
+    --label-3: "District";
+    --label-4: "ZIP Code";
+    --label-5: "Emergency Hotline";
+    --label-6: "GPS Centroid";
+  }
+  .hotspot-table thead {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 1;
+    background: var(--clay-card-2);
+  }
+  .hotspot-table thead th {
+    text-align: left;
+    padding: .75rem .95rem;
+    font-size: .74rem;
+    font-weight: 800;
+    color: var(--ink-2);
+    border-bottom: 1px solid var(--clay-border);
+    white-space: nowrap;
+  }
+  .hotspot-table tbody th,
+  .hotspot-table tbody td {
+    padding: .78rem .95rem;
+    border-bottom: 1px solid var(--clay-border);
+    color: var(--ink);
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+  .hotspot-table tbody tr:last-child th,
+  .hotspot-table tbody tr:last-child td { border-bottom: none; }
+  .hotspot-table tbody th {
+    position: sticky;
+    inset-inline-start: 0;
+    background: var(--clay-card);
+    text-align: left;
+    font-weight: 800;
+  }
+  @container (width < 600px) {
+    .hotspot-table,
+    .hotspot-table thead,
+    .hotspot-table tbody,
+    .hotspot-table tr,
+    .hotspot-table th,
+    .hotspot-table td { display: block; }
+    .hotspot-table thead { display: none; }
+    .hotspot-table tbody tr {
+      margin: .75rem;
+      border: 1px solid var(--clay-border);
+      border-radius: var(--r-sm);
+      overflow: hidden;
+      background: var(--clay-card);
+    }
+    .hotspot-table tbody th {
+      position: sticky;
+      inset-block-start: 0;
+      z-index: 2;
+      background: var(--clay-card-2);
+      border-bottom: 1px solid var(--clay-border);
+    }
+    .hotspot-table tbody td {
+      display: flex;
+      justify-content: space-between;
+      gap: .75rem;
+      white-space: normal;
+    }
+    .hotspot-table tbody td::before {
+      font-weight: 700;
+      color: var(--ink-2);
+    }
+    .hotspot-table tbody td:nth-child(2)::before { content: var(--label-2) ": "; }
+    .hotspot-table tbody td:nth-child(3)::before { content: var(--label-3) ": "; }
+    .hotspot-table tbody td:nth-child(4)::before { content: var(--label-4) ": "; }
+    .hotspot-table tbody td:nth-child(5)::before { content: var(--label-5) ": "; }
+    .hotspot-table tbody td:nth-child(6)::before { content: var(--label-6) ": "; }
+  }
   .clay-btn-primary:hover, .clay-btn-ghost:hover, .metric-card:hover { transform: translateY(-2px); }
   a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--peach); outline-offset: 2px; }
   @media (prefers-reduced-motion: reduce) {
@@ -173,6 +263,49 @@
           {% endfor %}
         </div>
       </div>
+    </div>
+
+    <div class="clay-card panel-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: .5rem;">
+        <div>
+          <h2 id="hotspot-barangays-heading" class="section-title-clean"><i data-lucide="map-pin" style="width: 17px; height: 17px; color: var(--peach);"></i><span>Active Hotspot Barangays — Emergency Coordination</span></h2>
+          <p class="section-sub" style="font-size: .78rem; margin-top: .2rem;">Cebu City barangays with unresolved wire hazards (dispatched or investigating) requiring Barangay Hall hotline coordination.</p>
+        </div>
+        <span class="badge-pill badge-amber tabular-val">{{ active_hotspot_barangays|length }} of {{ total_barangays_count }} barangays active</span>
+      </div>
+
+      {% if active_hotspot_barangays %}
+        <div tabindex="0" role="region" aria-labelledby="hotspot-barangays-heading" class="hotspot-table-wrapper">
+          <table class="hotspot-table">
+            <thead>
+              <tr>
+                <th scope="col">Barangay</th>
+                <th scope="col">Barangay ID</th>
+                <th scope="col">District</th>
+                <th scope="col">ZIP Code</th>
+                <th scope="col">Emergency Hotline</th>
+                <th scope="col">GPS Centroid</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for brgy in active_hotspot_barangays %}
+                <tr>
+                  <th scope="row">Brgy. {{ brgy.name }}</th>
+                  <td class="tabular-val">#{{ brgy.id }}</td>
+                  <td><span class="badge-pill badge-compact badge-neutral" style="color: var(--ink-2);">{{ brgy.district }}</span></td>
+                  <td class="tabular-val">{{ brgy.zip_code }}</td>
+                  <td class="tabular-val"><strong>{{ brgy.hotline_number|default:"Not listed" }}</strong></td>
+                  <td class="tabular-val" style="color: var(--ink-2);">{{ brgy.center_lat|floatformat:4 }}, {{ brgy.center_lng|floatformat:4 }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="clay-inset-box" style="text-align: center; padding: 1.5rem;">
+          <p class="section-sub">All Cebu City barangays are currently clear of unresolved wire hazards.</p>
+        </div>
+      {% endif %}
     </div>
 
     <div class="clay-card panel-card">
