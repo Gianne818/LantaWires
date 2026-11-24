@@ -1,6 +1,0 @@
-﻿8feee1f | Gianne | 2026-11-17 17:42:35 +0800 | Enhance UI and accessibility across profile, registration, and user settings pages
-ca9a6f6 | Gianne | 2026-11-17 17:17:47 +0800 | feat: Update UI components and enhance incident status management with new save functionality
-02404fb | Gianne | 2026-11-17 17:07:20 +0800 | feat: Enhance profile and settings views with role-based navigation and display options
-a780735 | Gianne | 2026-11-17 17:02:22 +0800 | feat: Add My Reports and Dispatches features with role-based access control
-34075b2 | Gianne | 2026-11-17 16:54:22 +0800 | feat: Add role-based login functionality and enhance dashboard views
-fc22ee2 | Gianne | 2026-11-17 16:24:45 +0800 | fix: resolve UnboundLocalError in register view and duplicate home URL namespace
