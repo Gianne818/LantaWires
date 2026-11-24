@@ -216,7 +216,7 @@
 {% endblock %}
 
 {% block content %}
-<div id="home-dashboard-root" class="page-soft" data-role="{% if is_resolver %}resolver{% else %}citizen{% endif %}">
+<div id="home-dashboard-root" class="page-soft" data-role="{% if is_resolver %}resolver{% else %}citizen{% endif %}" data-user-id="{{ current_user_id }}" data-user-email="{{ current_user.email|default:'' }}">
   {% if is_resolver %}
     {% include "home/_resolver_dashboard.html" %}
   {% else %}
@@ -305,6 +305,26 @@
         <button type="button" id="close-report-modal-btn" class="clay-btn-ghost" aria-label="Close report dialog" style="padding: .45rem .6rem;"><i data-lucide="x" style="width: 17px; height: 17px;"></i></button>
       </div>
       <div id="report-step-input" class="modal-body" style="display: flex; flex-direction: column; gap: 1rem;">
+        {% if presets %}
+        <div>
+          <label class="form-label" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Quick demo presets</span>
+            <span style="font-size: .68rem; color: var(--muted); font-weight: 500;">Optional one-click fill</span>
+          </label>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .55rem;">
+            {% for preset in presets %}
+              <button type="button" class="preset-btn wizard-preset-btn" data-preset-index="{{ forloop.counter0 }}">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: .35rem;">
+                  <strong style="font-size: .76rem; color: var(--ink);">Brgy. {{ preset.barangay }}</strong>
+                  <span class="badge-pill badge-compact {% if preset.severity == 'critical' %}badge-critical{% elif preset.severity == 'high' %}badge-high{% else %}badge-medium{% endif %}">{{ preset.severity|title }}</span>
+                </div>
+                <p class="section-sub" style="font-size: .7rem; margin-top: .25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ preset.title }}</p>
+              </button>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
         <div>
           <label class="form-label" style="display: flex; justify-content: space-between; align-items: center;">
             <span>Hazard photo</span>
@@ -348,9 +368,42 @@
             </select>
           </div>
         </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .7rem;">
+          <div class="form-group">
+            <label class="form-label" for="wizard-hazard-type-select">Hazard category</label>
+            <select id="wizard-hazard-type-select" class="clay-input no-icon">
+              {% for cat in hazard_categories %}
+                <option value="{{ cat.type }}" data-min-clearance="{{ cat.min_clearance }}" data-default-severity="{{ cat.default_severity }}">{{ cat.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="wizard-severity-select">Severity</label>
+            <select id="wizard-severity-select" class="clay-input no-icon">
+              <option value="critical">Critical</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="wizard-clearance-input">Est. clearance (m)</label>
+            <input type="number" id="wizard-clearance-input" class="clay-input no-icon tabular-val" step="0.1" min="0.5" max="15.0" value="2.9" />
+          </div>
+        </div>
         <div class="form-group">
-          <label class="form-label">Street / landmark</label>
+          <label class="form-label" for="wizard-address-input">Street / landmark</label>
           <input type="text" id="wizard-address-input" class="clay-input no-icon" placeholder="e.g. Corner F. Pacaña St., near elementary school" />
+        </div>
+        <div class="clay-inset-box" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .6rem;">
+          <div>
+            <span class="section-sub" style="font-size: .7rem; font-weight: 700; display: block;">GPS coordinates</span>
+            <span id="wizard-gps-display" class="tabular-val" style="font-size: .8rem; font-weight: 800; color: var(--ink);">10.2982, 123.8741</span>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: .4rem;">
+            <button type="button" id="wizard-geolocate-btn" class="clay-btn-ghost" style="font-size: .72rem; padding: .38rem .7rem;"><i data-lucide="locate-fixed" style="width: 13px; height: 13px;"></i><span>Use my GPS</span></button>
+            <button type="button" id="wizard-map-center-btn" class="clay-btn-ghost" style="font-size: .72rem; padding: .38rem .7rem;"><i data-lucide="map-pin" style="width: 13px; height: 13px;"></i><span>Use map pin</span></button>
+          </div>
         </div>
       </div>
       <div id="report-step-loading" class="modal-body" style="display: none; text-align: center; padding: 2.5rem 1.5rem;">
@@ -369,6 +422,10 @@
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: .7rem;">
           <div class="clay-inset-box"><span class="section-sub">Confidence</span><p id="res-confidence" style="font-size: 1.15rem; font-weight: 800; color: var(--green);">97.2%</p></div>
           <div class="clay-inset-box"><span class="section-sub">Clearance</span><p id="res-sag" style="font-size: .85rem; font-weight: 700; color: var(--red);">2.9m above road</p></div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: .7rem;">
+          <div class="clay-inset-box"><span class="section-sub">Category</span><p id="res-category" style="font-size: .82rem; font-weight: 800; color: var(--ink);">Sagging Overhead Cable</p></div>
+          <div class="clay-inset-box"><span class="section-sub">Severity rating</span><p id="res-severity" style="font-size: .82rem; font-weight: 800; color: var(--red); text-transform: uppercase;">CRITICAL</p></div>
         </div>
         <div class="clay-tile" style="font-size: .78rem;">
           <span style="font-size: .7rem; font-weight: 800; text-transform: uppercase; color: var(--muted);">Routes to</span>
@@ -422,6 +479,53 @@
           </div>
           <div id="detail-recipients-list" style="display: flex; flex-direction: column; gap: .35rem; font-size: .75rem;"></div>
         </div>
+        <form id="detail-edit-form" class="clay-tile" style="display: none; flex-direction: column; gap: .75rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: .76rem; font-weight: 800; text-transform: uppercase; color: var(--peach);">Edit hazard details</span>
+            <button type="button" id="detail-edit-cancel-btn" class="clay-btn-ghost" style="font-size: .72rem; padding: .3rem .65rem;">Cancel</button>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: .65rem;">
+            <div class="form-group">
+              <label class="form-label" for="detail-edit-title">Incident title</label>
+              <input type="text" id="detail-edit-title" class="clay-input no-icon" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="detail-edit-barangay">Barangay</label>
+              <select id="detail-edit-barangay" class="clay-input no-icon">
+                {% for b in barangays %}<option value="{{ b }}">Brgy. {{ b }}</option>{% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="detail-edit-address">Street / landmark</label>
+            <input type="text" id="detail-edit-address" class="clay-input no-icon" required />
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .65rem;">
+            <div class="form-group">
+              <label class="form-label" for="detail-edit-hazard-type">Hazard category</label>
+              <select id="detail-edit-hazard-type" class="clay-input no-icon">
+                {% for cat in hazard_categories %}<option value="{{ cat.type }}">{{ cat.name }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="detail-edit-severity">Severity</label>
+              <select id="detail-edit-severity" class="clay-input no-icon">
+                <option value="critical">Critical</option>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="detail-edit-clearance">Clearance (m)</label>
+              <input type="number" id="detail-edit-clearance" class="clay-input no-icon tabular-val" step="0.1" min="0.5" max="15.0" required />
+            </div>
+          </div>
+          <p id="detail-edit-error" style="display: none; font-size: .76rem; font-weight: 700; color: var(--red);"></p>
+          <div style="display: flex; justify-content: flex-end; gap: .5rem;">
+            <button type="submit" id="detail-edit-save-btn" class="clay-btn-primary" style="width: auto;"><i data-lucide="save" style="width: 14px; height: 14px;"></i><span>Save changes</span></button>
+          </div>
+        </form>
       </div>
       <div class="modal-footer" style="flex-wrap: wrap; gap: .5rem;">
         {% if can_toggle %}
@@ -434,6 +538,15 @@
         {% else %}
         <span class="section-sub" style="margin-right: auto;">Status updates are handled by TIC &amp; VECO resolver accounts.</span>
         {% endif %}
+        <div id="detail-manage-controls" style="display: none; align-items: center; gap: .4rem; flex-wrap: wrap;">
+          <button type="button" id="edit-incident-btn" class="clay-btn-ghost" style="font-size: .76rem; padding: .45rem .75rem;"><i data-lucide="edit-3" style="width: 13px; height: 13px;"></i><span>Edit</span></button>
+          <button type="button" id="delete-incident-btn" class="clay-btn-ghost" style="font-size: .76rem; padding: .45rem .75rem; color: var(--red);"><i data-lucide="trash-2" style="width: 13px; height: 13px;"></i><span>Delete</span></button>
+        </div>
+        <div id="delete-confirm-bar" style="display: none; align-items: center; gap: .45rem; flex-wrap: wrap; padding: .35rem .65rem; border-radius: 12px; background: var(--clay-inset); border: 1px solid var(--red);">
+          <span style="font-size: .74rem; font-weight: 700; color: var(--red);">Remove this report?</span>
+          <button type="button" id="confirm-delete-incident-btn" class="clay-btn-primary" style="width: auto; padding: .35rem .7rem; font-size: .74rem; background: var(--red);">Confirm delete</button>
+          <button type="button" id="cancel-delete-incident-btn" class="clay-btn-ghost" style="padding: .35rem .65rem; font-size: .74rem;">Cancel</button>
+        </div>
         <button type="button" id="close-detail-footer-btn" class="clay-btn-ghost" style="width: auto;">Done</button>
       </div>
     </div>
@@ -445,5 +558,6 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script id="reports-data" type="application/json">{{ reports_json|safe }}</script>
 <script id="presets-data" type="application/json">{{ presets_json|safe }}</script>
-<script src="{% static 'js/home/home.js' %}?v=18"></script>
+<script id="categories-data" type="application/json">{{ hazard_categories_json|safe }}</script>
+<script src="{% static 'js/home/home.js' %}?v=19"></script>
 {% endblock %}

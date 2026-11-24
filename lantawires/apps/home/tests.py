@@ -330,6 +330,204 @@ class HomeScreenTests(TestCase):
         tickets = [r["ticketNumber"] for r in res.context["my_reports"]]
         self.assertIn("LW-FK-0001", tickets)
 
+    def test_edit_report_api_permissions_and_persistence(self):
+        from django.contrib.auth.models import User
+        from apps.home.models import AIHazardAnalysis, HazardCategory, HazardReport
+        from apps.profile.models import CebuBarangay, Profile
+
+        brgy_tisa = CebuBarangay.objects.create(
+            name="Tisa", district="South District", zip_code="6000", center_lat=10.2982, center_lng=123.8741
+        )
+        CebuBarangay.objects.create(
+            name="Lahug", district="North District", zip_code="6000", center_lat=10.3298, center_lng=123.9056
+        )
+        cat_sag = HazardCategory.objects.create(
+            code="SAGGING_CABLE", category_name="Sagging Overhead Cable", min_clearance=4.5, default_severity="critical"
+        )
+        HazardCategory.objects.create(
+            code="BURNING_SPARKING", category_name="Transformer Arcing / Fire Hazard", min_clearance=5.5, default_severity="critical"
+        )
+
+        owner = User.objects.create_user(username="owner@cebucity.ph", email="owner@cebucity.ph", password="pw")
+        Profile.objects.create(user=owner, full_name="Owner Citizen", phone="+63 917", barangay=brgy_tisa, role="citizen")
+
+        other = User.objects.create_user(username="other@cebucity.ph", email="other@cebucity.ph", password="pw")
+        Profile.objects.create(user=other, full_name="Other Citizen", phone="+63 917", barangay=brgy_tisa, role="citizen")
+
+        resolver = User.objects.create_user(username="res@cebucity.ph", email="res@cebucity.ph", password="pw")
+        Profile.objects.create(user=resolver, full_name="TIC Resolver", phone="+63 917", barangay=brgy_tisa, role="resolver")
+
+        report = HazardReport.objects.create(
+            ticket_number="LW-EDIT-0001",
+            title="Initial Sagging Wire",
+            reporter=owner,
+            barangay=brgy_tisa,
+            category=cat_sag,
+            address="Old St.",
+            severity="high",
+            clearance_meters=3.2,
+            status="dispatched",
+        )
+        ai = AIHazardAnalysis.objects.create(
+            report=report,
+            confidence_score=95.0,
+            detected_components="Drop wire",
+            recommended_action="Check sag",
+            safety_warning="Low wire",
+            cable_sag_clearance="3.2m clearance",
+            wire_density_score="High",
+            severity_rating="high",
+        )
+
+        edit_url = reverse("home:edit_report", kwargs={"report_id": report.id})
+
+        # Unauthenticated rejected with 401
+        unauth_res = Client().post(edit_url, data=json.dumps({"title": "Hack"}), content_type="application/json")
+        self.assertEqual(unauth_res.status_code, 401)
+
+        # Other citizen rejected with 403
+        other_client = Client()
+        other_client.force_login(other)
+        other_res = other_client.post(edit_url, data=json.dumps({"title": "Not Mine"}), content_type="application/json")
+        self.assertEqual(other_res.status_code, 403)
+
+        # Owner can edit unresolved report
+        owner_client = Client()
+        owner_client.force_login(owner)
+        ok_res = owner_client.post(
+            edit_url,
+            data=json.dumps({
+                "title": "Sparking Transformer Wire",
+                "barangay": "Lahug",
+                "address": "Salinas Dr., Lahug",
+                "hazardType": "transformer_spark",
+                "severity": "critical",
+                "clearanceHeightMeters": 2.1,
+            }),
+            content_type="application/json",
+        )
+        self.assertEqual(ok_res.status_code, 200)
+        report.refresh_from_db()
+        ai.refresh_from_db()
+        self.assertEqual(report.title, "Sparking Transformer Wire")
+        self.assertEqual(report.barangay.name, "Lahug")
+        self.assertEqual(report.category.code, "BURNING_SPARKING")
+        self.assertEqual(report.severity, "critical")
+        self.assertEqual(report.clearance_meters, 2.1)
+        self.assertEqual(ai.severity_rating, "critical")
+        self.assertEqual(ai.cable_sag_clearance, "2.1m clearance")
+
+        # Resolved report cannot be edited by citizen owner, but can by resolver
+        report.status = "resolved"
+        report.save()
+        locked_res = owner_client.post(edit_url, data=json.dumps({"title": "Too Late"}), content_type="application/json")
+        self.assertEqual(locked_res.status_code, 403)
+
+        resolver_client = Client()
+        resolver_client.force_login(resolver)
+        res_edit = resolver_client.post(edit_url, data=json.dumps({"title": "Resolver Corrected Title"}), content_type="application/json")
+        self.assertEqual(res_edit.status_code, 200)
+        report.refresh_from_db()
+        self.assertEqual(report.title, "Resolver Corrected Title")
+
+    def test_delete_report_api_permissions_and_cascade(self):
+        from django.contrib.auth.models import User
+        from apps.home.models import AIHazardAnalysis, HazardCategory, HazardDispatch, HazardReport, UtilityAgency
+        from apps.profile.models import CebuBarangay, Profile
+
+        brgy = CebuBarangay.objects.create(
+            name="Tisa", district="South District", zip_code="6000", center_lat=10.2982, center_lng=123.8741
+        )
+        cat = HazardCategory.objects.create(
+            code="SAGGING_CABLE", category_name="Sagging Overhead Cable", min_clearance=4.5, default_severity="critical"
+        )
+        agency = UtilityAgency.objects.create(
+            agency_name="TIC", department="Task Force", contact_email="tic@test.ph", hotline_number="411", agency_type="LGU"
+        )
+
+        owner = User.objects.create_user(username="delowner@cebucity.ph", email="delowner@cebucity.ph", password="pw")
+        Profile.objects.create(user=owner, full_name="Owner", phone="+63 917", barangay=brgy, role="citizen")
+
+        other = User.objects.create_user(username="delother@cebucity.ph", email="delother@cebucity.ph", password="pw")
+        Profile.objects.create(user=other, full_name="Other", phone="+63 917", barangay=brgy, role="citizen")
+
+        resolver = User.objects.create_user(username="delres@cebucity.ph", email="delres@cebucity.ph", password="pw")
+        Profile.objects.create(user=resolver, full_name="Resolver", phone="+63 917", barangay=brgy, role="resolver")
+
+        report = HazardReport.objects.create(
+            ticket_number="LW-DEL-0001", title="Delete Target", reporter=owner, barangay=brgy, category=cat, address="Tisa", status="resolved"
+        )
+        AIHazardAnalysis.objects.create(
+            report=report, confidence_score=91.0, detected_components="Wire", recommended_action="Fix", safety_warning="Warn", cable_sag_clearance="3.0m", wire_density_score="High", severity_rating="high"
+        )
+        HazardDispatch.objects.create(report=report, agency=agency, delivery_status="Delivered")
+
+        del_url = reverse("home:delete_report", kwargs={"report_id": report.id})
+
+        self.assertEqual(Client().post(del_url).status_code, 401)
+
+        other_client = Client()
+        other_client.force_login(other)
+        self.assertEqual(other_client.post(del_url).status_code, 403)
+
+        owner_client = Client()
+        owner_client.force_login(owner)
+        # Resolved -> blocked for citizen
+        self.assertEqual(owner_client.post(del_url).status_code, 403)
+
+        # Unresolved -> owner can withdraw & cascades AI + Dispatches
+        report.status = "dispatched"
+        report.save()
+        ok_del = owner_client.post(del_url)
+        self.assertEqual(ok_del.status_code, 200)
+        self.assertEqual(HazardReport.objects.count(), 0)
+        self.assertEqual(AIHazardAnalysis.objects.count(), 0)
+        self.assertEqual(HazardDispatch.objects.count(), 0)
+
+        # Resolver can delete even resolved reports
+        report2 = HazardReport.objects.create(
+            ticket_number="LW-DEL-0002", title="Resolver Delete Target", reporter=owner, barangay=brgy, category=cat, address="Tisa", status="resolved"
+        )
+        resolver_client = Client()
+        resolver_client.force_login(resolver)
+        res_del = resolver_client.post(reverse("home:delete_report", kwargs={"report_id": report2.id}))
+        self.assertEqual(res_del.status_code, 200)
+        self.assertEqual(HazardReport.objects.count(), 0)
+
+    def test_home_wizard_and_my_reports_render_crud_controls(self):
+        from django.contrib.auth.models import User
+        from apps.home.models import HazardCategory, HazardReport
+        from apps.profile.models import CebuBarangay, Profile
+
+        home_res = self.client.get(reverse("home:index"))
+        self.assertEqual(home_res.status_code, 200)
+        self.assertContains(home_res, "wizard-hazard-type-select")
+        self.assertContains(home_res, "wizard-severity-select")
+        self.assertContains(home_res, "wizard-clearance-input")
+        self.assertContains(home_res, "wizard-geolocate-btn")
+        self.assertContains(home_res, "detail-edit-form")
+        self.assertContains(home_res, "edit-incident-btn")
+
+        brgy = CebuBarangay.objects.create(
+            name="Tisa", district="South District", zip_code="6000", center_lat=10.2982, center_lng=123.8741
+        )
+        cat = HazardCategory.objects.create(
+            code="SAGGING_CABLE", category_name="Sagging Overhead Cable", min_clearance=4.5, default_severity="critical"
+        )
+        citizen = User.objects.create_user(username="crudcit@cebucity.ph", email="crudcit@cebucity.ph", password="pw", first_name="CRUD Citizen")
+        Profile.objects.create(user=citizen, full_name="CRUD Citizen", phone="+63 917", barangay=brgy, role="citizen")
+        HazardReport.objects.create(
+            ticket_number="LW-CRUD-0001", title="Editable Citizen Wire", reporter=citizen, barangay=brgy, category=cat, address="Tisa St.", status="dispatched"
+        )
+
+        cit_client = Client()
+        cit_client.force_login(citizen)
+        my_res = cit_client.get(reverse("home:my_reports"))
+        self.assertEqual(my_res.status_code, 200)
+        self.assertContains(my_res, "my-report-inspect-btn")
+        self.assertContains(my_res, "my-report-edit-btn")
+        self.assertContains(my_res, "my-report-delete-btn")
+
     def test_logout_clears_session_and_redirects_to_login(self):
         response = self.client.get(reverse("home:logout"))
         self.assertEqual(response.status_code, 302)

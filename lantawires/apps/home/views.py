@@ -32,6 +32,38 @@ HAZARD_TYPE_TO_CATEGORY = {
     "transformer_spark": "BURNING_SPARKING",
 }
 
+CATEGORY_CODE_TO_TYPE = {v: k for k, v in HAZARD_TYPE_TO_CATEGORY.items()}
+
+VALID_SEVERITIES = ("critical", "high", "medium", "low")
+
+DEFAULT_HAZARD_CATEGORIES = [
+    {"type": "sagging_cable", "code": "SAGGING_CABLE", "name": "Sagging Overhead Cable", "min_clearance": 4.5, "default_severity": "critical"},
+    {"type": "low_clearance", "code": "LOW_CLEARANCE", "name": "Dangerous Low Clearance", "min_clearance": 4.5, "default_severity": "critical"},
+    {"type": "spaghetti_cluster", "code": "TANGLED_SPAGHETTI", "name": "Overcrowded Spaghetti Cluster", "min_clearance": 4.0, "default_severity": "high"},
+    {"type": "broken_pole", "code": "FALLEN_POLE_LINE", "name": "Deflected Pole / Downed Line", "min_clearance": 5.0, "default_severity": "high"},
+    {"type": "transformer_spark", "code": "BURNING_SPARKING", "name": "Transformer Arcing / Fire Hazard", "min_clearance": 5.5, "default_severity": "critical"},
+]
+
+
+def _get_hazard_categories_context():
+    """Return active HazardCategory options for report creation/editing forms."""
+    try:
+        rows = list(HazardCategory.objects.all())
+    except Exception:
+        rows = []
+    if not rows:
+        return DEFAULT_HAZARD_CATEGORIES
+    return [
+        {
+            "type": CATEGORY_CODE_TO_TYPE.get(c.code, "sagging_cable"),
+            "code": c.code,
+            "name": c.category_name,
+            "min_clearance": c.min_clearance,
+            "default_severity": c.default_severity,
+        }
+        for c in rows
+    ]
+
 DEFAULT_GUEST = {
     "id": "usr-01",
     "name": "Gianne Cruz",
@@ -103,6 +135,108 @@ def _report_belongs_to_user(report, request, user_obj):
     return bool(user_name) and (report.get("reporterName") or "").strip().lower() == user_name
 
 
+def _serialize_db_report(r):
+    """Serialize a HazardReport ORM instance (with related AI & dispatches) to frontend JSON."""
+    barangay_name = r.barangay.name if r.barangay_id else "Tisa"
+    if r.reporter_id:
+        reporter_profile = getattr(r.reporter, "profile", None)
+        reporter_name = (
+            (reporter_profile.full_name if reporter_profile and reporter_profile.full_name else "")
+            or r.reporter.get_full_name()
+            or r.reporter.username
+        )
+        reporter_email = (r.reporter.email or "").strip().lower()
+    else:
+        reporter_name = "Citizen Reporter"
+        reporter_email = ""
+
+    ai_obj = getattr(r, "ai_analysis", None)
+    components = (
+        [c.strip() for c in ai_obj.detected_components.split(",") if c.strip()]
+        if ai_obj and ai_obj.detected_components
+        else ["Sagging drop wire", "Power bundle snag"]
+    )
+    confidence = ai_obj.confidence_score if ai_obj else r.confidence_score
+    cable_sag = ai_obj.cable_sag_clearance if ai_obj else f"{r.clearance_meters}m clearance"
+    wire_density = ai_obj.wire_density_score if ai_obj else "High (Overlapping bundles)"
+    safety_warning = ai_obj.safety_warning if ai_obj else "Immediate danger to tall motor vehicles and neighborhood safety."
+    rec_action = ai_obj.recommended_action if ai_obj else "Field team dispatch for cable tensioning."
+
+    recipients = []
+    for d in r.dispatches.all():
+        recipients.append({
+            "agency": d.agency.agency_name,
+            "department": d.agency.department,
+            "email": d.agency.contact_email,
+            "status": d.delivery_status,
+            "resolutionNotes": d.resolution_notes or "",
+            "dispatchedAt": d.dispatched_at.strftime("%I:%M %p") if d.dispatched_at else "Immediate",
+        })
+    if not recipients:
+        recipients = [
+            {"agency": "Cebu City Technical Infrastructure Committee (TIC)", "department": "Spaghetti Wire Eradication Task Force", "email": "tic-dispatch@cebucity.gov.ph", "status": "Delivered", "resolutionNotes": "", "dispatchedAt": "Immediate"},
+            {"agency": "Visayan Electric (VECO)", "department": "Distribution Line Safety Dispatch", "email": "emergency.hotline@veco.com.ph", "status": "Delivered", "resolutionNotes": "", "dispatchedAt": "Immediate"},
+        ]
+
+    return {
+        "id": f"rep-db-{r.id}",
+        "dbId": r.id,
+        "ticketNumber": r.ticket_number,
+        "title": r.title,
+        "barangay": barangay_name,
+        "address": r.address,
+        "gpsCoordinates": {"lat": r.latitude, "lng": r.longitude},
+        "severity": r.severity,
+        "status": r.status,
+        "reportedAt": r.created_at.strftime("%b %d, %Y"),
+        "imageUrl": r.image_url or DEFAULT_HAZARD_IMAGE_URL,
+        "reporterName": reporter_name,
+        "reporterId": r.reporter_id,
+        "reporterEmail": reporter_email,
+        "clearanceHeightMeters": r.clearance_meters,
+        "hazardType": r.hazard_type,
+        "categoryName": r.category.category_name if r.category_id else "",
+        "affectedAgencies": ["Cebu City TIC", "Visayan Electric (VECO)", "Telco Response Unit"],
+        "aiAnalysis": {
+            "confidence": confidence,
+            "cableSagClearance": cable_sag,
+            "wireDensityScore": wire_density,
+            "detectedComponents": components,
+            "severityRating": r.severity,
+            "recommendedAction": rec_action,
+            "safetyWarning": safety_warning,
+            "isValidHazard": True,
+        },
+        "dispatchDetails": {
+            "dispatchTimestamp": r.created_at.strftime("%b %d, %Y %I:%M %p"),
+            "dispatchTurnaroundSeconds": 30,
+            "recipients": recipients,
+        },
+    }
+
+
+def _can_manage_report(report_obj, request, user_obj, role):
+    """Return (allowed, error_message) for editing or deleting a HazardReport."""
+    if role == "resolver":
+        return True, ""
+
+    user_email = ((user_obj or {}).get("email") or "").strip().lower()
+    report_email = (
+        (report_obj.reporter.email or "").strip().lower()
+        if report_obj.reporter_id
+        else ""
+    )
+    owns_by_id = request.user.is_authenticated and report_obj.reporter_id == request.user.id
+    owns_by_email = bool(user_email and report_email and user_email == report_email)
+    if not (owns_by_id or owns_by_email):
+        return False, "You can only modify reports you submitted."
+
+    if report_obj.status == "resolved":
+        return False, "Resolved reports can no longer be edited or withdrawn."
+
+    return True, ""
+
+
 def get_session_reports(request):
     custom_reports = request.session.get("custom_reports", [])
     
@@ -110,82 +244,7 @@ def get_session_reports(request):
     db_reports = []
     try:
         for r in HazardReport.objects.select_related("barangay", "reporter", "reporter__profile", "category").prefetch_related("dispatches__agency").all():
-            barangay_name = r.barangay.name if r.barangay_id else "Tisa"
-            if r.reporter_id:
-                reporter_profile = getattr(r.reporter, "profile", None)
-                reporter_name = (
-                    (reporter_profile.full_name if reporter_profile and reporter_profile.full_name else "")
-                    or r.reporter.get_full_name()
-                    or r.reporter.username
-                )
-                reporter_email = (r.reporter.email or "").strip().lower()
-            else:
-                reporter_name = "Citizen Reporter"
-                reporter_email = ""
-
-            # Read real AIHazardAnalysis from DB if present
-            ai_obj = getattr(r, "ai_analysis", None)
-            components = (
-                [c.strip() for c in ai_obj.detected_components.split(",") if c.strip()]
-                if ai_obj and ai_obj.detected_components
-                else ["Sagging drop wire", "Power bundle snag"]
-            )
-            confidence = ai_obj.confidence_score if ai_obj else r.confidence_score
-            cable_sag = ai_obj.cable_sag_clearance if ai_obj else f"{r.clearance_meters}m clearance"
-            wire_density = ai_obj.wire_density_score if ai_obj else "High (Overlapping bundles)"
-            safety_warning = ai_obj.safety_warning if ai_obj else "Immediate danger to tall motor vehicles and neighborhood safety."
-            rec_action = ai_obj.recommended_action if ai_obj else "Field team dispatch for cable tensioning."
-
-            # Read real HazardDispatch recipients from DB
-            recipients = []
-            for d in r.dispatches.all():
-                recipients.append({
-                    "agency": d.agency.agency_name,
-                    "department": d.agency.department,
-                    "email": d.agency.contact_email,
-                    "status": d.delivery_status,
-                    "dispatchedAt": d.dispatched_at.strftime("%I:%M %p") if d.dispatched_at else "Immediate",
-                })
-            if not recipients:
-                recipients = [
-                    {"agency": "Cebu City Technical Infrastructure Committee (TIC)", "department": "Spaghetti Wire Eradication Task Force", "email": "tic-dispatch@cebucity.gov.ph", "status": "Delivered", "dispatchedAt": "Immediate"},
-                    {"agency": "Visayan Electric (VECO)", "department": "Distribution Line Safety Dispatch", "email": "emergency.hotline@veco.com.ph", "status": "Delivered", "dispatchedAt": "Immediate"}
-                ]
-
-            db_reports.append({
-                "id": f"rep-db-{r.id}",
-                "dbId": r.id,
-                "ticketNumber": r.ticket_number,
-                "title": r.title,
-                "barangay": barangay_name,
-                "address": r.address,
-                "gpsCoordinates": {"lat": r.latitude, "lng": r.longitude},
-                "severity": r.severity,
-                "status": r.status,
-                "reportedAt": r.created_at.strftime("%b %d, %Y"),
-                "imageUrl": r.image_url or DEFAULT_HAZARD_IMAGE_URL,
-                "reporterName": reporter_name,
-                "reporterId": r.reporter_id,
-                "reporterEmail": reporter_email,
-                "clearanceHeightMeters": r.clearance_meters,
-                "hazardType": r.hazard_type,
-                "affectedAgencies": ["Cebu City TIC", "Visayan Electric (VECO)", "Telco Response Unit"],
-                "aiAnalysis": {
-                    "confidence": confidence,
-                    "cableSagClearance": cable_sag,
-                    "wireDensityScore": wire_density,
-                    "detectedComponents": components,
-                    "severityRating": r.severity,
-                    "recommendedAction": rec_action,
-                    "safetyWarning": safety_warning,
-                    "isValidHazard": True,
-                },
-                "dispatchDetails": {
-                    "dispatchTimestamp": r.created_at.strftime("%b %d, %Y %I:%M %p"),
-                    "dispatchTurnaroundSeconds": 30,
-                    "recipients": recipients,
-                }
-            })
+            db_reports.append(_serialize_db_report(r))
     except Exception as e:
         print("Error fetching database reports:", e)
 
@@ -284,13 +343,17 @@ def home_view(request):
         "city_resolved": resolved_count,
     }
 
+    hazard_categories = _get_hazard_categories_context()
     context = {
         "current_user": user_obj,
+        "current_user_id": request.user.id if request.user.is_authenticated else "",
         "is_resolver": is_resolver,
         "can_toggle": can_toggle,
         "reports": reports,
         "reports_json": json.dumps(reports),
         "barangays": list(CebuBarangay.objects.values_list("name", flat=True)) or CEBU_BARANGAYS,
+        "hazard_categories": hazard_categories,
+        "hazard_categories_json": json.dumps(hazard_categories),
         "presets": SAMPLE_HAZARD_PRESETS,
         "presets_json": json.dumps(SAMPLE_HAZARD_PRESETS),
         "stats": stats,
@@ -327,7 +390,10 @@ def my_reports_view(request):
             "current_user": user_obj,
             "is_resolver": is_resolver,
             "my_reports": my_reports,
+            "my_reports_json": json.dumps(my_reports),
             "my_stats": my_stats,
+            "barangays": list(CebuBarangay.objects.values_list("name", flat=True)) or CEBU_BARANGAYS,
+            "hazard_categories": _get_hazard_categories_context(),
         },
     )
 
@@ -449,17 +515,29 @@ def create_report_api(request):
         if HazardReport.objects.filter(ticket_number=ticket_number).exists():
             ticket_number = f"LW-CEB-2026-{uuid.uuid4().hex[:4].upper()}"
         
-        title = data.get("title", "Overhead Wire Hazard Incident")
-        barangay = data.get("barangay", current_user.get("barangay", "Tisa"))
-        address = data.get("address", "Cebu City Street Corridor")
-        gps = data.get("gps", {"lat": 10.2982, "lng": 123.8741})
+        title = (data.get("title") or "Overhead Wire Hazard Incident").strip()[:200] or "Overhead Wire Hazard Incident"
+        barangay = (data.get("barangay") or current_user.get("barangay", "Tisa")).strip() or "Tisa"
+        address = (data.get("address") or "Cebu City Street Corridor").strip()[:255] or "Cebu City Street Corridor"
+        gps = data.get("gps") or {"lat": 10.2982, "lng": 123.8741}
         severity = data.get("severity", "critical")
+        if severity not in VALID_SEVERITIES:
+            severity = "critical"
         status = "dispatched"
         image_url = _persist_hazard_image(data.get("imageUrl"), ticket_number)
         reporter_name = current_user.get("name", "Citizen Reporter")
-        clearance = float(data.get("clearanceHeightMeters", 3.0))
-        confidence = float(data.get("confidence", 95.8))
+        try:
+            clearance = max(0.5, min(15.0, float(data.get("clearanceHeightMeters", 3.0))))
+        except (TypeError, ValueError):
+            clearance = 3.0
+        try:
+            confidence = max(0.0, min(100.0, float(data.get("confidence", 95.8))))
+        except (TypeError, ValueError):
+            confidence = 95.8
         hazard_type = data.get("hazardType", "sagging_cable")
+        if hazard_type not in HAZARD_TYPE_TO_CATEGORY:
+            hazard_type = "sagging_cable"
+        safety_warning = (data.get("safetyWarning") or "Immediate danger to tall motor vehicles and neighborhood safety.").strip()
+        rec_action = (data.get("recommendedAction") or "Emergency bucket truck dispatch for cable re-tensioning and bundle elevation.").strip()
 
         # Persist directly into Supabase PostgreSQL (CRUZ_ERD: home_hazardreport, ai_hazard_analyses, hazard_dispatches)
         db_report_id = None
@@ -510,8 +588,6 @@ def create_report_api(request):
             components_str = ", ".join(components_list) if isinstance(components_list, list) else str(components_list)
             sag_clearance = data.get("sagClearance") or f"{clearance}m clearance"
             wire_density = data.get("wireDensity") or "High (Overlapping bundles)"
-            safety_warning = data.get("safetyWarning") or "Immediate danger to tall motor vehicles and neighborhood safety."
-            rec_action = data.get("recommendedAction") or "Emergency bucket truck dispatch for cable re-tensioning and bundle elevation."
 
             AIHazardAnalysis.objects.create(
                 report=report_obj,
@@ -586,8 +662,8 @@ def create_report_api(request):
                 "wireDensityScore": data.get("wireDensity", "High (Overlapping bundles)"),
                 "detectedComponents": data.get("components", ["Sagging drop wire", "Splice bundle snag"]),
                 "severityRating": severity,
-                "recommendedAction": "Emergency bucket truck dispatch for cable re-tensioning and bundle elevation.",
-                "safetyWarning": "Immediate danger to tall motor vehicles and neighborhood safety.",
+                "recommendedAction": rec_action,
+                "safetyWarning": safety_warning,
                 "isValidHazard": True,
             },
             "dispatchDetails": {
@@ -746,3 +822,131 @@ def update_dispatch_api(request):
         )
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
+
+
+@require_POST
+def edit_report_api(request, report_id):
+    """Allow report owner (while unresolved) or resolver to update a HazardReport."""
+    current_user, role = _resolve_session_user(request)
+    if current_user is None:
+        return JsonResponse({"status": "error", "message": "Authentication required."}, status=401)
+
+    report_obj = (
+        HazardReport.objects.select_related("barangay", "reporter", "reporter__profile", "category")
+        .prefetch_related("dispatches__agency")
+        .filter(id=report_id)
+        .first()
+    )
+    if not report_obj:
+        return JsonResponse({"status": "error", "message": "Hazard report not found."}, status=404)
+
+    allowed, reason = _can_manage_report(report_obj, request, current_user, role)
+    if not allowed:
+        return JsonResponse({"status": "error", "message": reason}, status=403)
+
+    try:
+        data = json.loads(request.body)
+
+        if "title" in data:
+            title = (data.get("title") or "").strip()
+            if not title:
+                return JsonResponse({"status": "error", "message": "Incident title cannot be empty."}, status=400)
+            report_obj.title = title[:200]
+
+        if "address" in data:
+            address = (data.get("address") or "").strip()
+            if not address:
+                return JsonResponse({"status": "error", "message": "Street / landmark cannot be empty."}, status=400)
+            report_obj.address = address[:255]
+
+        if data.get("barangay"):
+            barangay_name = str(data.get("barangay")).strip()
+            if barangay_name:
+                barangay_obj, _ = CebuBarangay.objects.get_or_create(
+                    name=barangay_name,
+                    defaults={
+                        "district": "South District",
+                        "zip_code": "6000",
+                        "center_lat": report_obj.latitude,
+                        "center_lng": report_obj.longitude,
+                    },
+                )
+                report_obj.barangay = barangay_obj
+
+        if data.get("hazardType"):
+            hazard_type = str(data.get("hazardType")).strip()
+            if hazard_type not in HAZARD_TYPE_TO_CATEGORY:
+                return JsonResponse({"status": "error", "message": "Invalid hazard category."}, status=400)
+            category_code = HAZARD_TYPE_TO_CATEGORY[hazard_type]
+            category_obj, _ = HazardCategory.objects.get_or_create(
+                code=category_code,
+                defaults={
+                    "category_name": hazard_type.replace("_", " ").title(),
+                    "min_clearance": 4.0,
+                    "default_severity": report_obj.severity,
+                },
+            )
+            report_obj.hazard_type = hazard_type
+            report_obj.category = category_obj
+
+        if data.get("severity"):
+            severity = str(data.get("severity")).strip()
+            if severity not in VALID_SEVERITIES:
+                return JsonResponse({"status": "error", "message": "Invalid severity value."}, status=400)
+            report_obj.severity = severity
+
+        if "clearanceHeightMeters" in data and data.get("clearanceHeightMeters") not in (None, ""):
+            try:
+                clearance = float(data.get("clearanceHeightMeters"))
+            except (TypeError, ValueError):
+                return JsonResponse({"status": "error", "message": "Clearance must be a valid number."}, status=400)
+            if not (0.5 <= clearance <= 15.0):
+                return JsonResponse({"status": "error", "message": "Clearance must be between 0.5m and 15.0m."}, status=400)
+            report_obj.clearance_meters = round(clearance, 2)
+
+        report_obj.save()
+
+        ai_obj = getattr(report_obj, "ai_analysis", None)
+        if ai_obj:
+            ai_obj.severity_rating = report_obj.severity
+            ai_obj.cable_sag_clearance = f"{report_obj.clearance_meters:.1f}m clearance"
+            ai_obj.save(update_fields=["severity_rating", "cable_sag_clearance"])
+
+        refreshed = (
+            HazardReport.objects.select_related("barangay", "reporter", "reporter__profile", "category")
+            .prefetch_related("dispatches__agency")
+            .get(id=report_obj.id)
+        )
+        return JsonResponse({"status": "ok", "report": _serialize_db_report(refreshed)})
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=400)
+
+
+@require_POST
+def delete_report_api(request, report_id):
+    """Allow report owner (while unresolved) or resolver to delete/withdraw a HazardReport."""
+    current_user, role = _resolve_session_user(request)
+    if current_user is None:
+        return JsonResponse({"status": "error", "message": "Authentication required."}, status=401)
+
+    report_obj = HazardReport.objects.select_related("reporter").filter(id=report_id).first()
+    if not report_obj:
+        return JsonResponse({"status": "error", "message": "Hazard report not found."}, status=404)
+
+    allowed, reason = _can_manage_report(report_obj, request, current_user, role)
+    if not allowed:
+        return JsonResponse({"status": "error", "message": reason}, status=403)
+
+    ticket_number = report_obj.ticket_number
+    deleted_id = report_obj.id
+    report_obj.delete()
+
+    custom_reports = request.session.get("custom_reports", [])
+    if custom_reports:
+        request.session["custom_reports"] = [
+            r for r in custom_reports
+            if r.get("ticketNumber") != ticket_number and r.get("dbId") != deleted_id
+        ]
+        request.session.modified = True
+
+    return JsonResponse({"status": "ok", "deletedId": deleted_id, "ticketNumber": ticket_number})

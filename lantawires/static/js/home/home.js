@@ -4,9 +4,11 @@ document.addEventListener("DOMContentLoaded", () => {
   // Parse initial data injected from Django
   const reportsDataEl = document.getElementById("reports-data");
   const presetsDataEl = document.getElementById("presets-data");
-  
+  const categoriesDataEl = document.getElementById("categories-data");
+
   let reports = reportsDataEl ? JSON.parse(reportsDataEl.textContent) : [];
   const presets = presetsDataEl ? JSON.parse(presetsDataEl.textContent) : [];
+  const categories = categoriesDataEl ? JSON.parse(categoriesDataEl.textContent) : [];
   
   let currentSelectedReport = reports.length > 0 ? reports[0] : null;
   let activeTab = "map"; // 'map' or 'feed'
@@ -107,6 +109,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const dashboardRoot = document.getElementById("home-dashboard-root");
   const previewCard = document.getElementById("selected-hotspot-preview");
   const isResolver = (previewCard?.dataset.role || dashboardRoot?.dataset.role) === "resolver";
+  const currentUserId = dashboardRoot?.dataset.userId || "";
+  const currentUserEmail = (dashboardRoot?.dataset.userEmail || "").trim().toLowerCase();
   const previewImage = document.getElementById("preview-image");
   const previewTicket = document.getElementById("preview-ticket");
   const previewSeverityBadge = document.getElementById("preview-severity-badge");
@@ -131,10 +135,19 @@ document.addEventListener("DOMContentLoaded", () => {
   const wizardTitleInput = document.getElementById("wizard-title-input");
   const wizardBarangaySelect = document.getElementById("wizard-barangay-select");
   const wizardAddressInput = document.getElementById("wizard-address-input");
+  const wizardHazardTypeSelect = document.getElementById("wizard-hazard-type-select");
+  const wizardSeveritySelect = document.getElementById("wizard-severity-select");
+  const wizardClearanceInput = document.getElementById("wizard-clearance-input");
+  const wizardGpsDisplay = document.getElementById("wizard-gps-display");
+  const wizardGeolocateBtn = document.getElementById("wizard-geolocate-btn");
+  const wizardMapCenterBtn = document.getElementById("wizard-map-center-btn");
+  const wizardPresetButtons = document.querySelectorAll(".wizard-preset-btn");
   const aiLoadingSubtext = document.getElementById("ai-loading-subtext");
   const aiProgressBar = document.getElementById("ai-progress-bar");
   const resConfidence = document.getElementById("res-confidence");
   const resSag = document.getElementById("res-sag");
+  const resCategory = document.getElementById("res-category");
+  const resSeverity = document.getElementById("res-severity");
 
   // Detail Modal elements
   const detailModal = document.getElementById("incident-detail-modal");
@@ -153,6 +166,22 @@ document.addEventListener("DOMContentLoaded", () => {
   const detailTurnaround = document.getElementById("detail-turnaround");
   const detailRecipientsList = document.getElementById("detail-recipients-list");
   const toggleStatusBtn = document.getElementById("toggle-incident-status-btn");
+  const detailManageControls = document.getElementById("detail-manage-controls");
+  const editIncidentBtn = document.getElementById("edit-incident-btn");
+  const deleteIncidentBtn = document.getElementById("delete-incident-btn");
+  const deleteConfirmBar = document.getElementById("delete-confirm-bar");
+  const confirmDeleteIncidentBtn = document.getElementById("confirm-delete-incident-btn");
+  const cancelDeleteIncidentBtn = document.getElementById("cancel-delete-incident-btn");
+  const detailEditForm = document.getElementById("detail-edit-form");
+  const detailEditTitle = document.getElementById("detail-edit-title");
+  const detailEditBarangay = document.getElementById("detail-edit-barangay");
+  const detailEditAddress = document.getElementById("detail-edit-address");
+  const detailEditHazardType = document.getElementById("detail-edit-hazard-type");
+  const detailEditSeverity = document.getElementById("detail-edit-severity");
+  const detailEditClearance = document.getElementById("detail-edit-clearance");
+  const detailEditError = document.getElementById("detail-edit-error");
+  const detailEditCancelBtn = document.getElementById("detail-edit-cancel-btn");
+  const detailEditSaveBtn = document.getElementById("detail-edit-save-btn");
 
   // Helper: Get CSRF token
   function getCsrfToken() {
@@ -527,13 +556,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
       recipients.forEach(r => {
         const item = document.createElement("div");
-      item.style.cssText = "display: flex; justify-content: space-between; align-items: center;";
+        item.style.cssText = "display: flex; justify-content: space-between; align-items: center;";
         item.innerHTML = `
-          <span><strong>${r.agency}</strong></span>
-          <span style="color: var(--green); font-weight: 800;">✓ ${r.status || 'Delivered'}</span>
+          <span><strong>${escapeHtml(r.agency)}</strong></span>
+          <span style="color: var(--green); font-weight: 800;">✓ ${escapeHtml(r.status || "Delivered")}</span>
         `;
         detailRecipientsList.appendChild(item);
       });
+    }
+
+    if (detailEditForm) detailEditForm.style.display = "none";
+    if (detailEditError) detailEditError.style.display = "none";
+    if (deleteConfirmBar) deleteConfirmBar.style.display = "none";
+    if (detailManageControls) {
+      const allowed = canManageReport(report);
+      detailManageControls.style.display = allowed ? "flex" : "none";
+      if (deleteIncidentBtn) {
+        const delLabel = deleteIncidentBtn.querySelector("span");
+        if (delLabel) delLabel.textContent = isResolver ? "Delete" : "Withdraw";
+      }
     }
 
     pendingSelectedStatus = report.status;
@@ -543,6 +584,15 @@ document.addEventListener("DOMContentLoaded", () => {
     document.documentElement.classList.add("modal-open");
     document.body.classList.add("modal-open");
     if (window.lucide) window.lucide.createIcons();
+  }
+
+  function canManageReport(report) {
+    if (!report || !report.dbId) return false;
+    if (isResolver) return true;
+    const ownsById = Boolean(currentUserId && report.reporterId != null && String(report.reporterId) === String(currentUserId));
+    const ownsByEmail = Boolean(currentUserEmail && (report.reporterEmail || "").toLowerCase() === currentUserEmail);
+    if (!ownsById && !ownsByEmail) return false;
+    return report.status !== "resolved";
   }
 
   let pendingSelectedStatus = null;
@@ -577,8 +627,132 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function closeDetailModal() {
     pendingSelectedStatus = null;
+    if (detailEditForm) detailEditForm.style.display = "none";
+    if (deleteConfirmBar) deleteConfirmBar.style.display = "none";
     if (detailModal) detailModal.classList.remove("open");
     syncBodyModalLock();
+  }
+
+  if (editIncidentBtn && detailEditForm) {
+    editIncidentBtn.addEventListener("click", () => {
+      if (!currentSelectedReport || !canManageReport(currentSelectedReport)) return;
+      if (deleteConfirmBar) deleteConfirmBar.style.display = "none";
+      if (detailEditError) detailEditError.style.display = "none";
+      if (detailEditTitle) detailEditTitle.value = currentSelectedReport.title || "";
+      if (detailEditBarangay) detailEditBarangay.value = currentSelectedReport.barangay || "Tisa";
+      if (detailEditAddress) detailEditAddress.value = currentSelectedReport.address || "";
+      if (detailEditHazardType) detailEditHazardType.value = currentSelectedReport.hazardType || "sagging_cable";
+      if (detailEditSeverity) detailEditSeverity.value = currentSelectedReport.severity || "critical";
+      if (detailEditClearance) detailEditClearance.value = currentSelectedReport.clearanceHeightMeters ?? 3.0;
+      detailEditForm.style.display = "flex";
+      if (detailEditTitle) detailEditTitle.focus();
+    });
+  }
+
+  if (detailEditCancelBtn && detailEditForm) {
+    detailEditCancelBtn.addEventListener("click", () => {
+      detailEditForm.style.display = "none";
+      if (detailEditError) detailEditError.style.display = "none";
+    });
+  }
+
+  if (detailEditForm) {
+    detailEditForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!currentSelectedReport || !currentSelectedReport.dbId) return;
+      if (detailEditError) detailEditError.style.display = "none";
+      if (detailEditSaveBtn) detailEditSaveBtn.disabled = true;
+
+      try {
+        const res = await fetch(`/home/api/report/${currentSelectedReport.dbId}/edit/`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCsrfToken(),
+          },
+          body: JSON.stringify({
+            title: detailEditTitle ? detailEditTitle.value.trim() : "",
+            barangay: detailEditBarangay ? detailEditBarangay.value : "",
+            address: detailEditAddress ? detailEditAddress.value.trim() : "",
+            hazardType: detailEditHazardType ? detailEditHazardType.value : "sagging_cable",
+            severity: detailEditSeverity ? detailEditSeverity.value : "critical",
+            clearanceHeightMeters: detailEditClearance ? Number(detailEditClearance.value) : 3.0,
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          if (detailEditError) {
+            detailEditError.textContent = data.message || "Unable to update report.";
+            detailEditError.style.display = "block";
+          }
+          return;
+        }
+        const updatedRep = data.report;
+        reports = reports.map(r => (r.dbId === updatedRep.dbId || r.id === updatedRep.id) ? updatedRep : r);
+        currentSelectedReport = updatedRep;
+        openDetailModal(updatedRep);
+        renderMapPins();
+        renderIncidentCards(false);
+        updateStats();
+        selectReport(updatedRep, false, previewCard && previewCard.style.display !== "none");
+      } catch (err) {
+        if (detailEditError) {
+          detailEditError.textContent = "Network error while saving report changes.";
+          detailEditError.style.display = "block";
+        }
+      } finally {
+        if (detailEditSaveBtn) detailEditSaveBtn.disabled = false;
+      }
+    });
+  }
+
+  if (deleteIncidentBtn && deleteConfirmBar) {
+    deleteIncidentBtn.addEventListener("click", () => {
+      if (!currentSelectedReport || !canManageReport(currentSelectedReport)) return;
+      if (detailEditForm) detailEditForm.style.display = "none";
+      deleteConfirmBar.style.display = deleteConfirmBar.style.display === "flex" ? "none" : "flex";
+    });
+  }
+
+  if (cancelDeleteIncidentBtn && deleteConfirmBar) {
+    cancelDeleteIncidentBtn.addEventListener("click", () => {
+      deleteConfirmBar.style.display = "none";
+    });
+  }
+
+  if (confirmDeleteIncidentBtn) {
+    confirmDeleteIncidentBtn.addEventListener("click", async () => {
+      if (!currentSelectedReport || !currentSelectedReport.dbId) return;
+      confirmDeleteIncidentBtn.disabled = true;
+      try {
+        const res = await fetch(`/home/api/report/${currentSelectedReport.dbId}/delete/`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCsrfToken(),
+          },
+        });
+        if (res.ok) {
+          const deletedDbId = currentSelectedReport.dbId;
+          reports = reports.filter(r => r.dbId !== deletedDbId);
+          currentSelectedReport = reports.length > 0 ? reports[0] : null;
+          closeDetailModal();
+          renderMapPins();
+          renderIncidentCards(true);
+          updateStats();
+          if (currentSelectedReport) {
+            selectReport(currentSelectedReport, false, isResolver);
+          } else if (previewCard) {
+            previewCard.style.display = "none";
+          }
+        } else {
+          const data = await res.json().catch(() => ({}));
+          alert(data.message || "Unable to delete report.");
+        }
+      } finally {
+        confirmDeleteIncidentBtn.disabled = false;
+      }
+    });
   }
 
   if (closeDetailModalBtn) closeDetailModalBtn.addEventListener("click", closeDetailModal);
@@ -666,13 +840,89 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Report Wizard Logic
   let customUploadedImage = null;
+  let wizardGps = null;
+  let wizardAnalysisPayload = null;
   const photoUploadDropzone = document.getElementById("photo-upload-dropzone");
   const uploadPlaceholderContent = document.getElementById("upload-placeholder-content");
   const wizardPreviewOverlay = document.getElementById("wizard-preview-overlay");
 
+  function setWizardGps(lat, lng, labelSuffix = "") {
+    wizardGps = {
+      lat: Number(Number(lat).toFixed(5)),
+      lng: Number(Number(lng).toFixed(5)),
+    };
+    if (wizardGpsDisplay) {
+      wizardGpsDisplay.textContent = `${wizardGps.lat.toFixed(4)}, ${wizardGps.lng.toFixed(4)}${labelSuffix}`;
+    }
+  }
+
+  function syncWizardGpsFromBarangay() {
+    const brgy = (wizardBarangaySelect ? wizardBarangaySelect.value : "") || "Tisa";
+    const base = BARANGAY_CENTROIDS[brgy] || [10.2982, 123.8741];
+    setWizardGps(base[0], base[1], ` · Brgy. ${brgy}`);
+  }
+
+  function getSelectedCategoryMeta() {
+    const type = wizardHazardTypeSelect ? wizardHazardTypeSelect.value : "sagging_cable";
+    return (
+      categories.find(c => c.type === type) || {
+        type,
+        name: "Sagging Overhead Cable",
+        min_clearance: 4.5,
+        default_severity: "critical",
+      }
+    );
+  }
+
+  function computeWizardTelemetry() {
+    const cat = getSelectedCategoryMeta();
+    const rawClearance = wizardClearanceInput ? parseFloat(wizardClearanceInput.value) : 2.9;
+    const clearance = Number.isFinite(rawClearance) ? Math.max(0.5, Math.min(15.0, rawClearance)) : 2.9;
+    const severity = wizardSeveritySelect ? wizardSeveritySelect.value : cat.default_severity;
+    const minCl = Number(cat.min_clearance || 4.5);
+    const deficit = Math.max(0, minCl - clearance);
+    const confidence = Number(Math.min(98.6, 92.4 + Math.min(5.2, deficit * 2.1)).toFixed(1));
+    const isCritical = severity === "critical" || deficit >= 1.2;
+
+    const componentsByType = {
+      sagging_cable: ["Sagging drop cable", "Overhanging telecom loop", "Messenger wire slack"],
+      low_clearance: ["Low vehicle-corridor sag", "Primary feeder encroachment", "PUJ clearance breach"],
+      spaghetti_cluster: ["Overcrowded splice cluster", "Dead coax/fiber loops", "Pole overload"],
+      broken_pole: ["Deflected utility pole", "Strained anchor guy wire", "Overburdened cable spool"],
+      transformer_spark: ["Charred insulation jacket", "Secondary bus arcing zone", "Unauthorized tie-in"],
+    };
+
+    const actionByType = {
+      sagging_cable: "Dispatch bucket truck for cable re-tensioning and messenger lashing.",
+      low_clearance: "Priority street cordon and immediate elevation above 4.5m transit height.",
+      spaghetti_cluster: "Joint TIC & telco dead-wire pruning and bundle consolidation.",
+      broken_pole: "Emergency structural pole bracing and fiber load redistribution.",
+      transformer_spark: "Immediate VECO de-energization, thermal isolation, and fire standby.",
+    };
+
+    const warning = isCritical
+      ? `Clearance of ${clearance.toFixed(1)}m breaches the ${minCl.toFixed(1)}m legal minimum — direct vehicle/pedestrian hazard.`
+      : `Clearance of ${clearance.toFixed(1)}m requires scheduled utility re-tensioning (standard: ${minCl.toFixed(1)}m).`;
+
+    return {
+      categoryName: cat.name,
+      hazardType: cat.type,
+      severity,
+      clearance,
+      confidence,
+      sagClearance: `${clearance.toFixed(1)}m clearance (legal min: ${minCl.toFixed(1)}m)`,
+      wireDensity: isCritical ? "Severe (Overlapping primary & telco bundles)" : "High (Multi-carrier bundle)",
+      components: componentsByType[cat.type] || componentsByType.sagging_cable,
+      safetyWarning: warning,
+      recommendedAction: actionByType[cat.type] || actionByType.sagging_cable,
+    };
+  }
+
   function openReportModal() {
     if (!reportModal) return;
     customUploadedImage = null;
+    wizardAnalysisPayload = null;
+    wizardPresetButtons.forEach(b => b.classList.remove("selected-preset"));
     if (wizardCustomFile) wizardCustomFile.value = "";
     if (wizardPhotoPreview) {
       wizardPhotoPreview.src = "";
@@ -683,11 +933,92 @@ document.addEventListener("DOMContentLoaded", () => {
     if (photoUploadDropzone) photoUploadDropzone.style.borderStyle = "dashed";
     if (wizardTitleInput) wizardTitleInput.value = "";
     if (wizardAddressInput) wizardAddressInput.value = "";
+    if (wizardHazardTypeSelect) wizardHazardTypeSelect.value = "sagging_cable";
+    if (wizardSeveritySelect) wizardSeveritySelect.value = "critical";
+    if (wizardClearanceInput) wizardClearanceInput.value = "2.9";
+    syncWizardGpsFromBarangay();
     setWizardStep("input");
     reportModal.classList.add("open");
     document.documentElement.classList.add("modal-open");
     document.body.classList.add("modal-open");
     if (window.lucide) lucide.createIcons();
+  }
+
+  if (wizardBarangaySelect) {
+    wizardBarangaySelect.addEventListener("change", syncWizardGpsFromBarangay);
+  }
+
+  if (wizardHazardTypeSelect && wizardSeveritySelect) {
+    wizardHazardTypeSelect.addEventListener("change", () => {
+      const cat = getSelectedCategoryMeta();
+      if (cat.default_severity) wizardSeveritySelect.value = cat.default_severity;
+    });
+  }
+
+  if (wizardPresetButtons.length > 0) {
+    wizardPresetButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const idx = Number(btn.getAttribute("data-preset-index"));
+        const preset = presets[idx];
+        if (!preset) return;
+        wizardPresetButtons.forEach(b => b.classList.remove("selected-preset"));
+        btn.classList.add("selected-preset");
+
+        if (wizardTitleInput) wizardTitleInput.value = preset.title || "";
+        if (wizardBarangaySelect && preset.barangay) wizardBarangaySelect.value = preset.barangay;
+        if (wizardAddressInput) wizardAddressInput.value = preset.address || "";
+        if (wizardHazardTypeSelect && preset.hazardType) wizardHazardTypeSelect.value = preset.hazardType;
+        if (wizardSeveritySelect && preset.severity) wizardSeveritySelect.value = preset.severity;
+        if (wizardClearanceInput && preset.clearanceHeightMeters) wizardClearanceInput.value = preset.clearanceHeightMeters;
+        syncWizardGpsFromBarangay();
+
+        if (preset.imageUrl && wizardPhotoPreview) {
+          customUploadedImage = preset.imageUrl;
+          wizardPhotoPreview.src = preset.imageUrl;
+          wizardPhotoPreview.style.display = "block";
+          if (uploadPlaceholderContent) uploadPlaceholderContent.style.display = "none";
+          if (wizardPreviewOverlay) wizardPreviewOverlay.style.display = "flex";
+          if (wizardPhotoBadge) wizardPhotoBadge.textContent = `Sample · Brgy. ${preset.barangay}`;
+          if (photoUploadDropzone) photoUploadDropzone.style.borderStyle = "solid";
+        }
+      });
+    });
+  }
+
+  if (wizardGeolocateBtn) {
+    wizardGeolocateBtn.addEventListener("click", () => {
+      if (!navigator.geolocation) {
+        if (wizardGpsDisplay) wizardGpsDisplay.textContent += " (GPS unavailable)";
+        return;
+      }
+      if (wizardGpsDisplay) wizardGpsDisplay.textContent = "Locating device…";
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          const { latitude, longitude } = pos.coords;
+          if (CEBU_CITY_BOUNDS && CEBU_CITY_BOUNDS.contains([latitude, longitude])) {
+            setWizardGps(latitude, longitude, " · Device GPS");
+          } else {
+            syncWizardGpsFromBarangay();
+            if (wizardGpsDisplay) wizardGpsDisplay.textContent += " (Outside Cebu, using barangay)";
+          }
+        },
+        () => {
+          syncWizardGpsFromBarangay();
+        },
+        { enableHighAccuracy: true, timeout: 5000 }
+      );
+    });
+  }
+
+  if (wizardMapCenterBtn) {
+    wizardMapCenterBtn.addEventListener("click", () => {
+      if (leafletMap) {
+        const center = leafletMap.getCenter();
+        setWizardGps(center.lat, center.lng, " · Map pin");
+      } else {
+        syncWizardGpsFromBarangay();
+      }
+    });
   }
 
   function closeReportModal() {
@@ -806,9 +1137,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (progress >= 100) {
           clearInterval(interval);
+          wizardAnalysisPayload = computeWizardTelemetry();
           setTimeout(() => {
-            if (resConfidence) resConfidence.textContent = "97.8%";
-            if (resSag) resSag.textContent = "2.8m above road (Severe)";
+            if (resConfidence) resConfidence.textContent = `${wizardAnalysisPayload.confidence}%`;
+            if (resSag) resSag.textContent = wizardAnalysisPayload.sagClearance;
+            if (resCategory) resCategory.textContent = wizardAnalysisPayload.categoryName;
+            if (resSeverity) resSeverity.textContent = wizardAnalysisPayload.severity.toUpperCase();
             setWizardStep("result");
           }, 350);
         }
@@ -822,17 +1156,16 @@ document.addEventListener("DOMContentLoaded", () => {
       confirmDispatchBtn.disabled = true;
       confirmDispatchBtn.innerHTML = `<span>Dispatching...</span>`;
 
+      const telemetry = wizardAnalysisPayload || computeWizardTelemetry();
       const barangay = (wizardBarangaySelect ? wizardBarangaySelect.value : "") || "Tisa";
       const title = (wizardTitleInput ? wizardTitleInput.value.trim() : "") || `Low-hanging cable hazard - Brgy. ${barangay}`;
       const address = (wizardAddressInput ? wizardAddressInput.value.trim() : "") || `Brgy. ${barangay}, Cebu City`;
       const imageUrl = customUploadedImage || "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80";
 
-      let baseCoords = BARANGAY_CENTROIDS[barangay] || [10.2982, 123.8741];
-      const jitterLat = (Math.random() - 0.5) * 0.004;
-      const jitterLng = (Math.random() - 0.5) * 0.004;
-      const gps = {
-        lat: Number((baseCoords[0] + jitterLat).toFixed(5)),
-        lng: Number((baseCoords[1] + jitterLng).toFixed(5))
+      const baseCoords = BARANGAY_CENTROIDS[barangay] || [10.2982, 123.8741];
+      const gps = wizardGps || {
+        lat: Number(baseCoords[0].toFixed(5)),
+        lng: Number(baseCoords[1].toFixed(5))
       };
 
       try {
@@ -847,13 +1180,16 @@ document.addEventListener("DOMContentLoaded", () => {
             barangay: barangay,
             address: address,
             gps: gps,
-            severity: "critical",
-            hazardType: "sagging_cable",
+            severity: telemetry.severity,
+            hazardType: telemetry.hazardType,
+            clearanceHeightMeters: telemetry.clearance,
             imageUrl: imageUrl,
-            confidence: 97.8,
-            sagClearance: "2.8m clearance (Critical)",
-            wireDensity: "Severe (Telecom tangled directly onto secondary bus)",
-            components: ["Dangling drop cable", "Overhanging telecom loop", "Distribution secondary snag"],
+            confidence: telemetry.confidence,
+            sagClearance: telemetry.sagClearance,
+            wireDensity: telemetry.wireDensity,
+            components: telemetry.components,
+            safetyWarning: telemetry.safetyWarning,
+            recommendedAction: telemetry.recommendedAction,
           }),
         });
 

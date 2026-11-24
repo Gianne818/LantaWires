@@ -80,7 +80,7 @@
           <span class="metric-label">Total submitted</span>
           <div class="metric-icon"><i data-lucide="layers" style="width: 16px; height: 16px;"></i></div>
         </div>
-        <div class="metric-num">{{ my_stats.total }}</div>
+        <div class="metric-num" id="my-stat-total">{{ my_stats.total }}</div>
         <p class="section-sub">By {{ current_user.name }}</p>
       </div>
       <div class="metric-card">
@@ -88,7 +88,7 @@
           <span class="metric-label">Dispatched</span>
           <div class="metric-icon"><i data-lucide="send" style="width: 16px; height: 16px;"></i></div>
         </div>
-        <div class="metric-num">{{ my_stats.dispatched }}</div>
+        <div class="metric-num" id="my-stat-dispatched">{{ my_stats.dispatched }}</div>
         <p class="section-sub">Sent to TIC &amp; VECO</p>
       </div>
       <div class="metric-card">
@@ -96,7 +96,7 @@
           <span class="metric-label">Investigating</span>
           <div class="metric-icon" style="color: var(--peach);"><i data-lucide="wrench" style="width: 16px; height: 16px;"></i></div>
         </div>
-        <div class="metric-num" style="color: var(--peach);">{{ my_stats.investigating }}</div>
+        <div class="metric-num" id="my-stat-investigating" style="color: var(--peach);">{{ my_stats.investigating }}</div>
         <p class="section-sub">Field crew en route</p>
       </div>
       <div class="metric-card">
@@ -104,7 +104,7 @@
           <span class="metric-label">Resolved</span>
           <div class="metric-icon" style="color: var(--green);"><i data-lucide="check-circle-2" style="width: 16px; height: 16px;"></i></div>
         </div>
-        <div class="metric-num" style="color: var(--green);">{{ my_stats.resolved }}</div>
+        <div class="metric-num" id="my-stat-resolved" style="color: var(--green);">{{ my_stats.resolved }}</div>
         <p class="section-sub">Cleared &amp; safe</p>
       </div>
     </div>
@@ -112,7 +112,7 @@
     {% if my_reports %}
       <div class="incident-grid">
         {% for rep in my_reports %}
-          <div class="clay-card report-card">
+          <div class="clay-card report-card" data-report-id="{{ rep.id }}" data-db-id="{{ rep.dbId|default:'' }}" data-status="{{ rep.status }}">
             <div style="display: flex; justify-content: space-between; align-items: center; gap: .5rem; flex-wrap: wrap;">
               <span class="ticket-chip">{{ rep.ticketNumber }}</span>
               <div style="display: flex; gap: .35rem; flex-wrap: wrap;">
@@ -138,8 +138,14 @@
               <span class="badge-pill badge-compact {% if rep.status == 'resolved' %}badge-resolved{% else %}badge-neutral{% endif %}">3. Resolved</span>
             </div>
             <div class="report-card-footer">
-              <span>Submitted {{ rep.reportedAt }}</span>
-              <span>{{ rep.dispatchDetails.recipients|length }} agencies notified</span>
+              <span>Submitted {{ rep.reportedAt }} · {{ rep.dispatchDetails.recipients|length }} agencies</span>
+              <div style="display: flex; align-items: center; gap: .35rem; flex-wrap: wrap;">
+                <button type="button" class="clay-btn-ghost my-report-inspect-btn" data-report-id="{{ rep.id }}" style="font-size: .72rem; padding: .34rem .65rem;"><i data-lucide="eye" style="width: 12px; height: 12px;"></i><span>Inspect</span></button>
+                {% if rep.dbId and is_resolver or rep.dbId and rep.status != 'resolved' %}
+                  <button type="button" class="clay-btn-ghost my-report-edit-btn" data-report-id="{{ rep.id }}" style="font-size: .72rem; padding: .34rem .65rem;"><i data-lucide="edit-3" style="width: 12px; height: 12px;"></i><span>Edit</span></button>
+                  <button type="button" class="clay-btn-ghost my-report-delete-btn" data-report-id="{{ rep.id }}" style="font-size: .72rem; padding: .34rem .65rem; color: var(--red);"><i data-lucide="trash-2" style="width: 12px; height: 12px;"></i><span>Withdraw</span></button>
+                {% endif %}
+              </div>
             </div>
           </div>
         {% endfor %}
@@ -153,5 +159,296 @@
       </div>
     {% endif %}
   </main>
+
+  <div id="my-report-detail-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="mr-detail-title">
+    <div class="modal-dialog" style="max-width: 680px;">
+      <div class="modal-header">
+        <div>
+          <div class="incident-meta-row" style="margin-bottom: .25rem;">
+            <span id="mr-detail-ticket" class="ticket-chip"></span>
+            <span id="mr-detail-severity" class="badge-pill badge-compact"></span>
+            <span id="mr-detail-status" class="badge-pill badge-compact"></span>
+          </div>
+          <h3 id="mr-detail-title" style="font-size: 1.05rem; font-weight: 800;"></h3>
+        </div>
+        <button type="button" id="mr-detail-close-btn" class="clay-btn-ghost" aria-label="Close details" style="padding: .45rem .6rem;"><i data-lucide="x" style="width: 17px; height: 17px;"></i></button>
+      </div>
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: .9rem;">
+        <div style="height: 200px; border-radius: 16px; overflow: hidden; border: 2px solid var(--clay-border);">
+          <img id="mr-detail-image" src="" alt="Hazard photo" style="width: 100%; height: 100%; object-fit: cover;" />
+        </div>
+        <p id="mr-detail-address" class="section-sub" style="font-size: .82rem; font-weight: 600;"></p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .65rem;">
+          <div class="clay-inset-box"><span class="section-sub">Clearance</span><p id="mr-detail-clearance" style="font-size: .84rem; font-weight: 800; color: var(--red);"></p></div>
+          <div class="clay-inset-box"><span class="section-sub">AI confidence</span><p id="mr-detail-confidence" style="font-size: .84rem; font-weight: 800; color: var(--green);"></p></div>
+        </div>
+        <div class="clay-tile" style="font-size: .78rem;">
+          <p><strong>Safety warning:</strong> <span id="mr-detail-warning"></span></p>
+          <p style="margin-top: .35rem;"><strong>Recommended action:</strong> <span id="mr-detail-action"></span></p>
+        </div>
+        <div class="clay-tile">
+          <span style="font-size: .72rem; font-weight: 800; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: .45rem;">Utility dispatch receipts</span>
+          <div id="mr-detail-recipients" style="display: flex; flex-direction: column; gap: .4rem; font-size: .78rem;"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="mr-detail-done-btn" class="clay-btn-ghost" style="width: auto;">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="my-report-edit-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="Edit hazard report">
+    <div class="modal-dialog" style="max-width: 560px;">
+      <div class="modal-header">
+        <div>
+          <span id="mr-edit-ticket" class="ticket-chip"></span>
+          <h3 style="font-size: 1.05rem; font-weight: 800; margin-top: .25rem;">Edit Hazard Report</h3>
+        </div>
+        <button type="button" id="mr-edit-close-btn" class="clay-btn-ghost" aria-label="Close edit dialog" style="padding: .45rem .6rem;"><i data-lucide="x" style="width: 17px; height: 17px;"></i></button>
+      </div>
+      <form id="mr-edit-form">
+        <div class="modal-body" style="display: flex; flex-direction: column; gap: .8rem;">
+          <div class="form-group">
+            <label class="form-label" for="mr-edit-title">Incident title</label>
+            <input type="text" id="mr-edit-title" class="clay-input no-icon" required />
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: .65rem;">
+            <div class="form-group">
+              <label class="form-label" for="mr-edit-barangay">Barangay</label>
+              <select id="mr-edit-barangay" class="clay-input no-icon">
+                {% for b in barangays %}<option value="{{ b }}">Brgy. {{ b }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="mr-edit-hazard-type">Hazard category</label>
+              <select id="mr-edit-hazard-type" class="clay-input no-icon">
+                {% for cat in hazard_categories %}<option value="{{ cat.type }}">{{ cat.name }}</option>{% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="mr-edit-address">Street / landmark</label>
+            <input type="text" id="mr-edit-address" class="clay-input no-icon" required />
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: .65rem;">
+            <div class="form-group">
+              <label class="form-label" for="mr-edit-severity">Severity</label>
+              <select id="mr-edit-severity" class="clay-input no-icon">
+                <option value="critical">Critical</option>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="mr-edit-clearance">Clearance (m)</label>
+              <input type="number" id="mr-edit-clearance" class="clay-input no-icon tabular-val" step="0.1" min="0.5" max="15.0" required />
+            </div>
+          </div>
+          <p id="mr-edit-error" style="display: none; font-size: .78rem; font-weight: 700; color: var(--red);"></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="mr-edit-cancel-btn" class="clay-btn-ghost">Cancel</button>
+          <button type="submit" id="mr-edit-save-btn" class="clay-btn-primary" style="width: auto;"><i data-lucide="save" style="width: 14px; height: 14px;"></i><span>Save changes</span></button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="my-report-delete-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="Withdraw hazard report">
+    <div class="modal-dialog" style="max-width: 440px;">
+      <div class="modal-header">
+        <div>
+          <span id="mr-delete-ticket" class="ticket-chip"></span>
+          <h3 style="font-size: 1.05rem; font-weight: 800; margin-top: .25rem;">Withdraw report?</h3>
+        </div>
+        <button type="button" id="mr-delete-close-btn" class="clay-btn-ghost" aria-label="Close withdraw dialog" style="padding: .45rem .6rem;"><i data-lucide="x" style="width: 17px; height: 17px;"></i></button>
+      </div>
+      <div class="modal-body">
+        <p class="section-sub" style="font-size: .85rem;">This will permanently remove <strong id="mr-delete-title"></strong> and its pending utility dispatch receipts.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="mr-delete-cancel-btn" class="clay-btn-ghost">Cancel</button>
+        <button type="button" id="mr-delete-confirm-btn" class="clay-btn-primary" style="width: auto; background: var(--red);">Confirm withdraw</button>
+      </div>
+    </div>
+  </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script id="my-reports-data" type="application/json">{{ my_reports_json|safe }}</script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const dataEl = document.getElementById("my-reports-data");
+    let myReports = dataEl ? JSON.parse(dataEl.textContent) : [];
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
+
+    const detailModal = document.getElementById("my-report-detail-modal");
+    const editModal = document.getElementById("my-report-edit-modal");
+    const deleteModal = document.getElementById("my-report-delete-modal");
+    let activeReport = null;
+
+    function esc(v) {
+      return String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    function syncModalBody() {
+      const open = [detailModal, editModal, deleteModal].some(m => m && m.classList.contains("open"));
+      document.documentElement.classList.toggle("modal-open", open);
+      document.body.classList.toggle("modal-open", open);
+    }
+
+    function closeAll() {
+      [detailModal, editModal, deleteModal].forEach(m => m && m.classList.remove("open"));
+      syncModalBody();
+    }
+
+    function findReport(id) {
+      return myReports.find(r => r.id === id);
+    }
+
+    document.querySelectorAll(".my-report-inspect-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const rep = findReport(btn.getAttribute("data-report-id"));
+        if (!rep || !detailModal) return;
+        activeReport = rep;
+        document.getElementById("mr-detail-ticket").textContent = rep.ticketNumber;
+        document.getElementById("mr-detail-title").textContent = rep.title;
+        document.getElementById("mr-detail-image").src = rep.imageUrl || "";
+        document.getElementById("mr-detail-address").textContent = `Brgy. ${rep.barangay} · ${rep.address}`;
+        document.getElementById("mr-detail-clearance").textContent = rep.aiAnalysis?.cableSagClearance || `${rep.clearanceHeightMeters}m`;
+        document.getElementById("mr-detail-confidence").textContent = `${rep.aiAnalysis?.confidence || 95}%`;
+        document.getElementById("mr-detail-warning").textContent = rep.aiAnalysis?.safetyWarning || "";
+        document.getElementById("mr-detail-action").textContent = rep.aiAnalysis?.recommendedAction || "";
+
+        const sevEl = document.getElementById("mr-detail-severity");
+        sevEl.textContent = (rep.severity || "high").toUpperCase();
+        sevEl.className = "badge-pill badge-compact " + (rep.severity === "critical" ? "badge-critical" : rep.severity === "high" ? "badge-high" : "badge-medium");
+
+        const statEl = document.getElementById("mr-detail-status");
+        statEl.textContent = (rep.status || "dispatched").toUpperCase();
+        statEl.className = "badge-pill badge-compact " + (rep.status === "resolved" ? "badge-resolved" : rep.status === "investigating" ? "badge-high" : "badge-amber");
+
+        const recList = document.getElementById("mr-detail-recipients");
+        recList.innerHTML = "";
+        (rep.dispatchDetails?.recipients || []).forEach(r => {
+          const row = document.createElement("div");
+          row.className = "clay-inset-box";
+          row.style.cssText = "display: flex; justify-content: space-between; align-items: center; gap: .5rem; flex-wrap: wrap;";
+          const noteHtml = r.resolutionNotes ? `<span class="section-sub" style="display: block; font-size: .72rem;">Note: ${esc(r.resolutionNotes)}</span>` : "";
+          row.innerHTML = `<div><strong>${esc(r.agency)}</strong>${noteHtml}</div><span style="color: var(--green); font-weight: 800;">${esc(r.status || "Delivered")}</span>`;
+          recList.appendChild(row);
+        });
+
+        detailModal.classList.add("open");
+        syncModalBody();
+      });
+    });
+
+    document.querySelectorAll(".my-report-edit-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const rep = findReport(btn.getAttribute("data-report-id"));
+        if (!rep || !rep.dbId || !editModal) return;
+        activeReport = rep;
+        document.getElementById("mr-edit-ticket").textContent = rep.ticketNumber;
+        document.getElementById("mr-edit-title").value = rep.title || "";
+        document.getElementById("mr-edit-barangay").value = rep.barangay || "Tisa";
+        document.getElementById("mr-edit-hazard-type").value = rep.hazardType || "sagging_cable";
+        document.getElementById("mr-edit-address").value = rep.address || "";
+        document.getElementById("mr-edit-severity").value = rep.severity || "critical";
+        document.getElementById("mr-edit-clearance").value = rep.clearanceHeightMeters ?? 3.0;
+        const errEl = document.getElementById("mr-edit-error");
+        if (errEl) errEl.style.display = "none";
+        editModal.classList.add("open");
+        syncModalBody();
+      });
+    });
+
+    const editForm = document.getElementById("mr-edit-form");
+    if (editForm) {
+      editForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (!activeReport || !activeReport.dbId) return;
+        const saveBtn = document.getElementById("mr-edit-save-btn");
+        const errEl = document.getElementById("mr-edit-error");
+        if (saveBtn) saveBtn.disabled = true;
+        try {
+          const res = await fetch(`/home/api/report/${activeReport.dbId}/edit/`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-CSRFToken": csrf },
+            body: JSON.stringify({
+              title: document.getElementById("mr-edit-title").value.trim(),
+              barangay: document.getElementById("mr-edit-barangay").value,
+              hazardType: document.getElementById("mr-edit-hazard-type").value,
+              address: document.getElementById("mr-edit-address").value.trim(),
+              severity: document.getElementById("mr-edit-severity").value,
+              clearanceHeightMeters: Number(document.getElementById("mr-edit-clearance").value),
+            }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            if (errEl) {
+              errEl.textContent = data.message || "Unable to update report.";
+              errEl.style.display = "block";
+            }
+            return;
+          }
+          window.location.reload();
+        } finally {
+          if (saveBtn) saveBtn.disabled = false;
+        }
+      });
+    }
+
+    document.querySelectorAll(".my-report-delete-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const rep = findReport(btn.getAttribute("data-report-id"));
+        if (!rep || !rep.dbId || !deleteModal) return;
+        activeReport = rep;
+        document.getElementById("mr-delete-ticket").textContent = rep.ticketNumber;
+        document.getElementById("mr-delete-title").textContent = rep.title;
+        deleteModal.classList.add("open");
+        syncModalBody();
+      });
+    });
+
+    const confirmDelBtn = document.getElementById("mr-delete-confirm-btn");
+    if (confirmDelBtn) {
+      confirmDelBtn.addEventListener("click", async () => {
+        if (!activeReport || !activeReport.dbId) return;
+        confirmDelBtn.disabled = true;
+        try {
+          const res = await fetch(`/home/api/report/${activeReport.dbId}/delete/`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-CSRFToken": csrf },
+          });
+          if (res.ok) {
+            const card = document.querySelector(`.report-card[data-report-id="${activeReport.id}"]`);
+            const deletedStatus = activeReport.status;
+            myReports = myReports.filter(r => r.id !== activeReport.id);
+            if (card) card.remove();
+            const totalEl = document.getElementById("my-stat-total");
+            if (totalEl) totalEl.textContent = String(Math.max(0, Number(totalEl.textContent) - 1));
+            const statusEl = document.getElementById(`my-stat-${deletedStatus}`);
+            if (statusEl) statusEl.textContent = String(Math.max(0, Number(statusEl.textContent) - 1));
+            closeAll();
+            if (myReports.length === 0) window.location.reload();
+          }
+        } finally {
+          confirmDelBtn.disabled = false;
+        }
+      });
+    }
+
+    ["mr-detail-close-btn", "mr-detail-done-btn", "mr-edit-close-btn", "mr-edit-cancel-btn", "mr-delete-close-btn", "mr-delete-cancel-btn"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener("click", closeAll);
+    });
+    [detailModal, editModal, deleteModal].forEach(m => {
+      if (m) m.addEventListener("click", e => { if (e.target === m) closeAll(); });
+    });
+    document.addEventListener("keydown", e => { if (e.key === "Escape") closeAll(); });
+  });
+</script>
 {% endblock %}
