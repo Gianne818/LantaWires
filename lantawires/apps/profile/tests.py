@@ -72,3 +72,30 @@ class ProfileFeatureTests(TestCase):
         self.assertContains(resolver_res, "TIC / VECO Resolver")
         self.assertContains(resolver_res, "Recent Queue Activity")
         self.assertContains(resolver_res, reverse("home:dispatches"))
+
+    def test_profile_stats_track_reports_by_reporter_fk_after_name_change(self):
+        from apps.home.models import HazardCategory, HazardReport
+
+        cat = HazardCategory.objects.create(
+            code="SAGGING_CABLE", category_name="Sagging Cable", min_clearance=4.5, default_severity="high"
+        )
+        HazardReport.objects.create(
+            ticket_number="LW-PROF-0001",
+            title="Profile FK Report",
+            reporter=self.user,
+            barangay=self.barangay,
+            category=cat,
+            address="Tisa Corridor",
+        )
+        self.client.force_login(self.user)
+        self.client.post(reverse("profile:profile"), {
+            "full_name": "Renamed Citizen",
+            "phone": "+63 917 554 8921",
+            "barangay": "Tisa",
+            "bio": "Updated bio",
+            "avatar": "RC",
+        })
+        res = self.client.get(reverse("profile:profile"))
+        self.assertEqual(res.status_code, 200)
+        self.assertGreaterEqual(res.context["profile_stats"]["logged"], 1)
+        self.assertContains(res, "LW-PROF-0001")

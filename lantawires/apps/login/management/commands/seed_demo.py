@@ -117,6 +117,7 @@ DEMO_USERS = [
 INITIAL_REPORTS_DATA = [
     {
         "ticket_number": "LW-CEB-2026-0841",
+        "reporter_email": "gianne@cebucity.ph",
         "title": "Severe Tangled Cable Sagging into Jeepney Transit Lane",
         "barangay": "Tisa",
         "address": "F. Pacaña St. cor. Katipunan Extension, Brgy. Tisa",
@@ -137,6 +138,7 @@ INITIAL_REPORTS_DATA = [
     },
     {
         "ticket_number": "LW-CEB-2026-0839",
+        "reporter_email": "morales.cebu@gmail.com",
         "title": "Dangling Spaghetti Bundle near Creek Residential Walkway",
         "barangay": "Buhisan",
         "address": "Sitio Lower Riverside, Brgy. Buhisan",
@@ -157,6 +159,7 @@ INITIAL_REPORTS_DATA = [
     },
     {
         "ticket_number": "LW-CEB-2026-0835",
+        "reporter_email": "morales.cebu@gmail.com",
         "title": "Cracked Wooden Pole with Overburdened Telecom Spool",
         "barangay": "Lahug",
         "address": "Salinas Drive near IT Park Access, Brgy. Lahug",
@@ -177,6 +180,7 @@ INITIAL_REPORTS_DATA = [
     },
     {
         "ticket_number": "LW-CEB-2026-0820",
+        "reporter_email": "lourdes.alcantara@yahoo.com",
         "title": "Low-Hanging Fiber Cable Crossing Pedestrian Overpass",
         "barangay": "Guadalupe",
         "address": "V. Rama Ave cor. Happy Valley Rd, Brgy. Guadalupe",
@@ -197,13 +201,14 @@ INITIAL_REPORTS_DATA = [
     },
     {
         "ticket_number": "LW-CEB-2026-0818",
+        "reporter_email": "gianne@cebucity.ph",
         "title": "Transformer Sparking and Burned Spaghetti Insulation",
         "barangay": "Tisa",
         "address": "South Hills Road, Sitio Mangga, Brgy. Tisa",
         "lat": 10.2945,
         "lng": 123.8712,
         "severity": "critical",
-        "status": "dispatched",
+        "status": "investigating",
         "image_url": "https://images.unsplash.com/photo-1498084393753-b411b2d26b34?auto=format&fit=crop&w=800&q=80",
         "clearance": 4.0,
         "category_code": "BURNING_SPARKING",
@@ -306,15 +311,21 @@ class Command(BaseCommand):
         primary_user = user_map.get("gianne@cebucity.ph")
 
         reports_synced = 0
+        delivery_status_map = {
+            "resolved": "Resolved",
+            "investigating": "En Route",
+        }
         for r_data in INITIAL_REPORTS_DATA:
             brgy = barangay_map.get(r_data["barangay"])
             cat = category_map.get(r_data["category_code"])
+            report_user = user_map.get(r_data.get("reporter_email"), primary_user)
+            delivery_status = delivery_status_map.get(r_data["status"], "Delivered")
 
             report, _ = HazardReport.objects.update_or_create(
                 ticket_number=r_data["ticket_number"],
                 defaults={
                     "title": r_data["title"],
-                    "reporter": primary_user,
+                    "reporter": report_user,
                     "barangay": brgy,
                     "category": cat,
                     "latitude": r_data["lat"],
@@ -351,7 +362,7 @@ class Command(BaseCommand):
                     agency=tic_agency,
                     defaults={
                         "turnaround_seconds": 32,
-                        "delivery_status": "Delivered" if r_data["status"] != "resolved" else "Resolved",
+                        "delivery_status": delivery_status,
                         "resolution_notes": "Dispatched to LGU Spaghetti Wire Eradication Task Force",
                     },
                 )
@@ -361,7 +372,7 @@ class Command(BaseCommand):
                     agency=veco_agency,
                     defaults={
                         "turnaround_seconds": 30,
-                        "delivery_status": "Delivered" if r_data["status"] != "resolved" else "Resolved",
+                        "delivery_status": delivery_status,
                         "resolution_notes": "Dispatched to Visayan Electric Line Safety Team",
                     },
                 )

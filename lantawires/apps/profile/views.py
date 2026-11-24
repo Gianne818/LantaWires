@@ -1,6 +1,6 @@
 from django.contrib import messages
 from django.shortcuts import redirect, render
-from apps.home.views import get_session_reports
+from apps.home.views import _report_belongs_to_user, get_session_reports
 from .models import CebuBarangay, Profile
 
 CEBU_BARANGAYS = [
@@ -97,11 +97,15 @@ def profile_view(request):
     )
 
     all_reports = get_session_reports(request)
+    effective_user = current_user_session or {
+        "name": display_name,
+        "email": user.email if user else "",
+    }
     if is_resolver:
         relevant_reports = all_reports
     else:
         relevant_reports = [
-            r for r in all_reports if (r.get("reporterName") or "").strip().lower() == display_name.strip().lower()
+            r for r in all_reports if _report_belongs_to_user(r, request, effective_user)
         ]
 
     profile_stats = {

@@ -1,5 +1,11 @@
+import base64
 import json
+import re
 import time
+import uuid
+from pathlib import Path
+
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.db.models import Subquery
@@ -35,19 +41,87 @@ DEFAULT_GUEST = {
     "avatar": "GC",
 }
 
+DEFAULT_HAZARD_IMAGE_URL = "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80"
+
+_IMAGE_EXT_MAP = {
+    "jpeg": "jpg",
+    "jpg": "jpg",
+    "png": "png",
+    "webp": "webp",
+    "gif": "gif",
+}
+
+
+def _persist_hazard_image(raw_image_url, ticket_number):
+    """Persist base64 data URLs under MEDIA_ROOT/hazards/ so image_url fits VARCHAR(500)."""
+    if not raw_image_url or not isinstance(raw_image_url, str):
+        return DEFAULT_HAZARD_IMAGE_URL
+
+    raw_image_url = raw_image_url.strip()
+    if raw_image_url.startswith("data:image/"):
+        match = re.match(
+            r"^data:image/([a-zA-Z0-9.+-]+);base64,(.+)$",
+            raw_image_url,
+            re.DOTALL,
+        )
+        if not match:
+            return DEFAULT_HAZARD_IMAGE_URL
+        subtype = match.group(1).lower()
+        b64_payload = match.group(2).strip()
+        ext = _IMAGE_EXT_MAP.get(subtype, "jpg")
+        try:
+            image_bytes = base64.b64decode(b64_payload, validate=True)
+            if not image_bytes or len(image_bytes) > 10 * 1024 * 1024:
+                return DEFAULT_HAZARD_IMAGE_URL
+            safe_ticket = re.sub(r"[^A-Za-z0-9_-]", "", ticket_number) or "hazard"
+            filename = f"{safe_ticket}-{uuid.uuid4().hex[:6]}.{ext}"
+            hazards_dir = Path(settings.MEDIA_ROOT) / "hazards"
+            hazards_dir.mkdir(parents=True, exist_ok=True)
+            (hazards_dir / filename).write_bytes(image_bytes)
+            media_prefix = (settings.MEDIA_URL or "/media/").rstrip("/")
+            return f"{media_prefix}/hazards/{filename}"
+        except (ValueError, OSError):
+            return DEFAULT_HAZARD_IMAGE_URL
+
+    if raw_image_url.startswith(("http://", "https://", "/media/", "/static/")) and len(raw_image_url) <= 500:
+        return raw_image_url
+
+    return DEFAULT_HAZARD_IMAGE_URL
+
+
+def _report_belongs_to_user(report, request, user_obj):
+    """Match report ownership by reporter FK ID, then email, then display name fallback."""
+    if request.user.is_authenticated and report.get("reporterId") is not None:
+        return report["reporterId"] == request.user.id
+
+    user_email = ((user_obj or {}).get("email") or "").strip().lower()
+    report_email = (report.get("reporterEmail") or "").strip().lower()
+    if user_email and report_email:
+        return report_email == user_email
+
+    user_name = ((user_obj or {}).get("name") or "").strip().lower()
+    return bool(user_name) and (report.get("reporterName") or "").strip().lower() == user_name
+
+
 def get_session_reports(request):
     custom_reports = request.session.get("custom_reports", [])
     
     # Also fetch database reports from Supabase PostgreSQL (CRUZ_ERD: home_hazardreport, ai_hazard_analyses, hazard_dispatches)
     db_reports = []
     try:
-        for r in HazardReport.objects.select_related("barangay", "reporter", "category").prefetch_related("dispatches__agency").all():
+        for r in HazardReport.objects.select_related("barangay", "reporter", "reporter__profile", "category").prefetch_related("dispatches__agency").all():
             barangay_name = r.barangay.name if r.barangay_id else "Tisa"
-            reporter_name = (
-                r.reporter.get_full_name() or r.reporter.username
-                if r.reporter_id
-                else "Citizen Reporter"
-            )
+            if r.reporter_id:
+                reporter_profile = getattr(r.reporter, "profile", None)
+                reporter_name = (
+                    (reporter_profile.full_name if reporter_profile and reporter_profile.full_name else "")
+                    or r.reporter.get_full_name()
+                    or r.reporter.username
+                )
+                reporter_email = (r.reporter.email or "").strip().lower()
+            else:
+                reporter_name = "Citizen Reporter"
+                reporter_email = ""
 
             # Read real AIHazardAnalysis from DB if present
             ai_obj = getattr(r, "ai_analysis", None)
@@ -80,6 +154,7 @@ def get_session_reports(request):
 
             db_reports.append({
                 "id": f"rep-db-{r.id}",
+                "dbId": r.id,
                 "ticketNumber": r.ticket_number,
                 "title": r.title,
                 "barangay": barangay_name,
@@ -88,8 +163,10 @@ def get_session_reports(request):
                 "severity": r.severity,
                 "status": r.status,
                 "reportedAt": r.created_at.strftime("%b %d, %Y"),
-                "imageUrl": r.image_url or "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80",
+                "imageUrl": r.image_url or DEFAULT_HAZARD_IMAGE_URL,
                 "reporterName": reporter_name,
+                "reporterId": r.reporter_id,
+                "reporterEmail": reporter_email,
                 "clearanceHeightMeters": r.clearance_meters,
                 "hazardType": r.hazard_type,
                 "affectedAgencies": ["Cebu City TIC", "Visayan Electric (VECO)", "Telco Response Unit"],
@@ -112,10 +189,10 @@ def get_session_reports(request):
     except Exception as e:
         print("Error fetching database reports:", e)
 
-    # Combine custom reports, db reports, and initial reports (avoiding ticket duplicates)
+    # Combine db reports first so live DB state takes precedence over stale session entries
     seen_tickets = set()
     combined = []
-    for r in custom_reports + db_reports + INITIAL_REPORTS:
+    for r in db_reports + custom_reports + INITIAL_REPORTS:
         ticket = r.get("ticketNumber") or r.get("id")
         if ticket not in seen_tickets:
             seen_tickets.add(ticket)
@@ -189,7 +266,7 @@ def home_view(request):
 
     citizen_stats = {
         "my_reports": sum(
-            1 for r in reports if (r.get("reporterName") or "").strip().lower() == user_name
+            1 for r in reports if _report_belongs_to_user(r, request, user_obj)
         ),
         "barangay_active": sum(
             1
@@ -232,9 +309,8 @@ def my_reports_view(request):
 
     is_resolver = role == "resolver"
     reports = get_session_reports(request)
-    user_name = (user_obj.get("name") or "").strip().lower()
     my_reports = [
-        r for r in reports if (r.get("reporterName") or "").strip().lower() == user_name
+        r for r in reports if _report_belongs_to_user(r, request, user_obj)
     ]
 
     my_stats = {
@@ -358,12 +434,20 @@ def logout_view(request):
 
 @require_POST
 def create_report_api(request):
+    current_user, _ = _resolve_session_user(request)
+    if current_user is None:
+        return JsonResponse(
+            {"status": "error", "message": "Authentication required."},
+            status=401,
+        )
+
     try:
         data = json.loads(request.body)
-        current_user = request.session.get("current_user", DEFAULT_GUEST)
 
         ticket_suffix = int(time.time()) % 10000
         ticket_number = f"LW-CEB-2026-{ticket_suffix:04d}"
+        if HazardReport.objects.filter(ticket_number=ticket_number).exists():
+            ticket_number = f"LW-CEB-2026-{uuid.uuid4().hex[:4].upper()}"
         
         title = data.get("title", "Overhead Wire Hazard Incident")
         barangay = data.get("barangay", current_user.get("barangay", "Tisa"))
@@ -371,7 +455,7 @@ def create_report_api(request):
         gps = data.get("gps", {"lat": 10.2982, "lng": 123.8741})
         severity = data.get("severity", "critical")
         status = "dispatched"
-        image_url = data.get("imageUrl", "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80")
+        image_url = _persist_hazard_image(data.get("imageUrl"), ticket_number)
         reporter_name = current_user.get("name", "Citizen Reporter")
         clearance = float(data.get("clearanceHeightMeters", 3.0))
         confidence = float(data.get("confidence", 95.8))
@@ -480,6 +564,7 @@ def create_report_api(request):
 
         new_report = {
             "id": f"rep-db-{db_report_id}" if db_report_id else f"rep-{int(time.time())}",
+            "dbId": db_report_id,
             "ticketNumber": ticket_number,
             "title": title,
             "barangay": barangay,
@@ -490,6 +575,8 @@ def create_report_api(request):
             "reportedAt": "Just now",
             "imageUrl": image_url,
             "reporterName": reporter_name,
+            "reporterId": request.user.id if request.user.is_authenticated else None,
+            "reporterEmail": (current_user.get("email") or "").strip().lower(),
             "clearanceHeightMeters": clearance,
             "hazardType": hazard_type,
             "affectedAgencies": ["Cebu City TIC", "Visayan Electric (VECO)", "Telco Response Unit"],
@@ -525,10 +612,11 @@ def create_report_api(request):
             },
         }
 
-        custom_reports = request.session.get("custom_reports", [])
-        custom_reports.insert(0, new_report)
-        request.session["custom_reports"] = custom_reports
-        request.session.modified = True
+        if db_report_id is None:
+            custom_reports = request.session.get("custom_reports", [])
+            custom_reports.insert(0, new_report)
+            request.session["custom_reports"] = custom_reports
+            request.session.modified = True
 
         return JsonResponse({"status": "ok", "report": new_report})
     except Exception as e:

@@ -1,5 +1,8 @@
+import base64
 import json
-from django.test import TestCase, Client
+import tempfile
+from pathlib import Path
+from django.test import TestCase, Client, override_settings
 from django.urls import reverse
 
 class HomeScreenTests(TestCase):
@@ -249,6 +252,83 @@ class HomeScreenTests(TestCase):
         self.assertContains(res, "(032) 261-0412")
         self.assertNotContains(res, "(032) 254-4411")
         self.assertNotContains(res, "(032) 231-5511")
+
+    def test_create_report_api_requires_authentication(self):
+        unauthenticated_client = Client()
+        response = unauthenticated_client.post(
+            reverse("home:create_report"),
+            data=json.dumps({"title": "Unauthorized wire report"}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 401)
+
+    def test_create_report_api_persists_base64_photo_to_media_and_db(self):
+        from apps.home.models import HazardReport
+
+        tiny_png_b64 = base64.b64encode(
+            b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90wS\xde\x00\x00\x00\x0cIDATx\x9cc`\x00\x00\x00\x02\x00\x01H\xaf\xa4q\x00\x00\x00\x00IEND\xaeB`\x82"
+        ).decode("ascii")
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with override_settings(MEDIA_ROOT=tmp_dir, MEDIA_URL="/media/"):
+                response = self.client.post(
+                    reverse("home:create_report"),
+                    data=json.dumps({
+                        "title": "Base64 Wire Photo Test",
+                        "barangay": "Tisa",
+                        "address": "Katipunan St.",
+                        "imageUrl": f"data:image/png;base64,{tiny_png_b64}",
+                    }),
+                    content_type="application/json",
+                )
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(HazardReport.objects.count(), 1)
+            report = HazardReport.objects.first()
+            self.assertTrue(report.image_url.startswith("/media/hazards/"))
+            self.assertLessEqual(len(report.image_url), 500)
+            filename = report.image_url.replace("/media/hazards/", "", 1)
+            self.assertTrue((Path(tmp_dir) / "hazards" / filename).is_file())
+
+    def test_my_reports_tracks_user_by_reporter_fk_after_name_change(self):
+        from django.contrib.auth.models import User
+        from apps.home.models import HazardCategory, HazardReport
+        from apps.profile.models import CebuBarangay, Profile
+
+        user = User.objects.create_user(
+            username="citizen@cebucity.ph",
+            email="citizen@cebucity.ph",
+            password="cebuwirehazard2026",
+            first_name="Original Name",
+        )
+        brgy = CebuBarangay.objects.create(
+            name="Lahug", district="North District", zip_code="6000", center_lat=10.3298, center_lng=123.9056
+        )
+        profile = Profile.objects.create(
+            user=user, full_name="Original Name", phone="+63 917 111 2222", barangay=brgy, role="citizen"
+        )
+        cat = HazardCategory.objects.create(
+            code="SAGGING_CABLE", category_name="Sagging Cable", min_clearance=4.5, default_severity="high"
+        )
+        HazardReport.objects.create(
+            ticket_number="LW-FK-0001",
+            title="FK Ownership Report",
+            reporter=user,
+            barangay=brgy,
+            category=cat,
+            address="Salinas Dr.",
+        )
+
+        # Simulate name change after report creation
+        profile.full_name = "Updated Citizen Name"
+        profile.save()
+        user.first_name = "Updated Citizen Name"
+        user.save()
+
+        auth_client = Client()
+        auth_client.force_login(user)
+        res = auth_client.get(reverse("home:my_reports"))
+        self.assertEqual(res.status_code, 200)
+        tickets = [r["ticketNumber"] for r in res.context["my_reports"]]
+        self.assertIn("LW-FK-0001", tickets)
 
     def test_logout_clears_session_and_redirects_to_login(self):
         response = self.client.get(reverse("home:logout"))
