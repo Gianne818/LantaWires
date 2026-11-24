@@ -67,3 +67,43 @@ class SettingsFeatureTests(TestCase):
         resolver_res = self.client.get(reverse("user_settings:settings"))
         self.assertContains(resolver_res, "Resolver Dispatch Config")
         self.assertContains(resolver_res, "Auto routing")
+
+    def test_change_password_success_keeps_user_logged_in(self):
+        self.client.force_login(self.user)
+        response = self.client.post(reverse("user_settings:change_password"), {
+            "current_password": "cebuwirehazard2026",
+            "new_password": "newsecure2026",
+            "confirm_password": "newsecure2026",
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse("user_settings:settings"))
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password("newsecure2026"))
+        # Session remains authenticated after password update
+        after_res = self.client.get(reverse("user_settings:settings"))
+        self.assertEqual(after_res.status_code, 200)
+
+    def test_change_password_rejects_wrong_current_or_mismatch(self):
+        self.client.force_login(self.user)
+        self.client.post(reverse("user_settings:change_password"), {
+            "current_password": "wrongpassword",
+            "new_password": "newsecure2026",
+            "confirm_password": "newsecure2026",
+        })
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password("cebuwirehazard2026"))
+
+        self.client.post(reverse("user_settings:change_password"), {
+            "current_password": "cebuwirehazard2026",
+            "new_password": "newsecure2026",
+            "confirm_password": "different2026",
+        })
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password("cebuwirehazard2026"))
+
+    def test_global_user_settings_context_processor_injects_settings_on_home(self):
+        self.client.force_login(self.user)
+        res = self.client.get(reverse("home:home"))
+        self.assertEqual(res.status_code, 200)
+        self.assertTrue(res.context["settings"].dark_mode)
+        self.assertContains(res, 'var serverDark = "True";')

@@ -1,5 +1,7 @@
 from django.contrib import messages
+from django.contrib.auth import update_session_auth_hash
 from django.shortcuts import redirect, render
+from django.views.decorators.http import require_POST
 from .models import UserSettings
 
 def settings_view(request):
@@ -64,3 +66,41 @@ def settings_view(request):
         "is_resolver": is_resolver,
     }
     return render(request, "user_settings/user_settings.html", context)
+
+
+@require_POST
+def change_password_view(request):
+    """Allow authenticated users to update their account password without losing their session."""
+    if not request.user.is_authenticated:
+        messages.warning(request, "Please log in to update your password.")
+        return redirect("login:login")
+
+    current_password = request.POST.get("current_password", "")
+    new_password = request.POST.get("new_password", "")
+    confirm_password = request.POST.get("confirm_password", "")
+
+    if not current_password or not new_password or not confirm_password:
+        messages.error(request, "Please fill out all password fields.")
+        return redirect("user_settings:settings")
+
+    if not request.user.check_password(current_password):
+        messages.error(request, "Current password is incorrect.")
+        return redirect("user_settings:settings")
+
+    if len(new_password) < 6:
+        messages.error(request, "New password must be at least 6 characters long.")
+        return redirect("user_settings:settings")
+
+    if new_password != confirm_password:
+        messages.error(request, "New password confirmation does not match.")
+        return redirect("user_settings:settings")
+
+    if new_password == current_password:
+        messages.error(request, "New password must be different from your current password.")
+        return redirect("user_settings:settings")
+
+    request.user.set_password(new_password)
+    request.user.save()
+    update_session_auth_hash(request, request.user)
+    messages.success(request, "Password updated successfully.")
+    return redirect("user_settings:settings")

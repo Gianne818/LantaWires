@@ -6,4 +6,5 @@ app_name = "user_settings"
 urlpatterns = [
     path("", views.settings_view, name="settings"),
     path("index/", views.settings_view, name="index"),
+    path("password/", views.change_password_view, name="change_password"),
 ]

@@ -134,6 +134,35 @@
         </div>
       </form>
     </div>
+
+    {% if user %}
+      <div class="clay-card settings-card" style="margin-top: 1.15rem;">
+        <div style="margin-bottom: 1.2rem; padding-bottom: 1rem; border-bottom: 2px solid var(--clay-border);">
+          <h2 style="font-size: 1.18rem; font-weight: 800; letter-spacing: -0.02em;">Account Security — Change Password</h2>
+          <p class="section-sub" style="margin-top: .25rem;">Update your LantaWires sign-in password while staying signed in on this device.</p>
+        </div>
+        <form id="change-password-form" method="post" action="{% url 'user_settings:change_password' %}" style="display: flex; flex-direction: column; gap: .85rem;">
+          {% csrf_token %}
+          <div class="form-group">
+            <label class="form-label" for="settings-current-password">Current password</label>
+            <input id="settings-current-password" name="current_password" type="password" class="clay-input no-icon" required autocomplete="current-password" placeholder="Enter current password" />
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: .75rem;">
+            <div class="form-group">
+              <label class="form-label" for="settings-new-password">New password</label>
+              <input id="settings-new-password" name="new_password" type="password" class="clay-input no-icon" minlength="6" required autocomplete="new-password" placeholder="Min. 6 characters" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="settings-confirm-password">Confirm new password</label>
+              <input id="settings-confirm-password" name="confirm_password" type="password" class="clay-input no-icon" minlength="6" required autocomplete="new-password" placeholder="Re-type new password" />
+            </div>
+          </div>
+          <div style="display: flex; justify-content: flex-end; border-top: 2px solid var(--clay-border); padding-top: 1.1rem;">
+            <button id="change-password-btn" type="submit" class="clay-btn-primary" style="width: auto;"><i data-lucide="key-round" style="width: 15px; height: 15px;"></i><span>Update password</span></button>
+          </div>
+        </form>
+      </div>
+    {% endif %}
   </main>
 </div>
 {% endblock %}

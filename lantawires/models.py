@@ -152,6 +152,12 @@ class Profile(models.Model):
         default="GC",
         help_text="Initials or profile avatar preset: Varchar(10)",
     )
+    role = models.CharField(
+        max_length=20,
+        choices=[("citizen", "Citizen"), ("resolver", "Resolver")],
+        default="citizen",
+        help_text="User role (citizen or resolver): Varchar(20) M",
+    )
     bio = models.TextField(
         blank=True,
         null=True,
